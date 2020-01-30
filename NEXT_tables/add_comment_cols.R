@@ -1,10 +1,10 @@
-t <- read.delim("/Users/dashazhernakova/Documents/UMCG/data/NEXT_tables/Registration_LL_NEXT_samples_edSJ_NEXTnumbersAdded.txt", sep = "\t", quote = "",header = F, as.is = T, check.names = F)
+t <- read.delim("/Users/dashazhernakova/Documents/UMCG/data/NEXT_tables/filesreadyforcommentscript/Registration_LL_NEXT_samples_NEXTnumberAdded_PartMerge_v4.0.txt", sep = "\t", quote = "",header = F, as.is = T, check.names = F)
 t <- as.data.frame(t)
 cs <- which(t[1,] == "Lifelines + NEXT number")
 cs <- cs[seq(2,length(cs))] #don't need a comment after row description
 
 empty_col <- rep("", nrow(t))
-empty_col[5] = "comment"
+empty_col[4] = "comment"
 
 res <- t[0:(cs[1] - 1)]
 st = cs[1]
