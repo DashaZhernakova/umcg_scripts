@@ -7,18 +7,13 @@
 from collections import defaultdict
 import glob
 import re
-
+print "started"
 
 # In[164]:
+ 
 
-
-f = open("/Users/dashazhernakova/Documents/UMCG/data/NEXT_tables/Registration_LL_NEXT_samples_NEXTnumberAdded_PartMerge_v4.0_comments.txt")
-
-
-# In[165]:
-
-
-out = open("/Users/dashazhernakova/Documents/UMCG/data/NEXT_tables/Registration_LL_NEXT_samples_NEXTnumberAdded_PartMerge_v4.0_comments_mvd.txt", "w")
+f = open("C:/Users/Dasha/work/UMCG/data/NEXT_tables/storagetables2_0/reg_table/registration_table.txt")
+out = open("C:/Users/Dasha/work/UMCG/data/NEXT_tables/storagetables2_0/reg_table/registration_table_2.txt", "w")
 
 
 # In[166]:
@@ -109,9 +104,13 @@ out.write("\t".join(spl_h4) + "\n")
 
 # define how sample type corresponds to sample group
 stype2group = {}
-with open("/Users/dashazhernakova/Documents/UMCG/data/NEXT_tables/stype2sgroup.txt") as stype_f:
-    stype2group = {l.rstrip().split("\t")[0] : l.rstrip().split("\t")[1] for l in stype_f}
-#stype2group
+group2stype = {}
+with open("C:/Users/Dasha/work/UMCG/data/NEXT_tables/stype2sgroup.txt") as stype_f:
+    for l in stype_f:
+        spl = l.rstrip().split("\t")
+        stype2group[spl[0]] = spl[1]
+        group2stype[spl[1]] = spl[0]
+
 
 
 # In[169]:
@@ -142,23 +141,19 @@ for l in f:
             # TODO don't forget Bristol stool samples later
             
             #move comments to the last field
-            spl[coln:coln + n_fields] = move_comments(spl[coln:coln + n_fields])
+            #spl[coln:coln + n_fields] = move_comments(spl[coln:coln + n_fields])
 
             #fill the dict, skip empty samples and irrelevant sample types
             res_list = spl[coln:coln + n_fields]
             
             if sgroup and any(res_list) and not res_list[-1] == 'o':
-                #what_stripped = re.sub(r" %s$" % when, "", what)
-                #res_list2 = res_list
-                #print ll_id, who, when, what, res_list
+                
                 res_list2 = search_fill_missing_dates(ll_id, who, when, what, res_list, res_dict)
                 
                 spl[coln:coln + n_fields] = res_list2
                 res_dict[sgroup][ll_id + ":" + who + ":" + when + ":" + what] = res_list2
-                #if ll_id == '007274':
-                #    print ll_id, who, when, what, res_list, spl[coln:coln + n_fields]
             #check colnames
-            assert spl_h5[coln:coln + n_fields] == colnames, spl_h5[coln:coln + n_fields]     
+            assert spl_h4[coln:coln + n_fields] == colnames, spl_h4[coln:coln + n_fields]     
     out.write("\t".join(spl) + "\n")
         
 print "Processed lines:", cnt
@@ -172,50 +167,104 @@ out.close()
 #
 # process and fill storage files
 #
-st_header_pattern = ["Box number", "Position", "Lifelines number", "Lifelines Next number", "Time point", "Aliquot number", "Barcode", "Sample issued (yes/No)", "Date Sample issued ", "Remarks"]
-storage_fdir = "/Users/dashazhernakova/Documents/UMCG/data/NEXT_tables/Fixed_tables/"
-out_storage_fdir = "/Users/dashazhernakova/Documents/UMCG/data/NEXT_tables/Fixed_tables_DZ/"
-for filepath in glob.iglob(storage_fdir + '* (edited Justin).txt'):
-    fname = filepath.split("/")[-1]
-    m = re.match(r"(.*)_([BMF]) \(edited Justin\)\.txt", fname)
-    file_sgroup = m.group(1)
-    file_who_abbr = m.group(1)
+st_header_pattern = ["Box number", "Position", "Lifelines number", "Lifelines Next number", "Time point", "Aliquot number", "Barcode", "Sample issued (yes/no)", "Date Sample issued", "Remarks", "Trash"]
+storage_fdir = "C:/Users/Dasha/work/UMCG/data/NEXT_tables/storagetables2_0/"
+out_storage_fdir = "C:/Users/Dasha/work/UMCG/data/NEXT_tables/storagetables2_0/storagetables2_0_DZ/"
+
+for filepath in glob.iglob(storage_fdir + '*.txt'):
+    fname = filepath.split("\\")[-1]
+    print fname
+
+    file_who_abbr = 'NA'
+    file_sgroup = 'NA'
+    if 'PAXgene' in fname:
+        file_sgroup = 'PAXgene'
+    else:
+        m = re.match(r"(.*)_([BMF])_edSJ\.txt", fname)
+        file_sgroup = m.group(1)
+        file_who_abbr = m.group(2)
+
     print filepath, file_sgroup, file_who_abbr
-    out_fpath = out_storage_fdir + fname.replace(" (edited Justin).txt", ".edited_DZ.txt", 1)
+    out_fpath = out_storage_fdir + fname.replace("_edSJ.txt", ".edited_DZ.txt", 1)
 
     st_f = open(filepath)
     out_st_f = open(out_fpath, 'w')
     header_spl = st_f.readline().rstrip().split('\t')
-
-    #TODO: Comments also side by side
-    out_st_f.write("\t".join(header_spl[:7]) + "\tReg_barcode\tReg_barcode_swab\tMerged barcode\tComment barcode\t" + "\t".join(colnames[2:-1]) + "\t" + "\t".join(header_spl[7:10]) + "\tComment reg file" + "\n")
-    #out_st_f.write("\t".join(header_spl[:7]) + "\t" + "\t".join(colnames) + "\t" + header_spl[9] + "\n")
     assert header_spl == st_header_pattern, header_spl
-    #cnt = 0
+
+    # Write the header line
+    # Add stool type as a separate column to the feces files
+    feces = False
+    if 'Feces' in fname:
+        feces = True
+    if not feces:
+        out_st_f.write("\t".join(header_spl[:7]) + "\tReg_barcode\tReg_barcode_swab\tMerged barcode\tComment barcode\t" + "\t".join(colnames[2:-1]) + "\t" + "\t".join(header_spl[7:10]) + "\tComment reg file\tTrash\n")
+    else:
+        if file_who_abbr == 'M':
+            out_st_f.write("\t".join(header_spl[:7]) + "\tReg_barcode\tReg_barcode_swab\tMerged barcode\tComment barcode\t" + "\t".join(colnames[2:-1]) + "\t" + "\t".join(header_spl[7:10]) + "\tComment reg file\tTrash\tBristol Stool Scale [Type 1-7]\n")
+        elif file_who_abbr == 'B':
+            out_st_f.write("\t".join(header_spl[:7]) + "\tReg_barcode\tReg_barcode_swab\tMerged barcode\tComment barcode\t" + "\t".join(colnames[2:-1]) + "\t" + "\t".join(header_spl[7:10]) + "\tComment reg file\tTrash\tBITTS Score [Type 1-4]\n")
+
 
     for l in st_f:
         spl = l.rstrip('\r\n').split('\t')
-        lst_to_write = [""] * 19
+        lst_to_write = [""] * 20
         lst_to_write[:7] = spl[:7]
 
         if spl[3] == 'null' or len(spl[3]) == 0:
             out_st_f.write("\t".join(lst_to_write) + "\n")
             continue
+        
+        # Fix the 'what' field if it is a subgroup of a larger sample group
+        aliq_num = spl[5]
+        if spl[5] == '':
+            aliq_num = group2stype[file_sgroup]
 
-        ll_id = "%06d" % (int(spl[3]),)  
-        res = res_dict[file_sgroup].get(ll_id + ":" + file_who + ":" + spl[4] + ":" + spl[5])
+        # Fix timepoint for Placenta samples and for Fathers and for PAXgene
+        time_point = spl[4]
+        if spl[4] == '' and file_sgroup == 'Placenta_samples':
+            time_point = 'B'
+        elif file_who_abbr == 'F':
+            time_point = 'All possible'
+        elif spl[4] == '' and spl[9] == 'Father':
+            time_point = 'All possible'
+
+        if file_sgroup == 'PAXgene':
+            if 'baby' in spl[9].lower():
+                file_who_abbr = 'B'
+            else:
+                file_who_abbr = spl[9][0]
+
+        # Parse LL id
+        ll_id = 'NA'
+        if '_' in spl[3]:
+            ll_id = spl[3]
+        else:
+            ll_id = "%06d" % (int(spl[3]),)  
+        
+        if ll_id == 'NA':
+            lst_to_write[9] = spl[6]
+            lst_to_write[10] = "ERROR! Wrong LLNext id!"
+            lst_to_write[15:18] = spl[7:10] # the rest of the storage file
+            lst_to_write[19] = spl[-1] # Trash column
+            continue
+        
+
+        # get the info from the registration file
+        res = res_dict[file_sgroup].get(ll_id + ":" + file_who_abbr + ":" + time_point + ":" + aliq_num)
 
         if not res:
             lst_to_write[10] = "WARNING: no info in the registration file"
             if ll_id not in header_dict:
                 lst_to_write[10] = "ERROR: no such id in the registration file"
+            lst_to_write[9] = spl[6]
+            lst_to_write[15:18] = spl[7:10] # the rest of the storage file
+            lst_to_write[19] = spl[-1] # Trash column
             out_st_f.write("\t".join(lst_to_write) + "\n")
             continue
 
         #compare barcodes, write a merged column
-        #error_barcode_mismatch
-        #error_no_barcode_in_reg_file
-        lst_to_write[7:9] = res[0:2]
+        lst_to_write[7:9] = res[0:2] #barcode and swap barcode
         lst_to_write[9] = "NA"
         bc = spl[6]
         if len(res[1]) > 0: # if swap barcode present
@@ -234,9 +283,27 @@ for filepath in glob.iglob(storage_fdir + '* (edited Justin).txt'):
             lst_to_write[9] = bc
             lst_to_write[10] = "WARNING: no barcode in registration file"
 
+        #write the rest of information from both sources
         lst_to_write[11:15] = res[2:-1] # time and date from reg file
         lst_to_write[15:18] = spl[7:10] # the rest of the storage file
         lst_to_write[18] = res[-1] # comments from reg file
+        lst_to_write[19] = spl[-1] # Trash column
+
+        #Add stool type to Feces files
+        if feces:
+            if file_who_abbr == 'M':
+                stool_type = res_dict['Feces'].get(ll_id + ":" + file_who_abbr + ":" + time_point + ":" + 'Bristol Stool Scale [Type 1-7]')
+            elif file_who_abbr == 'B':
+                stool_type = res_dict['Feces'].get(ll_id + ":" + file_who_abbr + ":" + time_point + ":" + 'BITTS Score [Type 1-4]')
+            if stool_type:
+                lst_to_write.append(stool_type[0])
+                
+                #Add the comments from Bristol stool scale and BITTS to the Feces comment column
+                if not stool_type[-1] == '':
+                    if stool_type[-1] not in lst_to_write[18]:
+                        lst_to_write[18] += '; From stool score:' + stool_type[-1]
+
+
         out_st_f.write("\t".join(lst_to_write) + "\n")
         #cnt += 1
         #if cnt > 10:
@@ -325,4 +392,6 @@ def fill_missing_dates(res_list, res_to_use):
         if len(res_list[i]) == 0 and len(res_to_use[i]) > 0:
             res_list[i] = res_to_use[i]
     return res_list
+
+
 
