@@ -15,19 +15,11 @@ print "started"
 f = open("C:/Users/Dasha/work/UMCG/data/NEXT_tables/storagetables2_0/reg_table/registration_table.txt")
 out = open("C:/Users/Dasha/work/UMCG/data/NEXT_tables/storagetables2_0/reg_table/registration_table_2.txt", "w")
 
-
-# In[166]:
-
-
 # first read the 4 header lines
 spl_h1 = f.readline().rstrip('\r\n').split("\t")
 spl_h2 = f.readline().rstrip('\r\n').split("\t")
 spl_h3 = f.readline().rstrip('\r\n').split("\t")
 spl_h4 = f.readline().rstrip('\r\n').split("\t")
-
-
-# In[167]:
-
 
 #
 # Process the header, link LL ids to column numbers
@@ -98,10 +90,6 @@ out.write("\t".join(spl_h3) + "\n")
 out.write("\t".join(spl_h4) + "\n")
     
 
-
-# In[168]:
-
-
 # define how sample type corresponds to sample group
 stype2group = {}
 group2stype = {}
@@ -112,10 +100,6 @@ with open("C:/Users/Dasha/work/UMCG/data/NEXT_tables/stype2sgroup.txt") as stype
         group2stype[spl[1]] = spl[0]
 
 
-
-# In[169]:
-
-
 # process the main table
 res_dict = defaultdict(dict)
 cnt = 0
@@ -124,7 +108,9 @@ n_fields = 7
 #cur_who = ''
 for l in f:
     cnt += 1
-    spl = l.rstrip('\r\n').split("\t")
+    spl0 = l.rstrip('\r\n').split("\t")
+    spl = [x.strip(' ') for x in spl0]
+
     if len(spl[0]) > 0:
         when = spl[0].replace('Birth','B')
     if len(spl[1]) > 0:
@@ -137,15 +123,15 @@ for l in f:
        
     # loop over all ids for this sample type
     for ll_id, colnums in header_dict.items():
-        for coln in colnums:
-            # TODO don't forget Bristol stool samples later
-            
+        for coln in colnums:           
             #move comments to the last field
             #spl[coln:coln + n_fields] = move_comments(spl[coln:coln + n_fields])
 
             #fill the dict, skip empty samples and irrelevant sample types
             res_list = spl[coln:coln + n_fields]
-            
+            #if ll_id == '011945' and what == 'Plasma-1' and who == 'M' and when == 'B':
+            #    print ll_id
+
             if sgroup and any(res_list) and not res_list[-1] == 'o':
                 
                 res_list2 = search_fill_missing_dates(ll_id, who, when, what, res_list, res_dict)
@@ -167,6 +153,9 @@ out.close()
 #
 # process and fill storage files
 #
+
+#TODO: placenta child - check if Baby Birth has it, if not - look at the Birth Mother placenta child field
+
 st_header_pattern = ["Box number", "Position", "Lifelines number", "Lifelines Next number", "Time point", "Aliquot number", "Barcode", "Sample issued (yes/no)", "Date Sample issued", "Remarks", "Trash"]
 storage_fdir = "C:/Users/Dasha/work/UMCG/data/NEXT_tables/storagetables2_0/"
 out_storage_fdir = "C:/Users/Dasha/work/UMCG/data/NEXT_tables/storagetables2_0/storagetables2_0_DZ/"
@@ -207,7 +196,9 @@ for filepath in glob.iglob(storage_fdir + '*.txt'):
 
 
     for l in st_f:
-        spl = l.rstrip('\r\n').split('\t')
+        spl0 = l.rstrip('\r\n').split('\t')
+        spl = [x.strip(' ') for x in spl0]
+
         lst_to_write = [""] * 20
         lst_to_write[:7] = spl[:7]
 
@@ -215,10 +206,20 @@ for filepath in glob.iglob(storage_fdir + '*.txt'):
             out_st_f.write("\t".join(lst_to_write) + "\n")
             continue
         
+        #Aliquot number fixes
         # Fix the 'what' field if it is a subgroup of a larger sample group
         aliq_num = spl[5]
         if spl[5] == '':
             aliq_num = group2stype[file_sgroup]
+        elif spl[5] not in stype2group:
+            print "Strange aliquot num field!", spl[5]
+            #try removing the timepoint
+            if spl[5].endswith(" " + spl[4]):
+                aliq_num = spl[5][:-(len(spl[4]) + 1)]
+            if 'Heparin gel' in spl[5]:
+                aliq_num = spl[5].replace('Heparin gel', 'Heparine', 1)
+            print "Tried to fix it into", aliq_num
+
 
         # Fix timepoint for Placenta samples and for Fathers and for PAXgene
         time_point = spl[4]
@@ -345,11 +346,7 @@ def move_comments(id_spl):
     return id_spl
 
 
-# In[149]:
-
-
 def search_fill_missing_dates(ll_id, who, when, what, res_list, res_dict):
-    stype_list = []
     res_to_use = []
     #if not any(res_list[:6]):
     #    print "Missing values", ll_id + ":" + who + ":" + when, res_list
@@ -384,6 +381,10 @@ def search_fill_missing_dates(ll_id, who, when, what, res_list, res_dict):
         if what.startswith("Placenta mother-"):
             res_to_use = res_dict['temp_group'].get(ll_id + ":" + who + ":" + when + ":" + '1x Placenta mother')
             return fill_missing_dates(res_list, res_to_use)
+        if what.startswith("Placenta child-"):
+            res_to_use = res_dict['temp_group'].get(ll_id + ":" + who + ":" + when + ":" + '1x Placenta child')
+            return fill_missing_dates(res_list, res_to_use)
+            
     return res_list
 def fill_missing_dates(res_list, res_to_use):
     if not res_to_use:
@@ -395,3 +396,6 @@ def fill_missing_dates(res_list, res_to_use):
 
 
 
+
+
+# %%
