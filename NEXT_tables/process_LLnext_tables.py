@@ -12,8 +12,8 @@ print "started"
 # In[164]:
  
 
-f = open("C:/Users/Dasha/work/UMCG/data/NEXT_tables/storagetables2_0/reg_table/registration_table.txt")
-out = open("C:/Users/Dasha/work/UMCG/data/NEXT_tables/storagetables2_0/reg_table/registration_table_2.txt", "w")
+f = open("C:/Users/Dasha/work/UMCG/data/NEXT_tables/finaltablesbeforemerging/reg_table/registration_table.txt")
+out = open("C:/Users/Dasha/work/UMCG/data/NEXT_tables/finaltablesbeforemerging/reg_table/registration_table_2.txt", "w")
 
 # first read the 4 header lines
 spl_h1 = f.readline().rstrip('\r\n').split("\t")
@@ -129,8 +129,8 @@ for l in f:
 
             #fill the dict, skip empty samples and irrelevant sample types
             res_list = spl[coln:coln + n_fields]
-            #if ll_id == '011945' and what == 'Plasma-1' and who == 'M' and when == 'B':
-            #    print ll_id
+            if ll_id == '010829' and what == 'Placenta child-1':
+                print ll_id
 
             if sgroup and any(res_list) and not res_list[-1] == 'o':
                 
@@ -157,8 +157,8 @@ out.close()
 #TODO: placenta child - check if Baby Birth has it, if not - look at the Birth Mother placenta child field
 
 st_header_pattern = ["Box number", "Position", "Lifelines number", "Lifelines Next number", "Time point", "Aliquot number", "Barcode", "Sample issued (yes/no)", "Date Sample issued", "Remarks", "Trash"]
-storage_fdir = "C:/Users/Dasha/work/UMCG/data/NEXT_tables/storagetables2_0/"
-out_storage_fdir = "C:/Users/Dasha/work/UMCG/data/NEXT_tables/storagetables2_0/storagetables2_0_DZ/"
+storage_fdir = "C:/Users/Dasha/work/UMCG/data/NEXT_tables/finaltablesbeforemerging/"
+out_storage_fdir = "C:/Users/Dasha/work/UMCG/data/NEXT_tables/finaltablesbeforemerging/storagetables_final_DZ/"
 
 for filepath in glob.iglob(storage_fdir + '*.txt'):
     fname = filepath.split("\\")[-1]
@@ -383,6 +383,9 @@ def search_fill_missing_dates(ll_id, who, when, what, res_list, res_dict):
             return fill_missing_dates(res_list, res_to_use)
         if what.startswith("Placenta child-"):
             res_to_use = res_dict['temp_group'].get(ll_id + ":" + who + ":" + when + ":" + '1x Placenta child')
+            if not res_to_use:
+                # check if 1xPlacenta child is registered at Mother's section (NB! before that manually add mothers 1x Placenta child as 1x Placenta child2 to Baby's birth section)
+                res_to_use = res_dict['temp_group'].get(ll_id + ":" + who + ":" + when + ":" + '1x Placenta child2')
             return fill_missing_dates(res_list, res_to_use)
             
     return res_list
