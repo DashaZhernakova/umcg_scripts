@@ -45,7 +45,7 @@ rm_na_outliers <- function(traits_m, pheno_m, idx){
   return(tab_nooutliers)
 }
 
-plot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts, n_points, make_plots){
+plot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts, n_points, make_plots, label = ''){
   merged_tab <- mutate(merged_tab, ord_gender_F1M2 = ordered(gender_F1M2, levels = c('1', '2')))
   merged_tab <- mutate(merged_tab, gender_F1M2 = factor(gender_F1M2))
   pheno_name = gene_table[gene_table[,1] == colnames(merged_tab)[1],2]
@@ -115,7 +115,7 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts, 
     ## draw base plot
     palette(c(col2transparent("indianred1", 125),col2transparent("dodgerblue1", 125)))
     plot(phenotype ~ age, data = merged_tab,  col = gender_F1M2,  pch = 16, 
-         main = paste0(pheno_name, "\nGAM interaction p = ", format(m_o_p, digits = 3)), 
+         main = paste0(pheno_name, ' ', label, "\nGAM interaction p = ", format(m_o_p, digits = 3)), 
          cex = 0.6, xlab = "age", ylab = pheno_name)
     
     levs <- levels(merged_tab$gender_F1M2)
@@ -131,7 +131,7 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts, 
     plot(res_dif$age, res_dif$diff, type = 'l')
   }
   
-  return (list("dif" = res_dif$diff, "inter_p" = m_o_p,"g_beta" = m_o_g_beta, "g_pv" = m_o_g_pv))
+  return (list("pdat" = pdat, "dif" = res_dif$diff, "inter_p" = m_o_p,"g_beta" = m_o_g_beta, "g_pv" = m_o_g_pv))
 } 
 
 
@@ -166,7 +166,7 @@ col2transparent <- function(col, transparency){
   dodgerblueTransparent <- rgb(colRgb[1,1], colRgb[2,1], colRgb[3,1], transparency, names = NULL, maxColorValue = 255)
 }
 ######################################################################################
-boxy = T
+boxy = F
 
 if (boxy){
   wd_path <- '/groups/umcg-lld/tmp03/umcg-dzhernakova/gender_difs/'
@@ -184,7 +184,7 @@ out_prefix <- args[2]
 }
 gte_path <- "gte_all.txt"
 pheno_path <- "age_gender_smk_contrac_cell_counts.cc_outliers_na.txt"
-gene_table_path <- "geneid_to_gene_proteincoding.txt"
+gene_table_path <- "geneid_to_gene_proteincoding_mainchr.txt"
 plot_basepath <- out_prefix
 correct_for_cellcounts = TRUE
 make_plots = TRUE
@@ -261,22 +261,23 @@ for (idx in start_idx:end_idx){
   }
   print(idx)
   
-  pheno_name = gene_table[gene_table[,1] == colnames(traits_m)[idx],2]
-  if (length(pheno_name) > 0){ #if gene id in gene convertion table
+  trait_id <- colnames(traits_m)[idx]
+  trait_name = gene_table[gene_table[,1] == trait_id,2]
+  if (length(trait_name) > 0){ #if gene id in gene convertion table
     merged_tab <- rm_na_outliers(traits_m, pheno_m, idx)
     
     
     res_dif = NULL
-    res_dif_lst <- plot_scatter_and_gam2(merged_tab, pheno_name, correct_for_cellcounts, n_points, make_plots)
+    res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, correct_for_cellcounts, n_points, make_plots)
     
-    res_summary[pheno_name,'inter_p'] = res_dif_lst[["inter_p"]]
-    res_summary[pheno_name,'g_beta'] = res_dif_lst[["g_beta"]]
-    res_summary[pheno_name,'g_pv'] = res_dif_lst[["g_pv"]]
+    res_summary[trait_id,'inter_p'] = res_dif_lst[["inter_p"]]
+    res_summary[trait_id,'g_beta'] = res_dif_lst[["g_beta"]]
+    res_summary[trait_id,'g_pv'] = res_dif_lst[["g_pv"]]
     
     if (res_dif_lst[["inter_p"]] < 0.05){
       #break
       cnt <- cnt + 1
-      res_dif_all[,pheno_name] <- res_dif_lst[["dif"]]
+      res_dif_all[,trait_id] <- res_dif_lst[["dif"]]
     }
   }
   
