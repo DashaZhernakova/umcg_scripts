@@ -78,9 +78,9 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts, 
     
     pdat_dif <- expand.grid(age = seq(20, 75, length = n_points),
                         gender_F1M2 = c('1', '2'))
-    res_dif <- smooth_diff(m1, pdat_dif, '2', '1', "gender_F1M2")
-    res_dif$age = seq(20, 75, length = n_points)
-    
+    #res_dif <- smooth_diff(m1, pdat_dif, '2', '1', "gender_F1M2")
+    #res_dif$age = seq(20, 75, length = n_points)
+    res_dif <- simple_diff(pdat)
     
   } else { # Correct for cell counts
     
@@ -106,8 +106,9 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts, 
     pdat_dif <- expand.grid(age = seq(20, 75, length = n_points), gender_F1M2 = c('1', '2'), 
                         ba = mean(merged_tab$ba), eo = mean(merged_tab$eo), er = mean(merged_tab$er), gr = mean(merged_tab$gr), 
                         ly = mean(merged_tab$ly),  mo = mean(merged_tab$mo), tr = mean(merged_tab$tr))
-    res_dif <- smooth_diff(m1, pdat_dif, '2', '1', "gender_F1M2")
-    res_dif$age = seq(20, 75, length = n_points)
+    #res_dif <- smooth_diff(m1, pdat_dif, '2', '1', "gender_F1M2")
+    #res_dif$age = seq(20, 75, length = n_points)
+    res_dif <- simple_diff(pdat)
     }
   
   if (make_plots){
@@ -129,11 +130,23 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts, 
     
     #Plot the difference
     plot(res_dif$age, res_dif$diff, type = 'l')
+    
+    #plot with conf interval
+    #ggplot(res_dif, aes(x = age, y = diff)) +
+    #  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.2) +
+    #  geom_line()
+      
   }
   
   return (list("pdat" = pdat, "dif" = res_dif$diff, "inter_p" = m_o_p,"g_beta" = m_o_g_beta, "g_pv" = m_o_g_pv))
 } 
 
+simple_diff <- function(pdat){
+  pdat <- pdat[order(pdat$gender_F1M2, pdat$age),]
+  dif <- pdat[pdat$gender_F1M2 == 2, "pred"] - pdat[pdat$gender_F1M2 == 1, "pred"]
+  res_dif <- data.frame(age = pdat[pdat$gender_F1M2 == 1, "age"], diff = dif)
+  return(res_dif)
+}
 
 
 smooth_diff <- function(model, newdata, f1, f2, var, alpha = 0.05,
@@ -178,7 +191,8 @@ if  (length(args) > 1) {                                                        
 out_prefix <- args[2]
 } else {
   #traits0_path <- "../LLD_expression/gene_read_counts_BIOS_and_LLD_passQC.only_LLD.no_zeros.TMM.CPM.tsv.gz.Log2Transformed.ProbesCentered.SamplesZTransformed.txt.gz"
-  traits0_path <- "LLD_expression_ageDEgenes.txt.gz"
+  #traits0_path <- "LLD_expression_ageDEgenes.txt.gz"
+  traits0_path <- "expression_selected_res_table.summary.signif.txt"
   
   out_prefix <- "test_ageDEgenes"
 }
