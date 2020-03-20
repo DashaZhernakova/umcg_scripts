@@ -1,6 +1,6 @@
 
 
-get_poly_degree <- function (g){
+get_poly_degree <- function (res_dif_all, g){
   x <- res_dif_all[,c("age",g)]
   lm0 <- chooseBestModel(x)
   
@@ -19,11 +19,7 @@ get_poly_degree <- function (g){
   }
   return (poly_d)
 }
-pdat_lm <- with(x, expand.grid(age = seq(20, 75, length = 500)))
-pdat_lm <- transform(pdat_lm, pred = predict(lm0, newdata = pdat_lm, type = "response"))
 
-plot(x)
-lines(pred ~ age, data = pdat_lm, col = "red", lwd = 2)
 
 chooseBestModel <- function(d){
   colnames(d)[2] = "pheno"
@@ -83,7 +79,46 @@ plot_clustering <- function(clusters, fname) {
   dev.off()
 }
 
+plot_clustering_ggplot <- function(clusters, fname, plot_list) {
+  plot_path <- fname
+  pdf(plot_path, width = 15, height = 15, useDingbats = F)
+  #par(mfrow=c(5,4))
+  
+  cur_clst <- 1
+  cnt <- 1
+  cur_page <- list()
+  
+  for (idx in clusters$indices){
+    print (cnt)
+    if (clusters[cnt,'cluster'] != cur_clst){
+      cur_clst <- clusters[cnt,'cluster']
+      
+      #par(mfrow=c(5,4))
+      gridExtra::marrangeGrob(cur_page, nrow = 5, ncol = 4)
+      cur_page <- list()
+      cnt = 1
+    }
+    if (length(cur_page) > 20){
+      gridExtra::marrangeGrob(cur_page, nrow = 5, ncol = 4)
+      cur_page <- list()
+      cnt = 1 
+    }
+    if (idx != 0){
+      #coefs <- paste(all_genes_lm[row.names(clusters)[cnt],], collapse = ",")
+      #merged_tab <- rm_na_outliers(traits_m, pheno_m, idx)
+      #best_lm <- plot_scatter_and_gam2(merged_tab, row.names(clusters)[cnt], T, nrow(res_dif_all), T, label = paste0('cluster ', cur_clst))
+      
+      cur_page[[cnt]] = plot_list[[idx]][[1]]
+      cnt = cnt + 1
+    }
+    
+  }
+  dev.off()
+}
+
 do_clustering <- function(dif_gr, num_k, method, distance = ""){
+  
+  
   if (method == "kmeans"){
     # kmeans
     km <- kmeans(dif_gr, num_k, nstart = 50)
@@ -139,7 +174,8 @@ reduce_pnts <- function(bins){
   return(bins)
 }
 
-find_intersection_points <- function(res_dif){
+find_intersection_points <- function(res_dif, degree){
+  n_points = 300
   bins <- matrix(ncol = 3, nrow = 4)
   colnames(bins) <- c("start", "end", "present")
   bins[1,1] <- 0
@@ -151,15 +187,28 @@ find_intersection_points <- function(res_dif){
   bins[4,1] <- 60
   bins[4,2] <- 100
   bins[,3] <- FALSE
-  #bins[,3] <- paste0(bins[,1], "_", bins[,2])
-  #bins <- as.numeric(bins)
-  age <- seq(20, 75, length = 300)
+
+  age <- seq(20, 75, length = n_points)
+  
   #delta <- (max(res_dif) - min(res_dif))/300
   #delta <-  max((res_dif - lag(res_dif)), na.rm = T)
   delta = 0.005
-  pnts <- as.numeric(age[which(abs(res_dif) < delta)])
-  print(paste(row.names(res_dif), pnts))
+  
+  pnts <- c()
+  for (i in 1:(n_points - 1)){
+    l = min(res_dif[i], res_dif[i+1])
+    h = max(res_dif[i], res_dif[i+1])
+    if(h > -1*delta & l <= delta){
+      pnts <- c(pnts, age[i])
+    }
+  }
+  
+  #pnts <- as.numeric(age[which(abs(res_dif) < delta)])
+  #print(paste(row.names(res_dif), pnts))
   res_bins <- c()
+  if (length(pnts) == 0 & degree < 3){
+    pnts <- get_nearest_point(res_dif, age)
+  }
   if (any(pnts > bins[1,1] & pnts < bins[1,2])) bins[1,3] = T
   if (any(pnts > bins[2,1] & pnts < bins[2,2])) bins[2,3] = T
   if (any(pnts > bins[3,1] & pnts < bins[3,2])) bins[3,3] = T
@@ -167,10 +216,15 @@ find_intersection_points <- function(res_dif){
   # TODO: take the min of the consecutive!!
   bins <- reduce_pnts(bins)
   
-  plot_intersection_rect(res_dif, bins, delta)
+  #plot_intersection_rect(res_dif, bins, delta)
   
   return(which(bins[,3] == T))
   #return (bins)
+}
+
+get_nearest_point <- function(res_dif, age){
+  pnts <- age[which.min(abs(res_dif))]
+  return(pnts)
 }
 
 plot_intersection_rect <- function(res_dif, bins, delta){
