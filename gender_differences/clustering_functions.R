@@ -63,7 +63,7 @@ chooseBestModel <- function(d){
 
 
 # Plot traits and differences in the order determined by clustering
-plot_clustering <- function(clusters, fname) {
+plot_clustering <- function(clusters, fname, scale_traits = F) {
   plot_path <- fname
   pdf(plot_path, width = 15, height = 15, useDingbats = F)
   par(mfrow=c(5,4))
@@ -80,7 +80,12 @@ plot_clustering <- function(clusters, fname) {
     }
     if (idx != 0){
       #coefs <- paste(all_genes_lm[row.names(clusters)[cnt],], collapse = ",")
-      merged_tab <- rm_na_outliers(traits_m, pheno_m, idx)
+      if (scale_traits){
+        merged_tab <- rm_na_outliers(scale(traits_m), pheno_m, idx)
+      } else {
+        merged_tab <- rm_na_outliers(traits_m, pheno_m, idx)
+      }
+      
       best_lm <- plot_scatter_and_gam2(merged_tab, row.names(clusters)[cnt], T, nrow(res_dif_all), T, label = paste0('cluster ', cur_clst))
     }
     cnt = cnt + 1

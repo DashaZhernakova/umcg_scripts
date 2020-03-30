@@ -10,6 +10,10 @@ if (boxy){
 } else {
   wd_path <- "C:/Users/Dasha/work/UMCG/data/gender_differences/omics/data/"
 }
+# Phenotypes
+traits_path <- "C:/Users/Dasha/work/UMCG/data/LifeLines_phenotypes/20170123_selection_phenotypes_for_TL_quant.txt"
+st_col = 3
+
 # Bile acids
 traits_path <- "C:/Users/Dasha/work/UMCG/data/LifeLines_phenotypes/BA37_50present_n1436.txt"
 st_col = 1
@@ -17,24 +21,76 @@ st_col = 1
 traits_path <- "C:/Users/Dasha/work/UMCG/data/Metabolomics_shared_folder/2.metabolites/LLD_bloodlipids_nmr.txt"
 st_col=5
 
+# Untargeted metabolomics
+traits_path <- "C:/Users/Dasha/work/UMCG/data/LifeLines_phenotypes/data_1442samples_LLD_baseline_1183plasma_metabolites.txt"
+st_col <- 1
+
+# Immune markers and cytokines
+traits_path <- "C:/Users/Dasha/work/UMCG/data/LifeLines_phenotypes/cytokines_and_immune_markers.txt"
+st_col <- 1
+
+#Smoking
+traits_path <- "C:/Users/Dasha/work/UMCG/data/LifeLines_phenotypes/Smoking_LLD_GoNL_for_Sasha.txt"
+st_col <- 1
+#gam_family = binomial(link = "logit")
+
+# Diseases
+traits_path <- "C:/Users/Dasha/work/UMCG/data/LifeLines_phenotypes/LLD_diseases_1660.txt"
+st_col <- 1
+# gam_family = binomial(link = "logit")
+
+# traits_m[traits_m[,"T2Dy_n"] == 2,] = 1
+#if (length(unique(merged_tab[,1])) > 2){
+#print("Skipping! Non binary")
+#} else {
+
+# Drugs
+traits_path <- "C:/Users/Dasha/work/UMCG/data/LifeLines_phenotypes/20150618_45drugs_1135metasubjects_atleast5users.txt"
+st_col <- 1
+
+# Diet
+traits_path <- "C:/Users/Dasha/work/UMCG/data/LifeLines_phenotypes/LLD_diet_1660.txt"
+st_col <- 1
+# merged_tab[,1] = merged_tab[,1] + 1
+#gam_family = ocat(R = max(merged_tab[,1])
+
+traits_path <- "C:/Users/Dasha/work/UMCG/data/LifeLines_phenotypes/diet_new_sept2015/Grams per item_group_ID.txt"
+st_col = 1
+
+traits_path <- "C:/Users/Dasha/work/UMCG/data/LifeLines_phenotypes/diet_new_sept2015/OV11_0098 Resultaten per deelnemer_ID.txt"
+st_col = 2
+
+traits_path <- "C:/Users/Dasha/work/UMCG/data/LifeLines_phenotypes/diet_new_sept2015/OV11_0098 Resultaten per item_ID.txt"
+val_var <- 'GDAG'
+traits0 <- read.delim(traits_path, header = T, sep = "\t", as.is = T, check.names = F)
+traits1 <- dcast(traits0[,c(1,3,4)], LLDEEPID_LL~ITEMNAAM, value.var = val_var)
+row.names(traits1) <- traits1[,1]
+traits <- sapply(traits1[,-1], function(x) as.numeric(as.character(x)))
+row.names(traits) <- row.names(traits1)
+
+plot_basepath <- paste0("../plots_all_pheno/diet_OV11_0098_per_item_", val_var, ".pdf")
+
 
 gte_path <- "gte_all.txt"
-pheno_path <- "age_gender_smk_contrac_cell_counts.cc_outliers_na.txt"
+pheno_path <- "age_gender_smk_contrac_cell_counts.txt"
 gene_table_path <- "geneid_to_gene_proteincoding_mainchr.txt"
-plot_basepath <- "../anova+gam/nmr_lipidomics_plots.pdf"
+
 correct_for_cellcounts = F
 make_plots = T
 
 setwd(wd_path)
 
 # traits of interest
-traits <- read.table(traits_path, header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)
-traits <- traits[,seq(st_col,ncol(traits))]
+traits0 <- read.delim(traits_path, header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)
+traits0 <- traits0[,seq(st_col,ncol(traits0))]
+traits <- sapply(traits0, function(x) as.numeric(as.character(x)))
+row.names(traits) <- row.names(traits0)
 
 # Age, gender and other phenotypes
 pheno0 <- as.data.frame(t(read.table(pheno_path, header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)))
 pheno <- na.omit(pheno0)
 traits_m <- traits[match(row.names(pheno), row.names(traits), nomatch = 0 ),]
+
 pheno_m <- pheno[match(row.names(traits_m), row.names(pheno), nomatch = 0),]
 all(row.names(traits_m) == row.names(pheno_m))
 num_traits <- ncol(traits_m)
@@ -64,34 +120,40 @@ for (idx in indices){
     par(mfrow=c(5,4))
   }
   print(idx)
-  
+
   trait_id <- colnames(traits_m)[idx]
   trait_name = trait_id
   if (length(trait_name) > 0){ #if gene id in gene convertion table
-    merged_tab <- rm_na_outliers(traits_m, pheno_m, idx)
-    
+    merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = "", log_tr = F)
+    #merged_tab[,1] = merged_tab[,1] + 1
     res_dif = NULL
-    res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, F, 300, make_plots, label = '')
+    #tryCatch({
     
+    res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, correctForCellCounts = F, n_points = 300, make_plots = make_plots, gam_family = gaussian(), label = '')
+    #},error=function(e) {
+    #      message(paste("Fitting failed for ", idx))
+    # })
     if (res_dif_lst[["inter_p"]] < 0.05){
       cnt <- cnt + 1
       res_dif_all[,trait_id] <- res_dif_lst[["dif"]]
-      
+    }
       res_summary[trait_id,'inter_p'] = res_dif_lst[["inter_p"]]
       res_summary[trait_id,'g_beta'] = res_dif_lst[["g_beta"]]
       res_summary[trait_id,'g_pv'] = res_dif_lst[["g_pv"]]
-      
+
       #res_summary[trait_id,'p1'] = res_dif_lst[["plots"]][[1]]
       #res_summary[trait_id,'p2'] = res_dif_lst[["p2"]]
       #plot_list[[idx]] = res_dif_lst[["plots"]]
-    }
-  }
   
-}
+  }
 
+}
+write.table(res_summary, file = "../plots_all_pheno/diet_OV11_0098.txt", sep = "\t", quote = F, col.names = NA)
+nrow(res_summary[res_summary$inter_p < 0.05,])
+nrow(res_summary[res_summary$g_p < 0.05 | res_summary$inter_p < 0.05,])
 if (make_plots){
   dev.off()
-  
+
 }
 
 ###################################################
@@ -118,6 +180,7 @@ grouped_dif <- grouped_res_dif_all[order(grouped_res_dif_all$degree),]
 grouped_dif$indices <- 0
 grouped_dif$indices <- match(row.names(grouped_dif), colnames(traits_m), nomatch = 0)
 
+#grouped_dif[grouped_dif$degree > 1, "degree"] = 2 
 grouped_dif[grouped_dif$degree == 2, "degree"] = 1 
 grouped_dif[grouped_dif$degree > 3, "degree"] = 4 # set all degrees > 3 to 4, change later
 
@@ -130,17 +193,28 @@ for (d in unique(grouped_dif$degree)){
   if (nrow(dif_gr) < 4){
     clust <- rep("1", nrow(dif_gr))
   } else {
-    #num_k <- find_optimal_k(dif_gr, method = cl_method)
-    num_k=3
+    num_k <- find_optimal_k(dif_gr, method = cl_method)
+    #if (d == 1){
+    #  num_k = 2
+    #} else {
+    #  num_k=4
+    #}
     clust <- do_clustering(dif_gr, num_k, method = cl_method, distance = cl_dist)
   }
   grouped_dif[grouped_dif$degree == d, "cluster"] = paste0(d, "_", clust)
 }
 
-grouped_dif$cluster <- paste(grouped_dif$cluster, grouped_dif$intersection, sep = "_")
+#grouped_dif$cluster <- paste(grouped_dif$cluster, grouped_dif$intersection, sep = "_")
+
+# Cluster all together
+num_k=6
+clust <- do_clustering(t_res_dif_all[-1,], num_k, method = cl_method, distance = cl_dist)
+grouped_dif[names(clust), "cluster"] <- clust
+
+
 grouped_dif <- grouped_dif[order(grouped_dif$cluster),]
 #plot_clustering_ggplot(grouped_dif, paste0("../anova+gam/rnaseq_plots/ageDEgenes/new/LLD_expression_random_genes_clustering_intersection_", cl_method, "_", cl_dist, "_3.pdf"), plot_list)
 
-plot_clustering(grouped_dif, paste0("../anova+gam/NMR_clustering_k3_", cl_method, "_", cl_dist, ".pdf"))
-#write.table(grouped_dif, file = "../anova+gam/LLD_expression_all_sign_genes_clustering_intersection_results.txt", sep = "\t", quote = F, col.names = NA)
+plot_clustering(grouped_dif, paste0("../anova+gam/metabolomics_clustering_", cl_method, "_", cl_dist, ".pdf"), scale_traits = T)
+write.table(grouped_dif, file = paste0("../anova+gam/NMR_clustering_scaled_all_k6_", cl_method, "_", cl_dist, ".txt"), sep = "\t", quote = F, col.names = NA)
 

@@ -20,6 +20,11 @@ traits <- traits[,seq(3,ncol(traits))]
 traits <- read.table("/Users/dashazhernakova/Documents/UMCG/data/LifeLines_phenotypes/20170123_selection_phenotypes_for_TL_not_binary.txt", header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)
 traits <- traits[,seq(3,ncol(traits))]
 
+# bile acids
+traits <- read.table("C:/Users/Dasha/work/UMCG/data/LifeLines_phenotypes/BA37_50present_n1436.txt", header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)
+
+
+
 cvd <- c("relativesCVD","hr","p","p_axis","pq","qrs","qrs_axis","qt","qtc","t_axis","dbp","hbf","map","sbp","cho","crph","glu","hb1c","hbac","hdc","k","ldc","tgl","ins","homair","bmi","hip","angioplasty","arythmia","chestpain","diabetes","diabtype","dilataorta","edema","heartattack","heartfailure","highchol","hypertension","lof","narrowcarotis","stroke","T1Dy_n","T2Dy_n","RelativesDiab","added_compl_legs_1_yes_0_no","added_pain_hands_or_feet_1y_0n","added_stiff_hands_or_feet_1y_0n","feetwounds","jointpainfeet","jointpainhands","legcomplnight","legcomplwalking","stiffnessfeet","stiffnesshands")
 #traits <- as.data.frame(t(read.table(gzfile("/Users/dashazhernakova/Documents/UMCG/data/olink/LLDeep_expression/gene_level/LLD_genelevel_readcounts.nozeros.TMM.Log2Transformed.ProbesCentered.SamplesZTransformed.txt.gz"), header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)))
 
