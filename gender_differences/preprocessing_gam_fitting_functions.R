@@ -149,39 +149,39 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts, 
   #     main = paste0(pheno_name, ' ', label, "\nGAM interaction p = ", format(m_o_p, digits = 3)), 
   #     cex = 0.6, xlab = "age", ylab = pheno_name)
   
-  p1 <- ggplot(merged_tab, aes(y = phenotype, x = age,  col = gender_F1M2)) + geom_point(aes(col = gender_F1M2)) + 
-    scale_color_manual(values = c(col2transparent("indianred1", 125),col2transparent("dodgerblue1", 125),"indianred1", "dodgerblue1")) + 
-    theme(legend.position = "none", plot.title = element_text(hjust = 0.5), 
-          axis.line.x = element_line(colour = 'grey', size=0.5, linetype='solid'),
-          axis.line.y = element_line(colour = 'grey', size=0.5, linetype='solid')) + 
-    ylab(pheno_name) + 
-    ggtitle(paste0(pheno_name, ' ', label, "\nGAM interaction p = ", format(m_o_p, digits = 3))) + 
-    scale_x_discrete(name ="age", limits=seq(10,80,10))
+  #p1 <- ggplot(merged_tab, aes(y = phenotype, x = age,  col = gender_F1M2)) + geom_point(aes(col = gender_F1M2)) + 
+  #  scale_color_manual(values = c(col2transparent("indianred1", 125),col2transparent("dodgerblue1", 125),"indianred1", "dodgerblue1")) + 
+  #  theme(legend.position = "none", plot.title = element_text(hjust = 0.5), 
+  #        axis.line.x = element_line(colour = 'grey', size=0.5, linetype='solid'),
+  #        axis.line.y = element_line(colour = 'grey', size=0.5, linetype='solid')) + 
+  #  ylab(pheno_name) + 
+  #  ggtitle(paste0(pheno_name, ' ', label, "\nGAM interaction p = ", format(m_o_p, digits = 3))) + 
+  #  scale_x_discrete(name ="age", limits=seq(10,80,10))
   
-  levs <- levels(merged_tab$gender_F1M2)
-  cols = c("indianred1", "dodgerblue1")
+  #levs <- levels(merged_tab$gender_F1M2)
+  #cols = c("indianred1", "dodgerblue1")
   
   ## add the fitted lines
-  for (l in seq_along(levs)) {
-    dd <- pdat[pdat$gender_F1M2 == levs[l],]
-    #lines(pred ~ age, data = dd, col = cols[[l]], lwd = 2)
-    p1 <- p1 + geom_line(data = dd, aes(x= age, y = pred), colour = cols[[l]], size = 1)
-  }
+  #for (l in seq_along(levs)) {
+  #  dd <- pdat[pdat$gender_F1M2 == levs[l],]
+  #  #lines(pred ~ age, data = dd, col = cols[[l]], lwd = 2)
+  #  p1 <- p1 + geom_line(data = dd, aes(x= age, y = pred), colour = cols[[l]], size = 1)
+  #}
   
   #Plot the difference
-  if (! is.null(res_dif = NULL)){
+  #if (! is.null(res_dif = NULL)){
   #p2 <- plot(res_dif$age, res_dif$diff, type = 'l')
-  p2 <- ggplot(res_dif, aes(x = age, y = diff)) + geom_line(size = 0.8) + 
-    theme(legend.position = "none", plot.title = element_text(hjust = 0.5), 
-          axis.line.x = element_line(colour = 'grey', size=0.2, linetype='solid'),
-          axis.line.y = element_line(colour = 'grey', size=0.2, linetype='solid')) + 
-    ylab("Difference men vs women")
+  #p2 <- ggplot(res_dif, aes(x = age, y = diff)) + geom_line(size = 0.8) + 
+  #  theme(legend.position = "none", plot.title = element_text(hjust = 0.5), 
+  #        axis.line.x = element_line(colour = 'grey', size=0.2, linetype='solid'),
+  #        axis.line.y = element_line(colour = 'grey', size=0.2, linetype='solid')) + 
+  #  ylab("Difference men vs women")
   
   #plot with conf interval
   #ggplot(res_dif, aes(x = age, y = diff)) +
   #  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.2) +
   #  geom_line()
-  }
+  #}
   if (make_plots){
     cex_main = 1
     ylims <- with(merged_tab, range(phenotype))

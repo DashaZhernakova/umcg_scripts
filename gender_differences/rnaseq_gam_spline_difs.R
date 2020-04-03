@@ -17,7 +17,7 @@ if (boxy){
 if  (length(args) > 1) {                                                                                                                                                                                                                       traits0_path <- args[1]
 out_prefix <- args[2]
 } else {
-  #traits0_path <- "../LLD_expression/gene_read_counts_BIOS_and_LLD_passQC.only_LLD.no_zeros.TMM.CPM.tsv.gz.Log2Transformed.ProbesCentered.SamplesZTransformed.txt.gz"
+  traits0_path <- "C:/Users/Dasha/work/UMCG/data/LifeLines_phenotypes/LLD_genelevel_readcounts.TMM.Log2Transformed.ProbesCentered.SamplesZTransformed.txt.gz"
   #traits0_path <- "LLD_expression_ageDEgenes.txt.gz"
   traits0_path <- "expression_selected.signif_inter.txt"
   

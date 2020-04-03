@@ -61,9 +61,11 @@ traits_path <- "C:/Users/Dasha/work/UMCG/data/LifeLines_phenotypes/diet_new_sept
 st_col = 2
 
 traits_path <- "C:/Users/Dasha/work/UMCG/data/LifeLines_phenotypes/diet_new_sept2015/OV11_0098 Resultaten per item_ID.txt"
-val_var <- 'GDAG'
+
 traits0 <- read.delim(traits_path, header = T, sep = "\t", as.is = T, check.names = F)
-traits1 <- dcast(traits0[,c(1,3,4)], LLDEEPID_LL~ITEMNAAM, value.var = val_var)
+
+val_var <- 'ALCOHOL'
+traits1 <- dcast(traits0, LLDEEPID_LL~ITEMNAAM, value.var = val_var)
 row.names(traits1) <- traits1[,1]
 traits <- sapply(traits1[,-1], function(x) as.numeric(as.character(x)))
 row.names(traits) <- row.names(traits1)
@@ -123,8 +125,8 @@ for (idx in indices){
 
   trait_id <- colnames(traits_m)[idx]
   trait_name = trait_id
-  if (length(trait_name) > 0){ #if gene id in gene convertion table
-    merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = "", log_tr = F)
+  if (length(trait_name) > 0 & length(unique(traits_m[,idx])) > 1){ #if gene id in gene convertion table
+    merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = "", log_tr = T)
     #merged_tab[,1] = merged_tab[,1] + 1
     res_dif = NULL
     #tryCatch({
@@ -148,7 +150,7 @@ for (idx in indices){
   }
 
 }
-write.table(res_summary, file = "../plots_all_pheno/diet_OV11_0098.txt", sep = "\t", quote = F, col.names = NA)
+write.table(res_summary, file = paste0("../plots_all_pheno/diet_OV11_0098", val_var, ".txt"), sep = "\t", quote = F, col.names = NA)
 nrow(res_summary[res_summary$inter_p < 0.05,])
 nrow(res_summary[res_summary$g_p < 0.05 | res_summary$inter_p < 0.05,])
 if (make_plots){
