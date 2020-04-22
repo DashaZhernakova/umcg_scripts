@@ -1,7 +1,7 @@
 library(RColorBrewer)
 library('dplyr')
 library('mgcv')
-
+library('gamlss')
 
 # Combine phenotype and trait of interest and remove outliers in the trai of interest
 rm_na_outliers <- function(traits_m, pheno_m, idx, method = "IQR", scale_tr = F, log_tr = F, int_tr = F){

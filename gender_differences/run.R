@@ -70,11 +70,11 @@ row.names(traits1) <- traits1[,1]
 traits <- sapply(traits1[,-1], function(x) as.numeric(as.character(x)))
 row.names(traits) <- row.names(traits1)
 
-plot_basepath <- paste0("../plots_all_pheno/diet_OV11_0098_per_item_", val_var, ".pdf")
+plot_basepath <- paste0("../plots_all_pheno/phenotypes_withoutstatins.pdf")
 
 
 gte_path <- "gte_all.txt"
-pheno_path <- "age_gender_smk_contrac_cell_counts.txt"
+pheno_path <- "age_gender_smk_contrac_cell_counts_bmi_statins.txt"
 gene_table_path <- "geneid_to_gene_proteincoding_mainchr.txt"
 
 correct_for_cellcounts = F
@@ -88,7 +88,7 @@ traits0 <- traits0[,seq(st_col,ncol(traits0))]
 traits <- sapply(traits0, function(x) as.numeric(as.character(x)))
 row.names(traits) <- row.names(traits0)
 
-# Age, gender and other phenotypes
+Age, gender and other phenotypes
 pheno0 <- as.data.frame(t(read.table(pheno_path, header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)))
 pheno <- na.omit(pheno0)
 traits_m <- traits[match(row.names(pheno), row.names(traits), nomatch = 0 ),]
@@ -126,17 +126,19 @@ for (idx in indices){
   trait_id <- colnames(traits_m)[idx]
   trait_name = trait_id
   if (length(trait_name) > 0 & length(unique(traits_m[,idx])) > 1){ #if gene id in gene convertion table
-    merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = "", log_tr = T)
+    
+    merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = "IQR", log_tr = F)
     #merged_tab[,1] = merged_tab[,1] + 1
     res_dif = NULL
     #tryCatch({
     
     res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, correctForCellCounts = F, n_points = 300, make_plots = make_plots, gam_family = gaussian(), label = '')
+    res_dif_lst <- plot_scatter_and_gam2(merged_tab[merged_tab$statins != 1,], trait_name, correctForCellCounts = F, n_points = 300, make_plots = make_plots, gam_family = gaussian(), label = '')
     #},error=function(e) {
     #      message(paste("Fitting failed for ", idx))
     # })
     if (res_dif_lst[["inter_p"]] < 0.05){
-      cnt <- cnt + 1
+      cnt <- cnt + 2
       res_dif_all[,trait_id] <- res_dif_lst[["dif"]]
     }
       res_summary[trait_id,'inter_p'] = res_dif_lst[["inter_p"]]

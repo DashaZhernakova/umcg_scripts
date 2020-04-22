@@ -132,5 +132,5 @@ gm_mean_matrix = function(traits_m){
   gm_mean = function(x, na.rm=TRUE){
     exp(sum(log(x), na.rm=na.rm) / length(x))
   }
-  Gmean_core = apply(core_matrix, 1, gm_mean)
+  Gmean_core = apply(interest_matrix, 1, gm_mean)
 }
