@@ -10,7 +10,7 @@ wd_path <- "/groups/umcg-lifelines/tmp01/users/umcg-dzhernakova/gender_difs/"
 traits_path <- args[1]
 st_col = 2
 
-plot_basepath <- paste0("plots/", traits_path, ".pdf")
+plot_basepath <- paste0("plots/", traits_path, "_zscore_outliers.pdf")
 
 pheno_path <- "age_gender_all_LL.txt"
 
@@ -63,25 +63,26 @@ for (idx in indices){
   trait_id <- colnames(traits_m)[idx]
   trait_name = trait_id
   if (length(traits_m[is.na(traits_m[,idx]),idx]) / length(traits_m[!is.na(traits_m[,idx]),idx]) < 0.8){ 
-    merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = "IQR", log_tr = F)
+    merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = "zscore", log_tr = F)
     #merged_tab[,1] = merged_tab[,1] + 1
     res_dif = NULL
     #tryCatch({
-    res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, correctForCellCounts = F, n_points = 300, make_plots = make_plots, gam_family = binomial(link = "logit"), label = '')
+    res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, correctForCellCounts = F, n_points = 300, make_plots = make_plots, gam_family = gaussian(), label = '')
     #},error=function(e) {
     #      message(paste("Fitting failed for ", idx))
     # })
     
-    #if (res_dif_lst[["inter_p"]] < 0.05){
-    #  cnt <- cnt + 1
-    #  res_dif_all[,trait_id] <- res_dif_lst[["dif"]]
-    #}
+    if (res_dif_lst[["inter_p"]] < 0.05){
+      cnt <- cnt + 1
+      res_dif_all[,trait_id] <- res_dif_lst[["dif"]]
+    }
     res_summary[trait_id,'inter_p'] = res_dif_lst[["inter_p"]]
     res_summary[trait_id,'g_beta'] = res_dif_lst[["g_beta"]]
     res_summary[trait_id,'g_pv'] = res_dif_lst[["g_pv"]]
   }
   
 }
+write.table(res_dif_all, file=paste0("summary_tables/", traits_path, "diff.txt"), sep = "\t", quote = F, col.names = NA)
 write.table(res_summary, file = paste0("summary_tables/", traits_path, ".txt"), sep = "\t", quote = F, col.names = NA)
 nrow(res_summary[res_summary$inter_p < 0.05,])
 nrow(res_summary[res_summary$g_p < 0.05 | res_summary$inter_p < 0.05,])
