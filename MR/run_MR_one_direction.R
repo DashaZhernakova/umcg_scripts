@@ -19,6 +19,13 @@ out_from_file = FALSE
 exp_from_file = is.na(as.numeric(args[1]))
 out_from_file = is.na(as.numeric(args[2]))
 
+if (startsWith(args[1], "UKB")){
+  exp_from_file = FALSE
+}
+if (startsWith(args[2], "UKB")){
+  out_from_file = FALSE
+}
+
 print(paste("Exposure = ", args[1]))
 print(paste("Outcome = ", args[2]))
 print(paste("P-value threshold for exposure = ", args[3]))
@@ -78,7 +85,7 @@ if (exp_from_file & !out_from_file){
   pval_thres = 5e-08
   
   exp_name <- exp_id
-  out_name <- out_id
+  out_name <- outcome_id
   
   exp_dat <- extract_instruments(outcomes = exp_id, access_token = access_token_fname)
   out_dat <- extract_outcome_data(snps = exp_dat$SNP, outcomes = outcome_id, access_token = access_token_fname)
