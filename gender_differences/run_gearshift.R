@@ -40,8 +40,8 @@ pheno_m <- pheno_m[order(pheno_m$age),]
 
 nplotspp = 20
 n_points = 300
-min_age = 20
-max_age = 75
+min_age = 15
+max_age = 90
 res_dif_all <- data.frame(age = seq(min_age, max_age, length = n_points))
 res_pred_all <- data.frame(age = c(seq(min_age, max_age, length = n_points), seq(min_age, max_age, length = n_points)))
 res_summary <- data.frame()
@@ -71,7 +71,7 @@ for (idx in indices){
     print(paste0(trait_name, ",", nrow(merged_tab)))
     res_dif = NULL
     #tryCatch({
-    res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, correctForCellCounts = F, n_points = 300, make_plots = make_plots, gam_family = gaussian(), label = '')
+    res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, correctForCellCounts = F, n_points = n_points, make_plots = make_plots, gam_family = gaussian(), label = '', min_age = min_age, max_age = max_age)
     #},error=function(e) {
     #      message(paste("Fitting failed for ", idx))
     # })
