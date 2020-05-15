@@ -61,9 +61,9 @@ rm_na_outliers <- function(traits_m, pheno_m, idx, method = "IQR", scale_tr = F,
 }
 
 # Fit a GAM with age : gender interaction and (optional) correction for cell counts
-plot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts, n_points = 300, make_plots, label = '', gam_family = gaussian()){
+plot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts, n_points = 300, make_plots, label = '', gam_family = gaussian(), min_age = 20, max_age = 75){
   colnames(merged_tab)[1] <- "phenotype"
-  merged_tab <- merged_tab[(merged_tab$age < 75) & (merged_tab$age >= 20),]
+  merged_tab <- merged_tab[(merged_tab$age < max_age) & (merged_tab$age >= min_age),]
   
   merged_tab <- mutate(merged_tab, ord_gender_F1M2 = ordered(gender_F1M2, levels = c('1', '2')))
   merged_tab <- mutate(merged_tab, gender_F1M2 = factor(gender_F1M2))
@@ -86,21 +86,21 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts, 
     if (m_o_p > 0.05){
       return (list("dif" = NULL, "inter_p" = m_o_p,"g_beta" = m_o_g_beta, "g_pv" = m_o_g_pv))
     }
-    pdat <- with(merged_tab, expand.grid(age = seq(20, 75, length = n_points), 
+    pdat <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = n_points), 
                                          gender_F1M2 = c('1', '2')))
     pdat <- transform(pdat, pred = predict(m1, newdata = pdat, type = "response"))
     
     
     
     if (! "Ordered Categorical" %in% gam_family$family){
-      pdat_dif <- expand.grid(age = seq(20, 75, length = n_points),
+      pdat_dif <- expand.grid(age = seq(min_age, max_age, length = n_points),
                               gender_F1M2 = c('1', '2'))
       #res_dif <- smooth_diff(m1, pdat_dif, '2', '1', "gender_F1M2")
       #res_dif$age = seq(20, 75, length = n_points)
       res_dif <- simple_diff(pdat)
     } else { # stupid way to go
       m1 <- gam(phenotype ~ gender_F1M2 + s(age) + s(age, by = gender_F1M2), data = merged_tab, method = "REML")
-      pdat <- with(merged_tab, expand.grid(age = seq(20, 75, length = n_points), 
+      pdat <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = n_points), 
                                            gender_F1M2 = c('1', '2')))
       pdat <- transform(pdat, pred = predict(m1, newdata = pdat, type = "response"))
       
@@ -121,13 +121,13 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts, 
       return (list("dif" = NULL, "inter_p" = m_o_p,"g_beta" = m_o_g_beta, "g_pv" = m_o_g_pv))
     }
     
-    pdat <- with(merged_tab, expand.grid(age = seq(20, 75, length = n_points), gender_F1M2 = c('1', '2'), 
+    pdat <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = n_points), gender_F1M2 = c('1', '2'), 
                                          ba = mean(ba), eo = mean(eo), er = mean(er), gr = mean(gr), 
                                          ly = mean(ly),  mo = mean(mo), tr = mean(tr)))
     pdat <- transform(pdat, pred = predict(m1, newdata = pdat, type = "response"))
     
     if (! "Ordered Categorical" %in% gam_family$family){
-      pdat_dif <- expand.grid(age = seq(20, 75, length = n_points), gender_F1M2 = c('1', '2'), 
+      pdat_dif <- expand.grid(age = seq(min_age, max_age, length = n_points), gender_F1M2 = c('1', '2'), 
                               ba = mean(merged_tab$ba), eo = mean(merged_tab$eo), er = mean(merged_tab$er), gr = mean(merged_tab$gr), 
                               ly = mean(merged_tab$ly),  mo = mean(merged_tab$mo), tr = mean(merged_tab$tr))
       #res_dif <- smooth_diff(m1, pdat_dif, '2', '1', "gender_F1M2")
@@ -135,7 +135,7 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts, 
       res_dif <- simple_diff(pdat)
     } else { # stupid way to go
       m1 <- gam(phenotype ~ gender_F1M2 + s(age) + s(age, by = gender_F1M2), data = merged_tab, method = "REML")
-      pdat <- with(merged_tab, expand.grid(age = seq(20, 75, length = n_points), 
+      pdat <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = n_points), 
                                            gender_F1M2 = c('1', '2')))
       pdat <- transform(pdat, pred = predict(m1, newdata = pdat, type = "response"))
     }

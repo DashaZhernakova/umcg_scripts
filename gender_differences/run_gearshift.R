@@ -40,7 +40,10 @@ pheno_m <- pheno_m[order(pheno_m$age),]
 
 nplotspp = 20
 n_points = 300
-res_dif_all <- data.frame(age = seq(20, 75, length = n_points))
+min_age = 20
+max_age = 75
+res_dif_all <- data.frame(age = seq(min_age, max_age, length = n_points))
+res_pred_all <- data.frame(age = c(seq(min_age, max_age, length = n_points), seq(min_age, max_age, length = n_points)))
 res_summary <- data.frame()
 
 cnt = 1
@@ -58,13 +61,14 @@ for (idx in indices){
     cnt = 1
     par(mfrow=c(5,4))
   }
-  print(idx)
   
   trait_id <- colnames(traits_m)[idx]
   trait_name = trait_id
-  if (length(traits_m[is.na(traits_m[,idx]),idx]) / length(traits_m[!is.na(traits_m[,idx]),idx]) < 0.8){ 
+  print(idx)
+  #if (length(traits_m[is.na(traits_m[,idx]),idx]) / length(traits_m[!is.na(traits_m[,idx]),idx]) < 0.8){ 
     merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = "zscore", log_tr = F)
     #merged_tab[,1] = merged_tab[,1] + 1
+    print(paste0(trait_name, ",", nrow(merged_tab)))
     res_dif = NULL
     #tryCatch({
     res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, correctForCellCounts = F, n_points = 300, make_plots = make_plots, gam_family = gaussian(), label = '')
@@ -73,16 +77,18 @@ for (idx in indices){
     # })
     
     if (res_dif_lst[["inter_p"]] < 0.05){
-      cnt <- cnt + 1
+      #cnt <- cnt + 1
       res_dif_all[,trait_id] <- res_dif_lst[["dif"]]
+      res_pred_all[,trait_id] <- res_dif_lst[["pdat"]]$pred
     }
     res_summary[trait_id,'inter_p'] = res_dif_lst[["inter_p"]]
     res_summary[trait_id,'g_beta'] = res_dif_lst[["g_beta"]]
     res_summary[trait_id,'g_pv'] = res_dif_lst[["g_pv"]]
-  }
+  #}
   
 }
 write.table(res_dif_all, file=paste0("summary_tables/", traits_path, "diff.txt"), sep = "\t", quote = F, col.names = NA)
+write.table(res_pred_all, file=paste0("summary_tables/", traits_path, ".fitted.txt"), sep = "\t", quote = F, col.names = NA)
 write.table(res_summary, file = paste0("summary_tables/", traits_path, ".txt"), sep = "\t", quote = F, col.names = NA)
 nrow(res_summary[res_summary$inter_p < 0.05,])
 nrow(res_summary[res_summary$g_p < 0.05 | res_summary$inter_p < 0.05,])
