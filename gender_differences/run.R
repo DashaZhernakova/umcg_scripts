@@ -74,7 +74,7 @@ plot_basepath <- paste0("../plots_all_pheno/phenotypes_withoutstatins.pdf")
 
 
 gte_path <- "gte_all.txt"
-pheno_path <- "age_gender_smk_contrac_cell_counts_bmi_statins.txt"
+pheno_path <- "age_gender_smk_contrac_cell_counts.txt"
 gene_table_path <- "geneid_to_gene_proteincoding_mainchr.txt"
 
 correct_for_cellcounts = F
@@ -88,7 +88,7 @@ traits0 <- traits0[,seq(st_col,ncol(traits0))]
 traits <- sapply(traits0, function(x) as.numeric(as.character(x)))
 row.names(traits) <- row.names(traits0)
 
-Age, gender and other phenotypes
+#Age, gender and other phenotypes
 pheno0 <- as.data.frame(t(read.table(pheno_path, header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)))
 pheno <- na.omit(pheno0)
 traits_m <- traits[match(row.names(pheno), row.names(traits), nomatch = 0 ),]
@@ -114,6 +114,7 @@ if (make_plots){
 
 
 indices = 1:ncol(traits_m)
+#indices = c(1,2,8,9,10,12,13,21,22,23,24,25) # cell type composition
 cnt = 1
 
 for (idx in indices){
@@ -133,12 +134,12 @@ for (idx in indices){
     #tryCatch({
     
     res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, correctForCellCounts = F, n_points = 300, make_plots = make_plots, gam_family = gaussian(), label = '')
-    res_dif_lst <- plot_scatter_and_gam2(merged_tab[merged_tab$statins != 1,], trait_name, correctForCellCounts = F, n_points = 300, make_plots = make_plots, gam_family = gaussian(), label = '')
+    #res_dif_lst <- plot_scatter_and_gam2(merged_tab[merged_tab$statins != 1,], trait_name, correctForCellCounts = F, n_points = 300, make_plots = make_plots, gam_family = gaussian(), label = '')
     #},error=function(e) {
     #      message(paste("Fitting failed for ", idx))
     # })
     if (res_dif_lst[["inter_p"]] < 0.05){
-      cnt <- cnt + 2
+      cnt <- cnt + 1
       res_dif_all[,trait_id] <- res_dif_lst[["dif"]]
     }
       res_summary[trait_id,'inter_p'] = res_dif_lst[["inter_p"]]
@@ -221,4 +222,5 @@ grouped_dif <- grouped_dif[order(grouped_dif$cluster),]
 
 plot_clustering(grouped_dif, paste0("../anova+gam/metabolomics_clustering_", cl_method, "_", cl_dist, ".pdf"), scale_traits = T)
 write.table(grouped_dif, file = paste0("../anova+gam/NMR_clustering_scaled_all_k6_", cl_method, "_", cl_dist, ".txt"), sep = "\t", quote = F, col.names = NA)
+
 
