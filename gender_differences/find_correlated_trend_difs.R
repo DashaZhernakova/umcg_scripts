@@ -154,12 +154,12 @@ for (pheno_name in colnames(pheno_fitted_all)[3:ncol(pheno_fitted_all)]){
   w0 <- pheno_fitted_all0[pheno_fitted_all0$gender_F1M2 == 1, pheno_name]
   m0 <- pheno_fitted_all0[pheno_fitted_all0$gender_F1M2 == 2, pheno_name]
   
-  plot(1, type="n", main = pheno_name, xlab="Age", ylab=pheno_name, xlim=c(20, 75), ylim=c(min(w0,m0) - 3*sd(w0), max(w0,m0) + 3*sd(w0)))
+  #plot(1, type="n", main = pheno_name, xlab="Age", ylab=pheno_name, xlim=c(20, 75), ylim=c(min(w0,m0) - 3*sd(w0), max(w0,m0) + 3*sd(w0)))
   
-  levs <- c(1,2)
-  cols = c("indianred1", "dodgerblue1")
-  lines(w0 ~ age0, col = cols[1], lwd = 2)
-  lines(m0 ~ age0, col = cols[2], lwd = 2)
+  #levs <- c(1,2)
+  #cols = c("indianred1", "dodgerblue1")
+  #lines(w0 ~ age0, col = cols[1], lwd = 2)
+  #lines(m0 ~ age0, col = cols[2], lwd = 2)
   
   
 
@@ -195,23 +195,23 @@ for (pheno_name in colnames(pheno_fitted_all)[3:ncol(pheno_fitted_all)]){
         if (length(idx > 1)) idx <- idx[!is.na(idx)]
         #print(g)
         
-        merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = "IQR", log_tr = F)
-        merged_tab$gender_F1M2 <- as.factor(merged_tab$gender_F1M2)
-        res_dif_lst <- plot_scatter_and_gam2(merged_tab, g, correctForCellCounts = T, n_points = 300, make_plots = T, gam_family = gaussian(), label = '')
+        #merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = "IQR", log_tr = F)
+        #merged_tab$gender_F1M2 <- as.factor(merged_tab$gender_F1M2)
+        #res_dif_lst <- plot_scatter_and_gam2(merged_tab, g, correctForCellCounts = T, n_points = 300, make_plots = T, gam_family = gaussian(), label = '')
         
         # plot pheno and expression together
-        pl_title <- paste0("cor_w = ", format(cor_w, digits = 2), ", cor_m = ", format(cor_m, digits = 2),
-                           "\neuc_w = ", format(euc_w, digits = 4), ", euc_m = ", format(euc_m, digits = 4))
+        #pl_title <- paste0("cor_w = ", format(cor_w, digits = 2), ", cor_m = ", format(cor_m, digits = 2),
+        #                   "\neuc_w = ", format(euc_w, digits = 4), ", euc_m = ", format(euc_m, digits = 4))
         
-        plot(1, type="n", main = pl_title, xlab="Age", ylab=paste0(g, " - ", pheno_name), xlim=c(20, 75), ylim=c(min(w1,w2,m1,m2), max(w1,w2,m1,m2)))
+        #plot(1, type="n", main = pl_title, xlab="Age", ylab=paste0(g, " - ", pheno_name), xlim=c(20, 75), ylim=c(min(w1,w2,m1,m2), max(w1,w2,m1,m2)))
         
-        levs <- c(1,2)
-        cols = c("indianred1", "dodgerblue1")
-        lines(w1 ~ age, col = cols[1], lwd = 2)
-        lines(m1 ~ age, col = cols[2], lwd = 2)
-        lines(w2 ~ age, col = cols[1], lwd = 2, lty = 2)
-        lines(m2 ~ age, col = cols[2], lwd = 2, lty = 2)
-        #print(g)
+        #levs <- c(1,2)
+        #cols = c("indianred1", "dodgerblue1")
+        #lines(w1 ~ age, col = cols[1], lwd = 2)
+        #lines(m1 ~ age, col = cols[2], lwd = 2)
+        #lines(w2 ~ age, col = cols[1], lwd = 2, lty = 2)
+        #lines(m2 ~ age, col = cols[2], lwd = 2, lty = 2)
+        print(g)
       
       }
     }

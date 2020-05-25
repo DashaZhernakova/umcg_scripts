@@ -10,9 +10,16 @@ if (boxy){
 } else {
   wd_path <- "C:/Users/Dasha/work/UMCG/data/gender_differences/omics/data/"
 }
+setwd(wd_path)
+
 # Phenotypes
 traits_path <- "C:/Users/Dasha/work/UMCG/data/LifeLines_phenotypes/20170123_selection_phenotypes_for_TL_quant.txt"
 st_col = 3
+
+#Proteins
+traits_path <- "CVD3_olinkNormal_1447_LLDsamples_t_ProtNames.txt"
+st_col = 1
+traits0 <- as.data.frame(t(read.delim(traits_path, header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)))
 
 # Bile acids
 traits_path <- "C:/Users/Dasha/work/UMCG/data/LifeLines_phenotypes/BA37_50present_n1436.txt"
@@ -103,7 +110,10 @@ pheno_m <- pheno_m[order(pheno_m$age),]
 
 nplotspp = 20
 n_points = 300
-res_dif_all <- data.frame(age = seq(20, 75, length = n_points))
+min_age = 15
+max_age = 90
+res_dif_all <- data.frame(age = seq(min_age, max_age, length = n_points))
+res_pdat_all <- data.frame(age = c(seq(min_age, max_age, length = n_points), seq(min_age, max_age, length = n_points)))
 res_summary <- data.frame()
 
 cnt = 1

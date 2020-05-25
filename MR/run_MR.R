@@ -3,7 +3,7 @@ library(MRInstruments)
 library(MRPRESSO)
 
 
-run_mr = function(exp_dat, out_dat, out_table = NULL){
+run_mr = function(exp_dat, out_dat, exp_table = NULL){
   if (is.null(out_dat)) return (NULL)
   
   dat <- harmonise_data(
@@ -15,8 +15,8 @@ run_mr = function(exp_dat, out_dat, out_table = NULL){
   if (nrow(res) > 0){
     dat = dat[dat$mr_keep == T,]
     res$SNP <- paste(unique(dat$SNP), collapse = ',')
-    if (!is.null(out_table)){
-      res$type <- paste(unique(out_table[out_table$SNP %in% dat$SNP,"type"]), collapse = ',')
+    if (!is.null(exp_table)){
+      res$type <- paste(unique(exp_table[exp_table$SNP %in% dat$SNP,"type"]), collapse = ',')
     }
     res$egger_intercept_pval <- NA
     res$heterogeneity_Q_pval <- NA
