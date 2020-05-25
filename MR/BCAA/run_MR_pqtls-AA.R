@@ -14,7 +14,7 @@ pqtl_table <- read.table(qtl_fname, header = T, sep = "\t", as.is = T, check.nam
 res_table <- data.frame()
 
 for (outcome_id in outcome_ids){
-    for (p in unique(pqtl_table$Phenotype){
+    for (p in unique(pqtl_table$Phenotype)){
         paste(outcome_id, p) 
         out_dat = NULL
         exp_dat = NULL
