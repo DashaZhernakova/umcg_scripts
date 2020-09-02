@@ -8,7 +8,7 @@ get_peak_locations <- function(x, span_val = 7, pval_threshold = 5e-4){
 get_breakpoints <- function(merged_tab, ttest_window = 5){
   #merged_tab <- merged_tab[merged_tab$age <= 80 & merged_tab$age > 20,]
   #age2test <- (min(merged_tab$age) + window):(max(merged_tab$age) - window)
-  age2test = 25:72
+  age2test = max(25, min(merged_tab$age) + ttest_window) : min(72, max(merged_tab$age) + ttest_window)
   res <- data.frame(matrix(ncol = 2, nrow = length(age2test)))
   colnames(res) <- c("w", "m")
   rownames(res) <- as.character(age2test)
