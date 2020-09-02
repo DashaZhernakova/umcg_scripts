@@ -1,7 +1,7 @@
 args <- commandArgs(trailingOnly = TRUE)
 
 source("/groups/umcg-lifelines/tmp01/users/umcg-dzhernakova/scripts/umcg_scripts/gender_differences/preprocessing_gam_fitting_functions.R")
-
+source("/groups/umcg-lifelines/tmp01/users/umcg-dzhernakova/scripts/umcg_scripts/gender_differences/get_breakpoints.R")
 
 wd_path <- "/groups/umcg-lifelines/tmp01/users/umcg-dzhernakova/gender_difs/"
 
@@ -40,8 +40,8 @@ pheno_m <- pheno_m[order(pheno_m$age),]
 
 nplotspp = 20
 n_points = 300
-min_age = 15
-max_age = 90
+min_age = 20
+max_age = 80
 res_dif_all <- data.frame(age = seq(min_age, max_age, length = n_points))
 res_pred_all <- data.frame(age = c(seq(min_age, max_age, length = n_points), seq(min_age, max_age, length = n_points)))
 res_summary <- data.frame()
