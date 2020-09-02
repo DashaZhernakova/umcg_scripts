@@ -21,6 +21,12 @@ traits_path <- "CVD3_olinkNormal_1447_LLDsamples_t_ProtNames.txt"
 st_col = 1
 traits0 <- as.data.frame(t(read.delim(traits_path, header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)))
 
+
+# telomeres
+traits_path <- "C:/Users/Dasha/work/UMCG/data/telomeres/telomeres_raw_t.txt"
+st_col = 1
+traits0 <- as.data.frame(t(read.delim(traits_path, header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)))
+
 # Bile acids
 traits_path <- "C:/Users/Dasha/work/UMCG/data/LifeLines_phenotypes/BA37_50present_n1436.txt"
 st_col = 1
@@ -31,6 +37,8 @@ st_col=5
 # Untargeted metabolomics
 traits_path <- "C:/Users/Dasha/work/UMCG/data/LifeLines_phenotypes/data_1442samples_LLD_baseline_1183plasma_metabolites.txt"
 st_col <- 1
+
+
 
 # Immune markers and cytokines
 traits_path <- "C:/Users/Dasha/work/UMCG/data/LifeLines_phenotypes/cytokines_and_immune_markers.txt"
@@ -77,14 +85,14 @@ row.names(traits1) <- traits1[,1]
 traits <- sapply(traits1[,-1], function(x) as.numeric(as.character(x)))
 row.names(traits) <- row.names(traits1)
 
-plot_basepath <- paste0("../plots_all_pheno/phenotypes_withoutstatins.pdf")
+plot_basepath <- paste0("../plots_all_pheno/proteins_with_breakpoints_5e-4.pdf")
 
 
 gte_path <- "gte_all.txt"
 pheno_path <- "age_gender_smk_contrac_cell_counts.txt"
 gene_table_path <- "geneid_to_gene_proteincoding_mainchr.txt"
 
-correct_for_cellcounts = F
+correct_for_cellcounts = T
 make_plots = T
 
 setwd(wd_path)
@@ -143,7 +151,7 @@ for (idx in indices){
     res_dif = NULL
     #tryCatch({
     
-    res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, correctForCellCounts = F, n_points = 300, make_plots = make_plots, gam_family = gaussian(), label = '')
+    res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, correctForCellCounts = correct_for_cellcounts, n_points = 300, make_plots = make_plots, gam_family = gaussian(), label = '', add_breakpoints = T)
     #res_dif_lst <- plot_scatter_and_gam2(merged_tab[merged_tab$statins != 1,], trait_name, correctForCellCounts = F, n_points = 300, make_plots = make_plots, gam_family = gaussian(), label = '')
     #},error=function(e) {
     #      message(paste("Fitting failed for ", idx))

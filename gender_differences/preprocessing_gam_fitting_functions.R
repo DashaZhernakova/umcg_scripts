@@ -3,6 +3,7 @@ library('dplyr')
 library('mgcv')
 #library('gamlss')
 
+source("C:/Users/Dasha/work/UMCG/umcg_scripts/gender_differences/get_breakpoints.R")
 # Combine phenotype and trait of interest and remove outliers in the trai of interest
 rm_na_outliers <- function(traits_m, pheno_m, idx, method = "IQR", scale_tr = F, log_tr = F, int_tr = F){
   traits_na.rm <- traits_m[!is.na(traits_m[,idx]),idx]
@@ -61,7 +62,7 @@ rm_na_outliers <- function(traits_m, pheno_m, idx, method = "IQR", scale_tr = F,
 }
 
 # Fit a GAM with age : gender interaction and (optional) correction for cell counts
-plot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts, n_points = 300, make_plots, label = '', gam_family = gaussian(), min_age = 20, max_age = 75){
+plot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts, n_points = 300, make_plots, label = '', gam_family = gaussian(), min_age = 20, max_age = 80, add_breakpoints = F){
   colnames(merged_tab)[1] <- "phenotype"
   merged_tab <- merged_tab[(merged_tab$age < max_age) & (merged_tab$age >= min_age),]
   
@@ -171,11 +172,26 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts, 
       lines(pred ~ age, data = dd, col = cols[[l]], lwd = 2)
       
     }
-    if (! is.null(res_dif = NULL)){
-      #Plot the difference
-      plot(res_dif$age, res_dif$diff, type = 'l')
+    
+    if (add_breakpoints){
+      breakpoints <- get_breakpoints(merged_tab)
+      br_w <- breakpoints[[1]]
+      br_m <- breakpoints[[2]]
+      for (br in br_w){
+        abline(v = as.numeric(br), col = cols[1], lty = 2)
+      }
+      for (br in br_m){
+        abline(v = as.numeric(br), col = cols[2], lty = 2)
+      }
     }
+    
+    #if (! is.null(res_dif = NULL)){
+    #  #Plot the difference
+    #  plot(res_dif$age, res_dif$diff, type = 'l')
+    #}
   }
+  
+  
   
   return (list("pdat" = pdat, "dif" = res_dif$diff, "inter_p" = m_o_p,"g_beta" = m_o_g_beta, "g_pv" = m_o_g_pv))
 } 
