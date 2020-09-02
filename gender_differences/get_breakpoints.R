@@ -18,6 +18,7 @@ get_breakpoints <- function(merged_tab, ttest_window = 5){
     left <- merged_tab[merged_tab$age <= i & merged_tab$age > (i - ttest_window),]
     right <- merged_tab[merged_tab$age > i & merged_tab$age <= (i + ttest_window),]
 
+    print(paste0(i, nrow(left[left$gender_F1M2 == 1,]), nrow(right[right$gender_F1M2 == 1,]), nrow(left[left$gender_F1M2 == 2,]), nrow(right[right$gender_F1M2 == 2,])))
     t_w <- t.test(left[left$gender_F1M2 == 1,1], right[right$gender_F1M2 == 1,1])
     t_m <- t.test(left[left$gender_F1M2 == 2,1], right[right$gender_F1M2 == 2,1])
     res[as.character(i),"w"] <- t_w$p.value
