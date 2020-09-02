@@ -71,7 +71,7 @@ for (idx in indices){
     print(paste0(trait_name, ",", nrow(merged_tab)))
     res_dif = NULL
     #tryCatch({
-    res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, correctForCellCounts = F, n_points = n_points, make_plots = make_plots, gam_family = gaussian(), label = '', min_age = min_age, max_age = max_age)
+    res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, correctForCellCounts = F, n_points = n_points, make_plots = make_plots, gam_family = gaussian(), label = '', min_age = min_age, max_age = max_age, add_breakpoints = T)
     #},error=function(e) {
     #      message(paste("Fitting failed for ", idx))
     # })
