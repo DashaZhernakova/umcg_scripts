@@ -86,9 +86,13 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts, 
     if (m_o_p > 0.05){
       return (list("dif" = NULL, "inter_p" = m_o_p,"g_beta" = m_o_g_beta, "g_pv" = m_o_g_pv))
     }
-    pdat <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = n_points), 
-                                         gender_F1M2 = c('1', '2')))
-    pdat <- transform(pdat, pred = predict(m1, newdata = pdat, type = "response"))
+    new.x <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = n_points), gender_F1M2 = c('1', '2'), 
+                                          ba = mean(ba), eo = mean(eo), er = mean(er), gr = mean(gr), 
+                                          ly = mean(ly),  mo = mean(mo), tr = mean(tr)))
+    new.y <- data.frame(predict(m1, newdata = new.x, se.fit = TRUE, type = "response"))
+    pdat <- data.frame(new.x, new.y)
+    pdat <- rename(pdat, pred = fit, SE = se.fit)
+    pdat <- mutate(pdat, lwr = pred - 1.96 * SE, upr = pred + 1.96 * SE) # calculating the 95% confidence interval
     
     
     
@@ -100,9 +104,13 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts, 
       res_dif <- simple_diff(pdat)
     } else { # stupid way to go
       m1 <- gam(phenotype ~ gender_F1M2 + s(age) + s(age, by = gender_F1M2), data = merged_tab, method = "REML")
-      pdat <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = n_points), 
-                                           gender_F1M2 = c('1', '2')))
-      pdat <- transform(pdat, pred = predict(m1, newdata = pdat, type = "response"))
+      new.x <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = n_points), gender_F1M2 = c('1', '2'), 
+                                            ba = mean(ba), eo = mean(eo), er = mean(er), gr = mean(gr), 
+                                            ly = mean(ly),  mo = mean(mo), tr = mean(tr)))
+      new.y <- data.frame(predict(m1, newdata = new.x, se.fit = TRUE, type = "response"))
+      pdat <- data.frame(new.x, new.y)
+      pdat <- rename(pdat, pred = fit, SE = se.fit)
+      pdat <- mutate(pdat, lwr = pred - 1.96 * SE, upr = pred + 1.96 * SE) # calculating the 95% confidence interval
       
     }
   } else { # Correct for cell counts
@@ -121,10 +129,13 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts, 
       return (list("dif" = NULL, "inter_p" = m_o_p,"g_beta" = m_o_g_beta, "g_pv" = m_o_g_pv))
     }
     
-    pdat <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = n_points), gender_F1M2 = c('1', '2'), 
-                                         ba = mean(ba), eo = mean(eo), er = mean(er), gr = mean(gr), 
-                                         ly = mean(ly),  mo = mean(mo), tr = mean(tr)))
-    pdat <- transform(pdat, pred = predict(m1, newdata = pdat, type = "response"))
+    new.x <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = n_points), gender_F1M2 = c('1', '2'), 
+                                          ba = mean(ba), eo = mean(eo), er = mean(er), gr = mean(gr), 
+                                          ly = mean(ly),  mo = mean(mo), tr = mean(tr)))
+    new.y <- data.frame(predict(m1, newdata = new.x, se.fit = TRUE, type = "response"))
+    pdat <- data.frame(new.x, new.y)
+    pdat <- rename(pdat, pred = fit, SE = se.fit)
+    pdat <- mutate(pdat, lwr = pred - 1.96 * SE, upr = pred + 1.96 * SE) # calculating the 95% confidence interval
     
     if (! "Ordered Categorical" %in% gam_family$family){
       pdat_dif <- expand.grid(age = seq(min_age, max_age, length = n_points), gender_F1M2 = c('1', '2'), 
@@ -135,64 +146,27 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts, 
       res_dif <- simple_diff(pdat)
     } else { # stupid way to go
       m1 <- gam(phenotype ~ gender_F1M2 + s(age) + s(age, by = gender_F1M2), data = merged_tab, method = "REML")
-      pdat <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = n_points), 
-                                           gender_F1M2 = c('1', '2')))
-      pdat <- transform(pdat, pred = predict(m1, newdata = pdat, type = "response"))
+      new.x <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = n_points), gender_F1M2 = c('1', '2'), 
+                                            ba = mean(ba), eo = mean(eo), er = mean(er), gr = mean(gr), 
+                                            ly = mean(ly),  mo = mean(mo), tr = mean(tr)))
+      new.y <- data.frame(predict(m1, newdata = new.x, se.fit = TRUE, type = "response"))
+      pdat <- data.frame(new.x, new.y)
+      pdat <- rename(pdat, pred = fit, SE = se.fit)
+      pdat <- mutate(pdat, lwr = pred - 1.96 * SE, upr = pred + 1.96 * SE) # calculating the 95% confidence interval
+      
     }
   }
   
   
   if (make_plots){
-    cex_main = 1
-    ylims <- with(merged_tab, range(phenotype))
-    ylabel <- pheno_name
-    if (nchar(pheno_name) > 40){
-      spl <- unlist(strsplit(pheno_name, "\\|"))
-      ylabel <- spl[length(spl)]
-      cex_main <- 0.8
-      if (nchar(pheno_name) > 50) cex_main <- 0.7
-      if (nchar(pheno_name) > 60) cex_main <- 0.6
-      
-    }
-    
-    
-    ## draw base plot
-    palette(c(col2transparent("indianred1", 125),col2transparent("dodgerblue1", 125)))
-    plot(phenotype ~ age, data = merged_tab,  col = gender_F1M2,  pch = 16, 
-         main = paste0(pheno_name, ' ', label, "\nGAM interaction p = ", format(m_o_p, digits = 3)), 
-         cex = 0.6, xlab = "age", ylab = ylabel, cex.main = cex_main)
-    
-    levs <- levels(merged_tab$gender_F1M2)
-    cols = c("indianred1", "dodgerblue1")
-    
-    ## add the fitted lines
-    for (l in seq_along(levs)) {
-      dd <- pdat[pdat$gender_F1M2 == levs[l],]
-      lines(pred ~ age, data = dd, col = cols[[l]], lwd = 2)
-      
-    }
-    
+    breakpoints <- NULL
     if (add_breakpoints){
       breakpoints <- get_breakpoints(merged_tab)
-      br_w <- breakpoints[[1]]
-      br_m <- breakpoints[[2]]
-      for (br in br_w){
-        abline(v = as.numeric(br), col = cols[1], lty = 2)
-      }
-      for (br in br_m){
-        abline(v = as.numeric(br), col = cols[2], lty = 2)
-      }
     }
-    
-    #if (! is.null(res_dif = NULL)){
-    #  #Plot the difference
-    #  plot(res_dif$age, res_dif$diff, type = 'l')
-    #}
+    draw_plot(merged_tab, pheno_name, pdat, min_age, max_age, breakpoints)
   }
   
-  
-  
-  return (list("pdat" = pdat, "dif" = res_dif$diff, "inter_p" = m_o_p,"g_beta" = m_o_g_beta, "g_pv" = m_o_g_pv))
+  return (list("pdat" = pdat, "dif" = res_dif$diff, "inter_p" = m_o_p,"g_beta" = m_o_g_beta, "g_pv" = m_o_g_pv, "breakpoints" = breakpoints))
 } 
 
 # Calculate a simple difference between every fitted value pair in men and women
@@ -236,6 +210,116 @@ col2transparent <- function(col, transparency){
   dodgerblueTransparent <- rgb(colRgb[1,1], colRgb[2,1], colRgb[3,1], transparency, names = NULL, maxColorValue = 255)
 }
 
+draw_plot <- function(merged_tab, pheno_name, pdat, min_age, max_age, breakpoints){
+  cex_main = 1
+  ylims <- with(merged_tab, range(phenotype))
+  ylabel <- pheno_name
+  if (nchar(pheno_name) > 40){
+    spl <- unlist(strsplit(pheno_name, "\\|"))
+    ylabel <- spl[length(spl)]
+    cex_main <- 0.8
+    if (nchar(pheno_name) > 50) cex_main <- 0.7
+    if (nchar(pheno_name) > 60) cex_main <- 0.6
+    
+  }
+  
+  
+  ## draw base plot
+  palette(c(col2transparent("indianred1", 40),col2transparent("dodgerblue1", 40)))
+  par(mar = c(6, 6, 6, 3), # Dist' from plot to side of page
+      mgp = c(2, 0.4, 0), # Dist' plot to label
+      las = 1, # Rotate y-axis text
+      tck = -.01, # Reduce tick length
+      xaxs = "i", yaxs = "i") # Remove plot padding
+  
+  merged_tab2 <- merged_tab[merged_tab$phenotype < ylims[2] & merged_tab$phenotype > ylims[1],]
+  plot(phenotype ~ age, data = merged_tab2,  col = gender_F1M2,  pch = 16, 
+       main = paste0(pheno_name, ' ', label, "\nGAM interaction p = ", format(m_o_p, digits = 3)), 
+       cex = 0.6, xlab = "age", ylab = ylabel, cex.main = cex_main, frame.plot = F, axes = F, 
+       ylim =c(min(pretty(merged_tab2$phenotype)), max(pretty(merged_tab2$phenotype))),
+       xlim = c(min_age, max_age))
+  
+
+  abline(h = pretty(merged_tab2$phenotype), col = "grey90")
+  abline(v = pretty(merged_tab2$age), col = "grey90")
+  
+  at = pretty(merged_tab2$age)
+  mtext(side = 1, text = at, at = at, 
+        col = "grey20", line = 1, cex = 0.4)
+  
+  at = pretty(merged_tab2$phenotype)  
+  mtext(side = 2, text = at, at = at, col = "grey20", line = 1, cex = 0.4)
+  
+  levs <- levels(merged_tab$gender_F1M2)
+  cols = c("indianred1", "dodgerblue1")
+  
+  ## add the fitted lines
+  for (l in seq_along(levs)) {
+    dd <- pdat[pdat$gender_F1M2 == levs[l],]
+    lines(pred ~ age, data = dd, col = cols[[l]], lwd = 2)
+    polygon(c(rev(dd$age), dd$age), c(rev(dd$lwr), dd$upr), col = col2transparent(cols[[l]], 65), border = NA)
+  }
+  
+  
+  if(!is.null(breakpoints)){
+    br_w <- breakpoints[[1]]
+    br_m <- breakpoints[[2]]
+    for (br in br_w){
+      abline(v = as.numeric(br), col = cols[1], lty = 2)
+    }
+    for (br in br_m){
+      abline(v = as.numeric(br), col = cols[2], lty = 2)
+    }
+  }
+}
+draw_plot0 <- function(merged_tab, pheno_name, pdat){
+  cex_main = 1
+  ylims <- with(merged_tab, range(phenotype))
+  ylabel <- pheno_name
+  if (nchar(pheno_name) > 40){
+    spl <- unlist(strsplit(pheno_name, "\\|"))
+    ylabel <- spl[length(spl)]
+    cex_main <- 0.8
+    if (nchar(pheno_name) > 50) cex_main <- 0.7
+    if (nchar(pheno_name) > 60) cex_main <- 0.6
+    
+  }
+  
+  
+  ## draw base plot
+  palette(c(col2transparent("indianred1", 40),col2transparent("dodgerblue1", 40)))
+  plot(phenotype ~ age, data = merged_tab,  col = gender_F1M2,  pch = 16, 
+       main = paste0(pheno_name, ' ', label, "\nGAM interaction p = ", format(m_o_p, digits = 3)), 
+       cex = 0.6, xlab = "age", ylab = ylabel, cex.main = cex_main)
+  
+  levs <- levels(merged_tab$gender_F1M2)
+  cols = c("indianred1", "dodgerblue1")
+  
+  ## add the fitted lines
+  for (l in seq_along(levs)) {
+    dd <- pdat[pdat$gender_F1M2 == levs[l],]
+    lines(pred ~ age, data = dd, col = cols[[l]], lwd = 2)
+    polygon(c(rev(dd$age), dd$age), c(rev(dd$lwr), dd$upr), col = col2transparent(cols[[l]], 50), border = NA)
+  }
+  
+  breakpoints <- NULL
+  if (add_breakpoints){
+    breakpoints <- get_breakpoints(merged_tab)
+    br_w <- breakpoints[[1]]
+    br_m <- breakpoints[[2]]
+    for (br in br_w){
+      abline(v = as.numeric(br), col = cols[1], lty = 2)
+    }
+    for (br in br_m){
+      abline(v = as.numeric(br), col = cols[2], lty = 2)
+    }
+  }
+  
+  #if (! is.null(res_dif = NULL)){
+  #  #Plot the difference
+  #  plot(res_dif$age, res_dif$diff, type = 'l')
+  #}
+}
 
 test_polynomial_interaction <- function(merged_tab, model_fam = NO(), gm_mean_cov = F){
   if (! gm_mean_cov){

@@ -85,7 +85,7 @@ row.names(traits1) <- traits1[,1]
 traits <- sapply(traits1[,-1], function(x) as.numeric(as.character(x)))
 row.names(traits) <- row.names(traits1)
 
-plot_basepath <- paste0("../plots_all_pheno/proteins_with_breakpoints_5e-4.pdf")
+out_basepath <- paste0("../plots_all_pheno/v2/proteins_with_breakpoints_5e-4")
 
 
 gte_path <- "gte_all.txt"
@@ -126,7 +126,7 @@ res_summary <- data.frame()
 
 cnt = 1
 if (make_plots){
-  pdf(plot_basepath, width = 15, height = 15)
+  pdf(paste0(out_basepath, ".pdf"), width = 15, height = 15)
   par(mfrow=c(5,4)) 
 }
 
@@ -163,7 +163,10 @@ for (idx in indices){
       res_summary[trait_id,'inter_p'] = res_dif_lst[["inter_p"]]
       res_summary[trait_id,'g_beta'] = res_dif_lst[["g_beta"]]
       res_summary[trait_id,'g_pv'] = res_dif_lst[["g_pv"]]
-
+      if (!is.null(res_dif_lst[['breakpoints']])){
+        res_summary[trait_id, "breakpoints_men"] = ifelse(length(res_dif_lst[['breakpoints']][[2]]) > 0, res_dif_lst[['breakpoints']][[2]], "NA")
+        res_summary[trait_id, "breakpoints_women"] = ifelse(length(res_dif_lst[['breakpoints']][[1]]) > 0, res_dif_lst[['breakpoints']][[1]], "NA")
+      }
       #res_summary[trait_id,'p1'] = res_dif_lst[["plots"]][[1]]
       #res_summary[trait_id,'p2'] = res_dif_lst[["p2"]]
       #plot_list[[idx]] = res_dif_lst[["plots"]]
@@ -171,7 +174,8 @@ for (idx in indices){
   }
 
 }
-write.table(res_summary, file = paste0("../plots_all_pheno/diet_OV11_0098", val_var, ".txt"), sep = "\t", quote = F, col.names = NA)
+res_summary$inter_p_adj <- p.adjust(res_summary$inter_p, method = "BH")
+write.table(res_summary, file = paste0(out_basepath, ".txt"), sep = "\t", quote = F, col.names = NA)
 nrow(res_summary[res_summary$inter_p < 0.05,])
 nrow(res_summary[res_summary$g_p < 0.05 | res_summary$inter_p < 0.05,])
 if (make_plots){
