@@ -20,6 +20,7 @@ st_col = 3
 traits_path <- "CVD3_olinkNormal_1447_LLDsamples_t_ProtNames.txt"
 st_col = 1
 traits0 <- as.data.frame(t(read.delim(traits_path, header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)))
+out_basepath <- paste0("../plots_all_pheno/v2/proteins_with_breakpoints_5e-4")
 
 
 # telomeres
@@ -29,6 +30,8 @@ traits0 <- as.data.frame(t(read.delim(traits_path, header = T, row.names = 1, se
 
 # Bile acids
 traits_path <- "C:/Users/Dasha/work/UMCG/data/LifeLines_phenotypes/BA37_50present_n1436.txt"
+out_basepath <- paste0("../plots_all_pheno/v2/bile_acids_with_breakpoints_5e-4")
+
 st_col = 1
 # NMR metabolomics
 traits_path <- "C:/Users/Dasha/work/UMCG/data/Metabolomics_shared_folder/2.metabolites/LLD_bloodlipids_nmr.txt"
@@ -85,15 +88,15 @@ row.names(traits1) <- traits1[,1]
 traits <- sapply(traits1[,-1], function(x) as.numeric(as.character(x)))
 row.names(traits) <- row.names(traits1)
 
-out_basepath <- paste0("../plots_all_pheno/v2/proteins_with_breakpoints_5e-4")
 
-
+###############################################################
 gte_path <- "gte_all.txt"
-pheno_path <- "age_gender_smk_contrac_cell_counts.txt"
+pheno_path <- "age_gender_cell_counts_070920.txt"
 gene_table_path <- "geneid_to_gene_proteincoding_mainchr.txt"
 
 correct_for_cellcounts = T
 make_plots = T
+add_breakpoints = T
 
 setwd(wd_path)
 
@@ -104,7 +107,7 @@ traits <- sapply(traits0, function(x) as.numeric(as.character(x)))
 row.names(traits) <- row.names(traits0)
 
 #Age, gender and other phenotypes
-pheno0 <- as.data.frame(t(read.table(pheno_path, header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)))
+pheno0 <- read.table(pheno_path, header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)
 pheno <- na.omit(pheno0)
 traits_m <- traits[match(row.names(pheno), row.names(traits), nomatch = 0 ),]
 
