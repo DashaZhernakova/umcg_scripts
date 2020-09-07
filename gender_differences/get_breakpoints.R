@@ -3,7 +3,7 @@ library(ggpmisc)
 get_peak_locations <- function(x, span_val = 7, pval_threshold = 5e-4){
   pow <- floor(log10(pval_threshold))
   pval_thres2 <- 5*10^(pow/2) 
-  peaks <- ggpmisc:::find_peaks(-x, span = span_val) & x < pval_threshold & c(x[2:length(x)], 1) < 0.05 & c(1, x[1:length(x) - 1]) < 0.05
+  peaks <- ggpmisc:::find_peaks(-x, span = span_val) & x < pval_threshold & c(x[2:length(x)], 1) < pval_thres2 & c(1, x[1:(length(x) - 1)]) < pval_thres2
   return(peaks)
 }
 
@@ -28,8 +28,8 @@ get_breakpoints <- function(merged_tab, ttest_window = 5){
   }
   #res
   
-  peaks_m_idx <- rownames(res)[get_peak_locations(res[,"m"], pval_threshold = p_thres)]
-  peaks_w_idx <- rownames(res)[get_peak_locations(res[,"w"], pval_threshold = p_thres)]
+  peaks_m_idx <- rownames(res)[get_peak_locations(res[,"m"], pval_threshold = p_thres, span_val = 11)]
+  peaks_w_idx <- rownames(res)[get_peak_locations(res[,"w"], pval_threshold = p_thres, span_val = 11)]
   
   return (list(peaks_w_idx, peaks_m_idx))
 }

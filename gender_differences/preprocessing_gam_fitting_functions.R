@@ -86,9 +86,8 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts, 
     if (m_o_p > 0.05){
       return (list("dif" = NULL, "inter_p" = m_o_p,"g_beta" = m_o_g_beta, "g_pv" = m_o_g_pv))
     }
-    new.x <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = n_points), gender_F1M2 = c('1', '2'), 
-                                          ba = mean(ba), eo = mean(eo), er = mean(er), gr = mean(gr), 
-                                          ly = mean(ly),  mo = mean(mo), tr = mean(tr)))
+    new.x <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = n_points), gender_F1M2 = c('1', '2'))) 
+                                          
     new.y <- data.frame(predict(m1, newdata = new.x, se.fit = TRUE, type = "response"))
     pdat <- data.frame(new.x, new.y)
     pdat <- rename(pdat, pred = fit, SE = se.fit)
@@ -104,9 +103,7 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts, 
       res_dif <- simple_diff(pdat)
     } else { # stupid way to go
       m1 <- gam(phenotype ~ gender_F1M2 + s(age) + s(age, by = gender_F1M2), data = merged_tab, method = "REML")
-      new.x <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = n_points), gender_F1M2 = c('1', '2'), 
-                                            ba = mean(ba), eo = mean(eo), er = mean(er), gr = mean(gr), 
-                                            ly = mean(ly),  mo = mean(mo), tr = mean(tr)))
+      new.x <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = n_points), gender_F1M2 = c('1', '2')))
       new.y <- data.frame(predict(m1, newdata = new.x, se.fit = TRUE, type = "response"))
       pdat <- data.frame(new.x, new.y)
       pdat <- rename(pdat, pred = fit, SE = se.fit)
