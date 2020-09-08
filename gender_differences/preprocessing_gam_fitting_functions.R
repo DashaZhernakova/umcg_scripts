@@ -153,14 +153,14 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts, 
       
     }
   }
-  
-  
-  if (make_plots){
-    breakpoints <- NULL
+   breakpoints <- NULL
     if (add_breakpoints){
       breakpoints <- get_breakpoints(merged_tab)
     }
-    draw_plot(merged_tab, pheno_name, pdat, min_age, max_age, breakpoints)
+ 
+  
+  if (make_plots){
+    draw_plot(merged_tab, pheno_name, pdat, m_o_p, min_age, max_age, breakpoints, alpha_points)
   }
   
   return (list("pdat" = pdat, "dif" = res_dif$diff, "inter_p" = m_o_p,"g_beta" = m_o_g_beta, "g_pv" = m_o_g_pv, "breakpoints" = breakpoints))
@@ -207,7 +207,7 @@ col2transparent <- function(col, transparency){
   dodgerblueTransparent <- rgb(colRgb[1,1], colRgb[2,1], colRgb[3,1], transparency, names = NULL, maxColorValue = 255)
 }
 
-draw_plot <- function(merged_tab, pheno_name, pdat, min_age, max_age, breakpoints, label = ""){
+draw_plot <- function(merged_tab, pheno_name, pdat, m_o_p, min_age, max_age, breakpoints, alpha_points = 40, label = ""){
   cex_main = 1
   ylims <- with(merged_tab, range(phenotype))
   ylabel <- pheno_name
@@ -222,7 +222,8 @@ draw_plot <- function(merged_tab, pheno_name, pdat, min_age, max_age, breakpoint
   
   
   ## draw base plot
-  palette(c(col2transparent("indianred1", 40),col2transparent("dodgerblue1", 40)))
+  #palette(c(col2transparent("indianred1", alpha_points),col2transparent("dodgerblue1", alpha_points)))
+  palette(c(col2transparent("#ff9999", 80),col2transparent("#99ccff", 80)))
   par(mar = c(6, 6, 6, 3), # Dist' from plot to side of page
       mgp = c(2, 0.4, 0), # Dist' plot to label
       las = 1, # Rotate y-axis text
@@ -234,7 +235,7 @@ draw_plot <- function(merged_tab, pheno_name, pdat, min_age, max_age, breakpoint
        main = paste0(pheno_name, ' ', label, "\nGAM interaction p = ", format(m_o_p, digits = 3)), 
        cex = 0.6, xlab = "age", ylab = ylabel, cex.main = cex_main, frame.plot = F, axes = F, 
        ylim =c(min(pretty(merged_tab2$phenotype)), max(pretty(merged_tab2$phenotype))),
-       xlim = c(min_age, max_age))
+       xlim = c(min(min_age,merged_tab2$age), max(max_age, merged_tab2$age)))
   
 
   abline(h = pretty(merged_tab2$phenotype), col = "grey90")

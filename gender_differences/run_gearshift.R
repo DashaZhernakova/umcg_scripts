@@ -84,11 +84,16 @@ for (idx in indices){
     res_summary[trait_id,'inter_p'] = res_dif_lst[["inter_p"]]
     res_summary[trait_id,'g_beta'] = res_dif_lst[["g_beta"]]
     res_summary[trait_id,'g_pv'] = res_dif_lst[["g_pv"]]
+    if (!is.null(res_dif_lst[['breakpoints']])){
+        res_summary[trait_id, "breakpoints_men"] = ifelse(length(res_dif_lst[['breakpoints']][[2]]) > 0, res_dif_lst[['breakpoints']][[2]], "NA")
+        res_summary[trait_id, "breakpoints_women"] = ifelse(length(res_dif_lst[['breakpoints']][[1]]) > 0, res_dif_lst[['breakpoints']][[1]], "NA")
+      }
   #}
   
 }
 write.table(res_dif_all, file=paste0("summary_tables/", traits_path, "diff.txt"), sep = "\t", quote = F, col.names = NA)
 write.table(res_pred_all, file=paste0("summary_tables/", traits_path, ".fitted.txt"), sep = "\t", quote = F, col.names = NA)
+res_summary$inter_p_adj <- p.adjust(res_summary$inter_p, method = "BH")
 write.table(res_summary, file = paste0("summary_tables/", traits_path, ".txt"), sep = "\t", quote = F, col.names = NA)
 nrow(res_summary[res_summary$inter_p < 0.05,])
 nrow(res_summary[res_summary$g_p < 0.05 | res_summary$inter_p < 0.05,])
