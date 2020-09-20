@@ -2,6 +2,7 @@
 source("C:/Users/Dasha/work/UMCG/umcg_scripts/gender_differences/preprocessing_gam_fitting_functions.R")
 source("C:/Users/Dasha/work/UMCG/umcg_scripts/gender_differences/clustering_functions.R")
 source("C:/Users/Dasha/work/UMCG/umcg_scripts/gender_differences/get_breakpoints.R")
+source("C:/Users/Dasha/work/UMCG/umcg_scripts/gender_differences/calc_derivatives.R")
 
 boxy = F
 
@@ -20,7 +21,7 @@ st_col = 3
 traits_path <- "CVD3_olinkNormal_1447_LLDsamples_t_ProtNames.txt"
 st_col = 1
 traits0 <- as.data.frame(t(read.delim(traits_path, header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)))
-out_basepath <- paste0("../plots_all_pheno/v2/proteins_with_breakpoints_5e-4")
+out_basepath <- paste0("../plots_all_pheno/v2/proteins_with_breakpoints_deriv3")
 
 
 # telomeres
@@ -121,11 +122,12 @@ pheno_m <- pheno_m[order(pheno_m$age),]
 
 nplotspp = 20
 n_points = 300
-min_age = 15
-max_age = 90
+min_age = 20
+max_age = 80
 res_dif_all <- data.frame(age = seq(min_age, max_age, length = n_points))
 res_pdat_all <- data.frame(age = c(seq(min_age, max_age, length = n_points), seq(min_age, max_age, length = n_points)))
 res_summary <- data.frame()
+res_dif_lst <- data.frame()
 
 cnt = 1
 if (make_plots){
@@ -149,12 +151,12 @@ for (idx in indices){
   trait_name = trait_id
   if (length(trait_name) > 0 & length(unique(traits_m[,idx])) > 1){ #if gene id in gene convertion table
     
-    merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = "IQR", log_tr = F)
+    merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = "IQR", log_tr = F, scale_tr = T)
     #merged_tab[,1] = merged_tab[,1] + 1
     res_dif = NULL
     #tryCatch({
     
-    res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, correctForCellCounts = correct_for_cellcounts, n_points = 300, make_plots = make_plots, gam_family = gaussian(), label = '', add_breakpoints = T)
+    res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, correctForCellCounts = correct_for_cellcounts, n_points = n_points, make_plots = make_plots, gam_family = gaussian(), label = '', add_breakpoints = T)
     #res_dif_lst <- plot_scatter_and_gam2(merged_tab[merged_tab$statins != 1,], trait_name, correctForCellCounts = F, n_points = 300, make_plots = make_plots, gam_family = gaussian(), label = '')
     #},error=function(e) {
     #      message(paste("Fitting failed for ", idx))
@@ -162,6 +164,7 @@ for (idx in indices){
     if (res_dif_lst[["inter_p"]] < 0.05){
       cnt <- cnt + 1
       res_dif_all[,trait_id] <- res_dif_lst[["dif"]]
+      #res_pdat_all[,trait_id] <- res_dif_lst$pdat$pred
     }
       res_summary[trait_id,'inter_p'] = res_dif_lst[["inter_p"]]
       res_summary[trait_id,'g_beta'] = res_dif_lst[["g_beta"]]

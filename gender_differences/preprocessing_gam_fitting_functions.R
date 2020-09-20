@@ -140,6 +140,14 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts, 
                               ly = mean(merged_tab$ly),  mo = mean(merged_tab$mo), tr = mean(merged_tab$tr))
       #res_dif <- smooth_diff(m1, pdat_dif, '2', '1', "gender_F1M2")
       #res_dif$age = seq(min_age, max_age, length = n_points)
+      new.x <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = n_points), gender_F1M2 = c('1', '2'), 
+                                            ba = mean(ba), eo = mean(eo), er = mean(er), gr = mean(gr), 
+                                            ly = mean(ly),  mo = mean(mo), tr = mean(tr)))
+      new.y <- data.frame(predict(m1, newdata = new.x, se.fit = TRUE, type = "response"))
+      pdat <- data.frame(new.x, new.y)
+      pdat <- rename(pdat, pred = fit, SE = se.fit)
+      pdat <- mutate(pdat, lwr = pred - 1.96 * SE, upr = pred + 1.96 * SE) # calculating the 95% confidence interval
+      
       res_dif <- simple_diff(pdat)
     } else { # stupid way to go
       m1 <- gam(phenotype ~ gender_F1M2 + s(age) + s(age, by = gender_F1M2), data = merged_tab, method = "REML")
@@ -155,7 +163,8 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts, 
   }
    breakpoints <- NULL
     if (add_breakpoints){
-      breakpoints <- get_breakpoints(merged_tab)
+      #breakpoints <- get_breakpoints(merged_tab)
+      breakpoints <- get_breakpoints_derivatives(merged_tab)
     }
  
   

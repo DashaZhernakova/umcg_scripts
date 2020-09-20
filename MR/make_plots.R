@@ -1,6 +1,7 @@
 args <- commandArgs(trailingOnly = TRUE)
 library(TwoSampleMR)
 library(cowplot)
+library(ggplot2)
 
 #
 # !!! Modify the paths !!!
@@ -11,6 +12,33 @@ plot_dir = "/groups/umcg-lld/tmp03/umcg-dzhernakova/MR/results/mibiogenSep2019/p
 
 #
 #
+
+custom_scatter_plot <- function(res, dat){
+  d <- subset(dat, mr_keep)
+  if(nrow(d) < 2 | sum(d$mr_keep) == 0)
+  {
+    return(blank_plot("Insufficient number of SNPs"))
+  }
+  
+  index <- d$beta.exposure < 0
+  d$beta.exposure[index] <- d$beta.exposure[index] * -1
+  d$beta.outcome[index] <- d$beta.outcome[index] * -1
+  mrres <- subset(res, id.exposure == d$id.exposure[1] & id.outcome == d$id.outcome[1])
+  mrres$a <- 0
+  exp_name <- gsub(' \\|\\|.*',"",d$exposure[1])
+  out_name <- gsub(' \\|\\|.*',"",d$outcome[1])
+  
+  cols = c("red1", "dodgerblue1")
+  ggplot(data=d, aes(x=beta.exposure, y=beta.outcome)) +
+    geom_errorbar(aes(ymin=beta.outcome-se.outcome, ymax=beta.outcome+se.outcome), colour="grey", width=0) +
+    geom_errorbarh(aes(xmin=beta.exposure-se.exposure, xmax=beta.exposure+se.exposure), colour="grey", height=0) +
+    geom_point(aes(text=paste("SNP:", SNP))) +
+    geom_abline(data=mrres, aes(intercept=a, slope=b), colour = ifelse(mrres$b > 0, cols[1], cols[2]), size = 1.2, show.legend=F) +
+    labs(colour="MR Test", x=paste("SNP effect on", exp_name), y=paste("SNP effect on", out_name)) +
+    theme_bw() +
+    annotate("text", Inf, Inf, label = paste0(format(mrres$b, digits = 3), " SD change in ", exp_name, "\nper SD change in ", out_name), hjust = 1, vjust = 1)
+  
+}
 
 exp_from_file = FALSE
 out_from_file = FALSE
