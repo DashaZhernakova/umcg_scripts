@@ -163,15 +163,22 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts, 
   }
    breakpoints <- NULL
     if (add_breakpoints){
-      #breakpoints <- get_breakpoints(merged_tab)
-      breakpoints <- get_breakpoints_derivatives(merged_tab)
+      breakpoints <- get_breakpoints(merged_tab)
+      breakpoints2 <- get_breakpoints_derivatives(merged_tab, correctForCellCounts)
     }
  
   
   if (make_plots){
     draw_plot(merged_tab, pheno_name, pdat, m_o_p, min_age, max_age, breakpoints, alpha_points)
   }
-  
+  br_w <- breakpoints2[[1]]
+    br_m <- breakpoints2[[2]]
+    for (br in br_w){
+      abline(v = as.numeric(br), col = "orange", lty = 2)
+    }
+    for (br in br_m){
+      abline(v = as.numeric(br), col = "green", lty = 2)
+    }
   return (list("pdat" = pdat, "dif" = res_dif$diff, "inter_p" = m_o_p,"g_beta" = m_o_g_beta, "g_pv" = m_o_g_pv, "breakpoints" = breakpoints))
 } 
 
