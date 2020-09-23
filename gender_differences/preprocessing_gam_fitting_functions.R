@@ -161,24 +161,18 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts, 
       
     }
   }
+   breakpoints_intervals <- NULL
    breakpoints <- NULL
     if (add_breakpoints){
-      breakpoints <- get_breakpoints(merged_tab)
-      breakpoints2 <- get_breakpoints_derivatives(merged_tab, correctForCellCounts)
+      breakpoints_intervals <- get_breakpoints(merged_tab, correctForCellCounts, t_threshold = 3, derivatives_cutoff = 0.0002)
+      #breakpoints2 <- get_breakpoints_derivatives(merged_tab, correctForCellCounts)
     }
  
   
   if (make_plots){
-    draw_plot(merged_tab, pheno_name, pdat, m_o_p, min_age, max_age, breakpoints, alpha_points)
+    draw_plot(merged_tab, pheno_name, pdat, m_o_p, min_age, max_age, breakpoints, alpha_points, breakpoints_intervals)
   }
-  br_w <- breakpoints2[[1]]
-    br_m <- breakpoints2[[2]]
-    for (br in br_w){
-      abline(v = as.numeric(br), col = "orange", lty = 2)
-    }
-    for (br in br_m){
-      abline(v = as.numeric(br), col = "green", lty = 2)
-    }
+  
   return (list("pdat" = pdat, "dif" = res_dif$diff, "inter_p" = m_o_p,"g_beta" = m_o_g_beta, "g_pv" = m_o_g_pv, "breakpoints" = breakpoints))
 } 
 
@@ -223,7 +217,7 @@ col2transparent <- function(col, transparency){
   dodgerblueTransparent <- rgb(colRgb[1,1], colRgb[2,1], colRgb[3,1], transparency, names = NULL, maxColorValue = 255)
 }
 
-draw_plot <- function(merged_tab, pheno_name, pdat, m_o_p, min_age, max_age, breakpoints, alpha_points = 40, label = ""){
+draw_plot <- function(merged_tab, pheno_name, pdat, m_o_p, min_age, max_age, breakpoints, alpha_points = 40, breakpoints_intervals, label = ""){
   cex_main = 1
   ylims <- with(merged_tab, range(phenotype))
   ylabel <- pheno_name
@@ -249,7 +243,7 @@ draw_plot <- function(merged_tab, pheno_name, pdat, m_o_p, min_age, max_age, bre
   merged_tab2 <- merged_tab[merged_tab$phenotype < ylims[2] & merged_tab$phenotype > ylims[1],]
   plot(phenotype ~ age, data = merged_tab2,  col = gender_F1M2,  pch = 16, 
        main = paste0(pheno_name, ' ', label, "\nGAM interaction p = ", format(m_o_p, digits = 3)), 
-       cex = 0.6, xlab = "age", ylab = ylabel, cex.main = cex_main, frame.plot = F, axes = F, 
+       cex = 0.6, xlab = "age", ylab = ylabel, cex.main = cex_main, frame.plot = F, axes = T, 
        ylim =c(min(pretty(merged_tab2$phenotype)), max(pretty(merged_tab2$phenotype))),
        xlim = c(min(min_age,merged_tab2$age), max(max_age, merged_tab2$age)))
   
@@ -257,12 +251,12 @@ draw_plot <- function(merged_tab, pheno_name, pdat, m_o_p, min_age, max_age, bre
   abline(h = pretty(merged_tab2$phenotype), col = "grey90")
   abline(v = pretty(merged_tab2$age), col = "grey90")
   
-  at = pretty(merged_tab2$age)
-  mtext(side = 1, text = at, at = at, 
-        col = "grey20", line = 1, cex = 0.4)
+  #at = pretty(merged_tab2$age)
+  #mtext(side = 1, text = at, at = at, 
+  #      col = "grey20", line = 1, cex = 0.4)
   
-  at = pretty(merged_tab2$phenotype)  
-  mtext(side = 2, text = at, at = at, col = "grey20", line = 1, cex = 0.4)
+  #at = pretty(merged_tab2$phenotype)  
+  #mtext(side = 2, text = at, at = at, col = "grey20", line = 1, cex = 0.4)
   
   levs <- levels(merged_tab$gender_F1M2)
   cols = c("indianred1", "dodgerblue1")
@@ -274,7 +268,6 @@ draw_plot <- function(merged_tab, pheno_name, pdat, m_o_p, min_age, max_age, bre
     polygon(c(rev(dd$age), dd$age), c(rev(dd$lwr), dd$upr), col = col2transparent(cols[[l]], 65), border = NA)
   }
   
-  
   if(!is.null(breakpoints)){
     br_w <- breakpoints[[1]]
     br_m <- breakpoints[[2]]
@@ -283,6 +276,18 @@ draw_plot <- function(merged_tab, pheno_name, pdat, m_o_p, min_age, max_age, bre
     }
     for (br in br_m){
       abline(v = as.numeric(br), col = cols[2], lty = 2)
+    }
+  }
+  ymin <- min(pretty(merged_tab2$phenotype), min(merged_tab2$phenotype) - 1)
+  ymax <- max(pretty(merged_tab2$phenotype), max(merged_tab2$phenotype) + 2)
+  if(!is.null(breakpoints_intervals)){
+    br_w <- breakpoints_intervals[[1]]
+    br_m <- breakpoints_intervals[[2]]
+    for (br in br_m){
+      rect(br[1], ymin, br[2], ymax, col = 2, border = 2, density = -1)
+    }
+    for (br in br_w){
+      rect(br[1], ymin, br[2], ymax, col = 1, border = 1, density = -1)
     }
   }
 }

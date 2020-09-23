@@ -21,7 +21,7 @@ st_col = 3
 traits_path <- "CVD3_olinkNormal_1447_LLDsamples_t_ProtNames.txt"
 st_col = 1
 traits0 <- as.data.frame(t(read.delim(traits_path, header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)))
-out_basepath <- paste0("../plots_all_pheno/v2/proteins_with_breakpoints_deriv3")
+out_basepath <- paste0("../plots_all_pheno/v2/proteins_with_breakpoints_intervals_t2_d1e-4")
 
 
 # telomeres

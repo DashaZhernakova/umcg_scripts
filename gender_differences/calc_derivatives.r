@@ -1,25 +1,25 @@
 library(ggpmisc)
 # idx = 2
-# 
+
 # merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = "IQR", log_tr = F)
 # colnames(merged_tab)[1] <- "phenotype"
 # merged_tab <- merged_tab[(merged_tab$age < max_age) & (merged_tab$age >= min_age),]
 # merged_tab <- mutate(merged_tab, ord_gender_F1M2 = ordered(gender_F1M2, levels = c('1', '2')))
 # merged_tab <- mutate(merged_tab, gender_F1M2 = factor(gender_F1M2))
 
-get_breakpoints_derivatives <- function(merged_tab, cutoff = 0.00015, min_age = 20, max_age = 80, span_val = 7){
+get_breakpoints_derivatives <- function(merged_tab, correctForCellCounts, cutoff = 0.0003, min_age = 20, max_age = 80, span_val = 7){
   age_array <- seq(min_age, max_age, length = n_points)
   breakpoints <- list()
   
   d <- merged_tab[merged_tab$gender_F1M2 == 1,]
   d$phenotype <- scale(d$phenotype)
-  deriv2 <- get_secod_derivative(d)
+  deriv2 <- get_secod_derivative(d, correctForCellCounts)
   peaks <- ggpmisc:::find_peaks(abs(deriv2), span = span_val) & abs(deriv2) > cutoff 
   breakpoints[[1]] <- age_array[peaks]
   
   d <- merged_tab[merged_tab$gender_F1M2 == 2,]
   d$phenotype <- scale(d$phenotype)
-  deriv2 <- get_secod_derivative(d)
+  deriv2 <- get_secod_derivative(d, correctForCellCounts)
   peaks <- ggpmisc:::find_peaks(abs(deriv2), span = span_val) & abs(deriv2) > cutoff 
   breakpoints[[2]] <- age_array[peaks]
   return(breakpoints)
@@ -30,13 +30,17 @@ get_breakpoints_derivatives <- function(merged_tab, cutoff = 0.00015, min_age = 
 }
   
 
-get_secod_derivative <- function(d, eps = 1e-7, n_points = 300){
-
-  mod <- gam(phenotype ~  ba + eo + er + gr + 
+get_secod_derivative <- function(d, correctForCellCounts = F, eps = 1e-7, n_points = 300){
+  if (correctForCellCounts){
+    mod <- gam(phenotype ~  ba + eo + er + gr + 
                ly + mo + tr + s(age), data = d, method = "REML")
-  new.x <- with(d, expand.grid(age = seq(min_age, max_age, length = n_points), 
+    new.x <- with(d, expand.grid(age = seq(min_age, max_age, length = n_points), 
                                ba = mean(ba), eo = mean(eo), er = mean(er), gr = mean(gr), 
                                ly = mean(ly),  mo = mean(mo), tr = mean(tr)))
+  } else {
+   mod <- gam(phenotype ~ s(age), data = d, method = "REML")
+   new.x <- with(d, expand.grid(age = seq(min_age, max_age, length = n_points)))
+  } 
   new.y <- data.frame(predict(mod, newdata = new.x, se.fit = TRUE, type = "response"))
   pdat <- data.frame(new.x, new.y)
   pdat <- rename(pdat, pred = fit, SE = se.fit)
@@ -56,8 +60,8 @@ get_secod_derivative <- function(d, eps = 1e-7, n_points = 300){
   deriv1 <- pdat$pred[2:nrow(pdat)] - pdat$pred[1:nrow(pdat)-1]
   deriv2 <- deriv1[2:length(deriv1)] - deriv1[1:length(deriv1)-1] # a very rough second derivative with epsilon = 1
   
-  plot(y = deriv1, x = age_array[2:n_points], type = 'l')
-  plot(y = deriv2, x = age_array[3:n_points], type = 'l')
+  #plot(y = deriv1, x = age_array[2:n_points], type = 'l')
+  #plot(y = deriv2, x = age_array[3:n_points], type = 'l')
    return(deriv2)
 }
 

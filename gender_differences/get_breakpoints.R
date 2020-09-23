@@ -14,15 +14,14 @@ get_peak_locations <- function(x, span_val = 7, tval_threshold = 4){
   return(peaks)
 }
 
-get_breakpoints <- function(merged_tab, ttest_window = 5){
+get_breakpoints_ttest <- function(merged_tab, ttest_window = 5, tval_threshold = 4){
   #merged_tab <- merged_tab[merged_tab$age <= 80 & merged_tab$age > 20,]
   #age2test <- (min(merged_tab$age) + window):(max(merged_tab$age) - window)
   age2test = (max(20, min(merged_tab$age)) + ttest_window) : (min(68, max(merged_tab$age)) - ttest_window)
   res <- data.frame(matrix(ncol = 2, nrow = length(age2test)))
   colnames(res) <- c("w", "m")
   rownames(res) <- as.character(age2test)
-  #p_thres <- ifelse (nrow(merged_tab) > 5000, 1e-30, 5e-4) 
-  p_thres <- 4
+
   for (i in age2test){
     left <- merged_tab[merged_tab$age <= i & merged_tab$age > (i - ttest_window),]
     right <- merged_tab[merged_tab$age > i & merged_tab$age <= (i + ttest_window),]
@@ -35,8 +34,35 @@ get_breakpoints <- function(merged_tab, ttest_window = 5){
   }
   #res
   
-  peaks_m_idx <- rownames(res)[get_peak_locations(res[,"m"], span_val = 7)]
-  peaks_w_idx <- rownames(res)[get_peak_locations(res[,"w"], span_val = 7)]
+  peaks_m_idx <- rownames(res)[get_peak_locations(res[,"m"], span_val = 7, tval_threshold = tval_threshold)]
+  peaks_w_idx <- rownames(res)[get_peak_locations(res[,"w"], span_val = 7, tval_threshold = tval_threshold)]
   
   return (list(peaks_w_idx, peaks_m_idx))
+}
+
+get_breakpoints_within_interval <- function(deriv_breakpoints, ttest_breakpoints, age_interval1 = 10, age_interval2 = 3){
+  res <- list()
+  
+  cnt <- 1
+  for (der in as.numeric(deriv_breakpoints)) {
+    for (br in as.numeric(ttest_breakpoints)) {
+      if ((br - der < age_interval1) & (br > der)){
+        res[[cnt]] <- c(der, br)
+        cnt <- cnt + 1
+      } else if ((der - br < age_interval2) & (der > br)){
+        res[[cnt]] <- c(br, der)
+        cnt <- cnt + 1
+      }
+    }
+  }
+  return (res)
+}
+get_breakpoints <- function(merged_tab, correctForCellCounts, t_threshold = 4, derivatives_cutoff = 0.0003, min_age = 20, max_age = 80, age_interval1 = 10, age_interval2 = 5){
+  ttest_breakpoints <- get_breakpoints_ttest(merged_tab, tval_threshold = t_threshold)
+  deriv_breakpoints <- get_breakpoints_derivatives(merged_tab, correctForCellCounts = correctForCellCounts, cutoff = derivatives_cutoff, min_age = min_age, max_age = max_age)
+  
+  res_w <- get_breakpoints_within_interval(deriv_breakpoints[[1]], ttest_breakpoints[[1]], age_interval1 = age_interval1, age_interval2 = age_interval2)
+  res_m <- get_breakpoints_within_interval(deriv_breakpoints[[2]], ttest_breakpoints[[2]], age_interval1 = age_interval1, age_interval2 = age_interval2)
+  
+  return(list(res_w, res_m))
 }
