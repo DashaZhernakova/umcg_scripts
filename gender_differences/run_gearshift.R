@@ -52,8 +52,9 @@ res_summary <- data.frame()
 
 cnt = 1
 if (make_plots){
-  png(plot_basepath, width = 15, height = 15, units = 'in', res = 300)
-  par(mfrow=c(5,4)) 
+  png(plot_basepath, width = 20, height = 20, units = 'in', res = 400)
+  ncols <- 8
+  par(mfrow=c(ceiling(num_traits/ncols),ncols)) 
 }
 
 
@@ -61,10 +62,10 @@ indices = 1:ncol(traits_m)
 cnt = 1
 
 for (idx in indices){
-  if (cnt > nplotspp & make_plots){
-    cnt = 1
-    par(mfrow=c(5,4))
-  }
+  #if (cnt > nplotspp & make_plots){
+  #  cnt = 1
+  #  par(mfrow=c(5,4))
+  #}
   
   trait_id <- colnames(traits_m)[idx]
   trait_name = trait_id

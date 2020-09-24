@@ -21,7 +21,7 @@ st_col = 3
 traits_path <- "CVD3_olinkNormal_1447_LLDsamples_t_ProtNames.txt"
 st_col = 1
 traits0 <- as.data.frame(t(read.delim(traits_path, header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)))
-out_basepath <- paste0("../plots_all_pheno/v2/proteins_with_breakpoints_intervals_t2_d1e-4")
+out_basepath <- paste0("../plots_all_pheno/v2/proteins_with_breakpoints_intervals_t2_d2e-4")
 
 
 # telomeres
@@ -124,6 +124,9 @@ nplotspp = 20
 n_points = 300
 min_age = 20
 max_age = 80
+ttest_cutoff <- 2
+deriv_cutoff <- 0.0002
+
 res_dif_all <- data.frame(age = seq(min_age, max_age, length = n_points))
 res_pdat_all <- data.frame(age = c(seq(min_age, max_age, length = n_points), seq(min_age, max_age, length = n_points)))
 res_summary <- data.frame()
@@ -156,7 +159,7 @@ for (idx in indices){
     res_dif = NULL
     #tryCatch({
     
-    res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, correctForCellCounts = correct_for_cellcounts, n_points = n_points, make_plots = make_plots, gam_family = gaussian(), label = '', add_breakpoints = T)
+    res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, correctForCellCounts = correct_for_cellcounts, n_points = n_points, make_plots = make_plots, gam_family = gaussian(), label = '', add_breakpoints = T,  t_threshold = ttest_cutoff, derivatives_cutoff = deriv_cutoff)
     #res_dif_lst <- plot_scatter_and_gam2(merged_tab[merged_tab$statins != 1,], trait_name, correctForCellCounts = F, n_points = 300, make_plots = make_plots, gam_family = gaussian(), label = '')
     #},error=function(e) {
     #      message(paste("Fitting failed for ", idx))

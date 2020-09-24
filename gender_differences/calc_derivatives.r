@@ -1,6 +1,6 @@
 library(ggpmisc)
 # idx = 2
-
+# 
 # merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = "IQR", log_tr = F)
 # colnames(merged_tab)[1] <- "phenotype"
 # merged_tab <- merged_tab[(merged_tab$age < max_age) & (merged_tab$age >= min_age),]
