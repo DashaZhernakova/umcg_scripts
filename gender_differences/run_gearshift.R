@@ -10,7 +10,6 @@ wd_path <- "/groups/umcg-lifelines/tmp01/users/umcg-dzhernakova/gender_difs/"
 traits_path <- args[1]
 st_col = 2
 
-plot_basepath <- paste0("plots/", traits_path, "_zscore_outliers.pdf")
 
 pheno_path <- "age_gender_all_LL.txt"
 
@@ -42,13 +41,18 @@ nplotspp = 20
 n_points = 300
 min_age = 20
 max_age = 80
+ttest_cutoff <- 3
+deriv_cutoff <- 0.00015
+plot_basepath <- paste0("plots/", traits_path, "breakpoints_intervals_t",ttest_cutoff,"_d", deriv_cutoff,".png")
+
+
 res_dif_all <- data.frame(age = seq(min_age, max_age, length = n_points))
 res_pred_all <- data.frame(age = c(seq(min_age, max_age, length = n_points), seq(min_age, max_age, length = n_points)))
 res_summary <- data.frame()
 
 cnt = 1
 if (make_plots){
-  pdf(plot_basepath, width = 15, height = 15)
+  png(plot_basepath, width = 15, height = 15, units = 'in', res = 300)
   par(mfrow=c(5,4)) 
 }
 
@@ -71,7 +75,7 @@ for (idx in indices){
     print(paste0(trait_name, ",", nrow(merged_tab)))
     res_dif = NULL
     #tryCatch({
-    res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, correctForCellCounts = F, n_points = n_points, make_plots = make_plots, gam_family = gaussian(), label = '', min_age = min_age, max_age = max_age, add_breakpoints = T)
+    res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, correctForCellCounts = F, n_points = n_points, make_plots = make_plots, gam_family = gaussian(), label = '', min_age = min_age, max_age = max_age, add_breakpoints = T, t_threshold = ttest_cutoff, derivatives_cutoff = deriv_cutoff)
     #},error=function(e) {
     #      message(paste("Fitting failed for ", idx))
     # })

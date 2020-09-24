@@ -61,7 +61,7 @@ rm_na_outliers <- function(traits_m, pheno_m, idx, method = "IQR", scale_tr = F,
 }
 
 # Fit a GAM with age : gender interaction and (optional) correction for cell counts
-plot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts, n_points = 300, make_plots, label = '', gam_family = gaussian(), min_age = 20, max_age = 80, add_breakpoints = F){
+plot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts, n_points = 300, make_plots, label = '', gam_family = gaussian(), min_age = 20, max_age = 80, add_breakpoints = F, t_threshold = 3, derivatives_cutoff = 0.0002){
   colnames(merged_tab)[1] <- "phenotype"
   merged_tab <- merged_tab[(merged_tab$age < max_age) & (merged_tab$age >= min_age),]
   
@@ -164,7 +164,7 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts, 
    breakpoints_intervals <- NULL
    breakpoints <- NULL
     if (add_breakpoints){
-      breakpoints_intervals <- get_breakpoints(merged_tab, correctForCellCounts, t_threshold = 3, derivatives_cutoff = 0.0002)
+      breakpoints_intervals <- get_breakpoints(merged_tab, correctForCellCounts, t_threshold = t_threshold, derivatives_cutoff = derivatives_cutoff)
       #breakpoints2 <- get_breakpoints_derivatives(merged_tab, correctForCellCounts)
     }
  

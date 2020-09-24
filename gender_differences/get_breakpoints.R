@@ -42,21 +42,26 @@ get_breakpoints_ttest <- function(merged_tab, ttest_window = 5, tval_threshold =
 
 get_breakpoints_within_interval <- function(deriv_breakpoints, ttest_breakpoints, age_interval1 = 10, age_interval2 = 3){
   res <- list()
-  
+  visited = c()
   cnt <- 1
   for (der in as.numeric(deriv_breakpoints)) {
     for (br in as.numeric(ttest_breakpoints)) {
-      if ((br - der < age_interval1) & (br > der)){
-        res[[cnt]] <- c(der, br)
-        cnt <- cnt + 1
-      } else if ((der - br < age_interval2) & (der > br)){
-        res[[cnt]] <- c(br, der)
-        cnt <- cnt + 1
+      if (! br %in% visited){
+        if ((br - der < age_interval1) & (br > der)){
+          res[[cnt]] <- c(der, br)
+          cnt <- cnt + 1
+          visited <- c(visited,br)
+        } else if ((der - br < age_interval2) & (der > br)){
+          res[[cnt]] <- c(br, der)
+          cnt <- cnt + 1
+          visited <- c(visited,br)
+        }
       }
     }
   }
   return (res)
 }
+
 get_breakpoints <- function(merged_tab, correctForCellCounts, t_threshold = 4, derivatives_cutoff = 0.0003, min_age = 20, max_age = 80, age_interval1 = 10, age_interval2 = 5){
   ttest_breakpoints <- get_breakpoints_ttest(merged_tab, tval_threshold = t_threshold)
   deriv_breakpoints <- get_breakpoints_derivatives(merged_tab, correctForCellCounts = correctForCellCounts, cutoff = derivatives_cutoff, min_age = min_age, max_age = max_age)
