@@ -268,7 +268,7 @@ draw_plot <- function(merged_tab, pheno_name, pdat, m_o_p, min_age, max_age, bre
     polygon(c(rev(dd$age), dd$age), c(rev(dd$lwr), dd$upr), col = col2transparent(cols[[l]], 65), border = NA)
   }
   
-  if(!is.null(breakpoints)){
+  if(length(breakpoints) > 0){
     br_w <- breakpoints[[1]]
     br_m <- breakpoints[[2]]
     for (br in br_w){
@@ -291,6 +291,21 @@ draw_plot <- function(merged_tab, pheno_name, pdat, m_o_p, min_age, max_age, bre
     }
   }
 }
+
+calculate_sex_diff_anova <- function(merged_tab, correctForCellCounts, min_age = 20, max_age = 80){
+  colnames(merged_tab)[1] <- "phenotype"
+  merged_tab <- merged_tab[(merged_tab$age < max_age) & (merged_tab$age >= min_age),]
+  merged_tab <- mutate(merged_tab, gender_F1M2 = factor(gender_F1M2))
+  
+  if (! correctForCellCounts){
+    res <- lm(phenotype ~ gender_F1M2, data = merged_tab)
+  } else{
+    res <- lm(phenotype ~ gender_F1M2 + ba + eo + er + gr + ly + mo + tr, data = merged_tab)
+  }
+  sex_p <- summary(res)$coefficients[2,4]
+  return(sex_p)
+}
+
 draw_plot0 <- function(merged_tab, pheno_name, pdat){
   cex_main = 1
   ylims <- with(merged_tab, range(phenotype))

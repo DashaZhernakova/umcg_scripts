@@ -21,7 +21,7 @@ st_col = 3
 traits_path <- "CVD3_olinkNormal_1447_LLDsamples_t_ProtNames.txt"
 st_col = 1
 traits0 <- as.data.frame(t(read.delim(traits_path, header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)))
-out_basepath <- paste0("../plots_all_pheno/v2/proteins_with_breakpoints_intervals_t2_d2e-4")
+out_basepath <- paste0("../plots_all_pheno/v2/proteins_with_breakpoints_intervals_t4_d1.5e-4")
 
 
 # telomeres
@@ -31,12 +31,13 @@ traits0 <- as.data.frame(t(read.delim(traits_path, header = T, row.names = 1, se
 
 # Bile acids
 traits_path <- "C:/Users/Dasha/work/UMCG/data/LifeLines_phenotypes/BA37_50present_n1436.txt"
-out_basepath <- paste0("../plots_all_pheno/v2/bile_acids_with_breakpoints_5e-4")
+out_basepath <- paste0("../plots_all_pheno/v2/bile_acids_with_breakpoints_t3_d1.5e-4")
 
 st_col = 1
 # NMR metabolomics
 traits_path <- "C:/Users/Dasha/work/UMCG/data/Metabolomics_shared_folder/2.metabolites/LLD_bloodlipids_nmr.txt"
 st_col=5
+out_basepath <- paste0("../plots_all_pheno/v2/NMR_with_breakpoints_intervals_t3_d1.5e-4")
 
 # Untargeted metabolomics
 traits_path <- "C:/Users/Dasha/work/UMCG/data/LifeLines_phenotypes/data_1442samples_LLD_baseline_1183plasma_metabolites.txt"
@@ -46,7 +47,7 @@ st_col <- 1
 
 # Immune markers and cytokines
 traits_path <- "C:/Users/Dasha/work/UMCG/data/LifeLines_phenotypes/cytokines_and_immune_markers.txt"
-st_col <- 1
+st_col <- 7
 
 #Smoking
 traits_path <- "C:/Users/Dasha/work/UMCG/data/LifeLines_phenotypes/Smoking_LLD_GoNL_for_Sasha.txt"
@@ -124,8 +125,10 @@ nplotspp = 20
 n_points = 300
 min_age = 20
 max_age = 80
-ttest_cutoff <- 2
-deriv_cutoff <- 0.0002
+ttest_cutoff <- 3
+deriv_cutoff <- 0.00015
+
+out_basepath <- paste0("../plots_all_pheno/v2/cytokines_with_breakpoints_intervals_t3_d1.5e-4_v2")
 
 res_dif_all <- data.frame(age = seq(min_age, max_age, length = n_points))
 res_pdat_all <- data.frame(age = c(seq(min_age, max_age, length = n_points), seq(min_age, max_age, length = n_points)))
@@ -158,8 +161,8 @@ for (idx in indices){
     #merged_tab[,1] = merged_tab[,1] + 1
     res_dif = NULL
     #tryCatch({
-    
-    res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, correctForCellCounts = correct_for_cellcounts, n_points = n_points, make_plots = make_plots, gam_family = gaussian(), label = '', add_breakpoints = T,  t_threshold = ttest_cutoff, derivatives_cutoff = deriv_cutoff)
+    sex_dif_pval <- calculate_sex_diff_anova(merged_tab, correctForCellCounts = correct_for_cellcounts, min_age, max_age)
+    res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, correctForCellCounts = correct_for_cellcounts, n_points = n_points, make_plots = make_plots, gam_family = gaussian(), label = '', add_breakpoints = add_breakpoints,  t_threshold = ttest_cutoff, derivatives_cutoff = deriv_cutoff)
     #res_dif_lst <- plot_scatter_and_gam2(merged_tab[merged_tab$statins != 1,], trait_name, correctForCellCounts = F, n_points = 300, make_plots = make_plots, gam_family = gaussian(), label = '')
     #},error=function(e) {
     #      message(paste("Fitting failed for ", idx))
@@ -172,6 +175,8 @@ for (idx in indices){
       res_summary[trait_id,'inter_p'] = res_dif_lst[["inter_p"]]
       res_summary[trait_id,'g_beta'] = res_dif_lst[["g_beta"]]
       res_summary[trait_id,'g_pv'] = res_dif_lst[["g_pv"]]
+      res_summary[trait_id,'g_lm_pv'] = sex_dif_pval
+      
       if (!is.null(res_dif_lst[['breakpoints']])){
         res_summary[trait_id, "breakpoints_men"] = ifelse(length(res_dif_lst[['breakpoints']][[2]]) > 0, res_dif_lst[['breakpoints']][[2]], "NA")
         res_summary[trait_id, "breakpoints_women"] = ifelse(length(res_dif_lst[['breakpoints']][[1]]) > 0, res_dif_lst[['breakpoints']][[1]], "NA")
@@ -184,9 +189,12 @@ for (idx in indices){
 
 }
 res_summary$inter_p_adj <- p.adjust(res_summary$inter_p, method = "BH")
+res_summary$g_lm_pv_adj <- p.adjust(res_summary$g_lm_pv, method = "BH")
 write.table(res_summary, file = paste0(out_basepath, ".txt"), sep = "\t", quote = F, col.names = NA)
-nrow(res_summary[res_summary$inter_p < 0.05,])
-nrow(res_summary[res_summary$g_p < 0.05 | res_summary$inter_p < 0.05,])
+nrow(res_summary[res_summary$inter_p_adj < 0.05,])
+nrow(res_summary[res_summary$g_lm_pv_adj < 0.05,])
+nrow(res_summary[res_summary$g_lm_pv_adj < 0.05 & res_summary$inter_p_adj < 0.05,])
+paste0(row.names(res_summary[res_summary$g_lm_pv_adj > 0.05 & res_summary$inter_p_adj < 0.05,]), collapse = ",")
 if (make_plots){
   dev.off()
 
