@@ -173,7 +173,7 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts, 
     draw_plot(merged_tab, pheno_name, pdat, m_o_p, min_age, max_age, breakpoints, alpha_points, breakpoints_intervals)
   }
   
-  return (list("pdat" = pdat, "dif" = res_dif$diff, "inter_p" = m_o_p,"g_beta" = m_o_g_beta, "g_pv" = m_o_g_pv, "breakpoints" = breakpoints))
+  return (list("pdat" = pdat, "dif" = res_dif$diff, "inter_p" = m_o_p,"g_beta" = m_o_g_beta, "g_pv" = m_o_g_pv, "breakpoints_intervals" = breakpoints_intervals))
 } 
 
 # Calculate a simple difference between every fitted value pair in men and women

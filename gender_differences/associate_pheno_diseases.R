@@ -48,6 +48,9 @@ res_table_gam <- matrix(NA, ncol(diseases_m2), ncol(traits_m2))
 row.names(res_table_glm) <- row.names(res_table_gam) <- colnames(diseases_m2)
 colnames(res_table_glm) <- colnames(res_table_gam) <- colnames(traits_m2)
 
+res_table_long <- matrix(NA, nrow = ncol(diseases_m2)*ncol(traits_m2), ncol = 8)
+colnames(res_table_long) <- c("pheno1", "pheno2", "glm_beta", "glm_pval", "glm2_beta", "glm2_pval", "gam_beta", "gam_pval")
+cnt = 1
 for (i in 1:ncol(diseases_m2)){
   for (j in 1:ncol(traits_m2)){
     print (paste0(i, ",", j))
@@ -60,18 +63,42 @@ for (i in 1:ncol(diseases_m2)){
     tryCatch({
     glm.fit <- glm(disease ~ phenotype + age + gender_F1M2, data = merged_tab, family = binomial(link = "logit"))
     glm_p <- summary(glm.fit)$coefficients["phenotype",4]
-    res_table_glm[i,j] <- glm_p
+    glm_b <- summary(glm.fit)$coefficients["phenotype",1]
+    
+    glm.fit2 <- glm(disease ~ phenotype + age + gender_F1M2 + age*gender_F1M2, data = merged_tab, family = binomial(link = "logit"))
+    glm_p2 <- summary(glm.fit2)$coefficients["phenotype",4]
+    glm_b2 <- summary(glm.fit2)$coefficients["phenotype",1]
+    
+    if (summary(glm.fit2)$coefficients["age:gender_F1M22", 4] < 0.05) print(paste(tr_name, d_name))
+    
+    gam.fit <- gam(disease ~ gender_F1M2 + phenotype + s(age) + s(age, by = gender_F1M2), data = merged_tab, method = "REML", family = binomial(link = "logit"))
+    gam_p <- summary(gam.fit)$p.pv["phenotype"]
+    gam_b <- gam.fit$coefficients["phenotype"]
+    
     },error=function(e) {
           message(paste("Fitting failed for ", i, j))
      })
     #gam.fit <- gam(disease ~ gender_F1M2 + s(phenotype) + s(age) + s(age, by = gender_F1M2), data = merged_tab, method = "REML", family = binomial(link = "logit"))
     #gam_p <- summary(gam.fit)$s.pv[1]
     #res_table_gam[i,j] <- gam_p
+    
+    res_table_long[cnt, "pheno1"] <- d_name
+    res_table_long[cnt, "pheno2"] <- tr_name
+    res_table_long[cnt, "glm_beta"] <- glm_b
+    res_table_long[cnt, "glm_pval"] <- glm_p
+    res_table_long[cnt, "glm2_beta"] <- glm_b2
+    res_table_long[cnt, "glm2_pval"] <- glm_p2
+    res_table_long[cnt, "gam_beta"] <- gam_b
+    res_table_long[cnt, "gam_pval"] <- gam_p
+    cnt = cnt + 1
+    
+    
   }
 }
 
-write.table(res_table_glm, file = "summary_tables/blood_pheno_vs_diseases_glm_quick.txt", sep = "\t", quote = F, col.names = NA)
+write.table(res_table_long, file = "summary_tables/blood_pheno_vs_diseases_association.txt", sep = "\t", quote = F, col.names = NA)
 #write.table(res_table_gam, file = "summary_tables/blood_pheno_vs_diseases_gam.txt"), sep = "\t", quote = F, col.names = NA)
+
 
 
 
