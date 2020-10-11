@@ -298,11 +298,15 @@ calculate_sex_diff_anova <- function(merged_tab, correctForCellCounts, min_age =
   merged_tab <- mutate(merged_tab, gender_F1M2 = factor(gender_F1M2))
   
   if (! correctForCellCounts){
-    res <- lm(phenotype ~ gender_F1M2, data = merged_tab)
+    resid <- merged_tab$phenotype 
+    #res <- lm(phenotype ~ gender_F1M2, data = merged_tab)
   } else{
-    res <- lm(phenotype ~ gender_F1M2 + ba + eo + er + gr + ly + mo + tr, data = merged_tab)
+    #res <- lm(phenotype ~ gender_F1M2 + ba + eo + er + gr + ly + mo + tr, data = merged_tab)
+    resid <- residuals( lm(phenotype ~  ba + eo + er + gr + ly + mo + tr, data = merged_tab))
   }
-  sex_p <- summary(res)$coefficients[2,4]
+  #sex_p <- summary(res)$coefficients[2,4]
+  t_res <- t.test(resid[merged_tab$gender_F1M2 == 1], resid[merged_tab$gender_F1M2 == 2])
+  sex_p <- t_res$p.value
   return(sex_p)
 }
 

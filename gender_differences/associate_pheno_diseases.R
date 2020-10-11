@@ -1,5 +1,5 @@
 library('mgcv')
-
+args <- commandArgs(trailingOnly = TRUE)
 
 wd_path <- "/groups/umcg-lifelines/tmp01/users/umcg-dzhernakova/gender_difs/"
 
@@ -32,7 +32,8 @@ traits_m <- traits_m[order(pheno_m$age),]
 pheno_m <- pheno_m[order(pheno_m$age),]
 
 # diseases
-diseases <- read.delim("Questionnaire_Health_General_1A.selected.txt", header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)
+diseases_path=args[1]
+diseases <- read.delim(diseases_path, header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)
 traits_m2 <- traits_m[match(row.names(diseases), row.names(traits_m), nomatch = 0),]
 pheno_m2 <- pheno_m[match(row.names(diseases), row.names(pheno_m), nomatch = 0),]
 diseases_m2 <- diseases[match(row.names(traits_m2), row.names(diseases), nomatch = 0),]
@@ -51,7 +52,7 @@ colnames(res_table_glm) <- colnames(res_table_gam) <- colnames(traits_m2)
 res_table_long <- matrix(NA, nrow = ncol(diseases_m2)*ncol(traits_m2), ncol = 8)
 colnames(res_table_long) <- c("pheno1", "pheno2", "glm_beta", "glm_pval", "glm2_beta", "glm2_pval", "gam_beta", "gam_pval")
 cnt = 1
-for (i in 1:ncol(diseases_m2)){
+for (i in 2:ncol(diseases_m2)){
   for (j in 1:ncol(traits_m2)){
     print (paste0(i, ",", j))
     merged_tab <- cbind(traits_m2[,j], diseases_m2[,i], pheno_m2)
@@ -60,6 +61,9 @@ for (i in 1:ncol(diseases_m2)){
     colnames(merged_tab) <- c("phenotype", "disease", colnames(pheno_m2))
     row.names(merged_tab) <- row.names(pheno_m2)
     merged_tab$gender_F1M2 <- as.factor(merged_tab$gender_F1M2)
+    merged_tab$disease <- as.factor(merged_tab$disease)
+    if (nrow(merged_tab[merged_tab$disease != 0,]) > 50){
+
     tryCatch({
     glm.fit <- glm(disease ~ phenotype + age + gender_F1M2, data = merged_tab, family = binomial(link = "logit"))
     glm_p <- summary(glm.fit)$coefficients["phenotype",4]
@@ -92,11 +96,11 @@ for (i in 1:ncol(diseases_m2)){
     res_table_long[cnt, "gam_pval"] <- gam_p
     cnt = cnt + 1
     
-    
+   } 
   }
 }
-
-write.table(res_table_long, file = "summary_tables/blood_pheno_vs_diseases_association.txt", sep = "\t", quote = F, col.names = NA)
+dis_name <- basename(diseases_path)
+write.table(res_table_long, file = paste0("summary_tables/blood_pheno_vs_diseases_association2.",dis_name,".txt"), sep = "\t", quote = F, col.names = NA)
 #write.table(res_table_gam, file = "summary_tables/blood_pheno_vs_diseases_gam.txt"), sep = "\t", quote = F, col.names = NA)
 
 
