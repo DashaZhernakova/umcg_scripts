@@ -45,7 +45,7 @@ cor.mtest <- function(mat, ...) {
 }
 
 
-res_lst <- cor.mtest(traits, method = "spearman", use = "pairwise.complete.obs")
+res_lst <- cor.mtest(traits_m, method = "pearson", use = "pairwise.complete.obs")
 
 c <- res_lst[[1]]
 diag(c) <- 1
@@ -54,5 +54,19 @@ pvs <- res_lst[[2]]
 write.table(c, file = out_path, sep = "\t", quote = F, col.names = NA)
 
 pdf(pdfpath, width = 15, height = 15)
-corrplot(c, type="upper",  p.mat = pvs, sig.level = 0.05, order = 'hclust', insig = "blank")
+corrplot(c, type="upper",  p.mat = pvs, sig.level = 0.05, insig = "blank")
+dev.off()
+
+
+pdfpath <- paste0("plots/", traits_path, "_corrplot2_women.pdf")
+out_path <- paste0("summary_tables/", traits_path, "_correl2_women.txt")
+
+c <- res_lst_w[[1]]
+diag(c) <- 1
+pvs <- res_lst_w[[2]]
+#c <- cor(traits, method = "spearman", use = "pairwise.complete.obs")
+write.table(c, file = out_path, sep = "\t", quote = F, col.names = NA)
+
+pdf(pdfpath, width = 15, height = 15)
+corrplot(c, type="upper",  p.mat = pvs, sig.level = 0.05,  insig = "blank")
 dev.off()

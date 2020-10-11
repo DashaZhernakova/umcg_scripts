@@ -2,7 +2,7 @@ f = open("C:/Users/Dasha/work/UMCG/data/MR/results2/mibiogen/mibiogenSep2019/tmp
 out = open("C:/Users/Dasha/work/UMCG/data/MR/results2/mibiogen/mibiogenSep2019/tmp_res4filtering_res.txt", 'w')
 header = f.readline().rstrip()
 cols = {c : i for i, c in enumerate(header.split('\t'))}
-print cols
+print(cols)
 out.write(header + "\tfailed_filters" + "\n")
 
 for l in f:
@@ -35,7 +35,7 @@ for l in f:
                 pval_cnt += 1
         if pval_cnt == 1:
             flt_line += ';Leave-one-out analysis'
-        if not spl[cols['reverse_MR_pval']] == 'NA':
+        if not spl[cols['reverse_MR_pval']] == 'NA' and not spl[cols['reverse_MR_pval']] == '#N/A':
             if float(spl[cols['reverse_MR_pval']]) < 0.05:
                 flt_line += ';Reverse MR p-value'
     out.write(l.rstrip() + "\t" + flt_line.replace("-;", "", 1) + "\n")

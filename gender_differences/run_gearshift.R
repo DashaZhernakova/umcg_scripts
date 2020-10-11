@@ -43,6 +43,9 @@ min_age = 20
 max_age = 80
 ttest_cutoff <- 4
 deriv_cutoff <- 0.0004
+covariateslinear <- c()
+covariatesnonlinear <- c("BMI", "SMK3")
+
 #out_basepath <- basename(traits_path)
 #plot_basepath <- paste0("plots/", out_basepath, "breakpoints_intervals_t",ttest_cutoff,"_d", deriv_cutoff,".png")
 plot_basepath <- paste0("plots/", basename(out_basepath), ".png")
@@ -70,7 +73,7 @@ for (idx in indices){
   merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = "zscore", log_tr = F)
   print(paste0(trait_name, ",", nrow(merged_tab)))
   res_dif = NULL
-  res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, correctForCellCounts = F, n_points = n_points, make_plots = make_plots, gam_family = gaussian(), label = '', min_age = min_age, max_age = max_age, add_breakpoints = add_breakpoints, t_threshold = ttest_cutoff, derivatives_cutoff = deriv_cutoff)
+  res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name,  covariates_linear = covariateslinear, covariates_nonlinear = covariatesnonlinear, n_points = n_points, make_plots = make_plots, gam_family = gaussian(), label = '', min_age = min_age, max_age = max_age, add_breakpoints = add_breakpoints, t_threshold = ttest_cutoff, derivatives_cutoff = deriv_cutoff)
    
   if (res_dif_lst[["inter_p"]] < 0.05){
       #cnt <- cnt + 1
@@ -80,7 +83,7 @@ for (idx in indices){
   res_summary[trait_id,'inter_p'] = res_dif_lst[["inter_p"]]
   res_summary[trait_id,'g_beta'] = res_dif_lst[["g_beta"]]
   res_summary[trait_id,'g_pv'] = res_dif_lst[["g_pv"]]
-  sex_dif_pval <- calculate_sex_diff_anova(merged_tab, correctForCellCounts = correct_for_cellcounts, min_age, max_age)
+  sex_dif_pval <- calculate_sex_diff_ttest(merged_tab, covariates = c(covariateslinear, covariatesnonlinear), min_age, max_age)
   res_summary[trait_id,'g_lm_pv'] = sex_dif_pval
   if (!is.null(res_dif_lst[['breakpoints_intervals']])){
       res_summary[trait_id, "breakpoints_men"] = ifelse(length(res_dif_lst[['breakpoints_intervals']][[2]]) > 0, paste0(res_dif_lst[['breakpoints_intervals']][[2]], collapse = ","), "NA")

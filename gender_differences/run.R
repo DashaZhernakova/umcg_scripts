@@ -43,7 +43,10 @@ out_basepath <- paste0("../plots_all_pheno/v2/NMR_with_breakpoints_intervals_t3_
 traits_path <- "C:/Users/Dasha/work/UMCG/data/LifeLines_phenotypes/data_1442samples_LLD_baseline_1183plasma_metabolites.txt"
 st_col <- 1
 
-
+#TMAO
+traits_path <- "C:/Users/Dasha/work/UMCG/data/MR/results2/AA_T2D/data/raw_n1010/tmao.lld_raw_n1010.txt"
+st_col <- 1
+out_basepath <- paste0("../plots_all_pheno/v2/tmao_t4_d1.5e-4")
 
 # Immune markers and cytokines
 traits_path <- "C:/Users/Dasha/work/UMCG/data/LifeLines_phenotypes/cytokines_and_immune_markers.txt"
@@ -127,6 +130,8 @@ min_age = 20
 max_age = 80
 ttest_cutoff <- 3
 deriv_cutoff <- 0.00015
+covariateslinear <- c("ba", "eo", "er", "gr", "ly", "mo", "tr")
+covariatesnonlinear <- c()
 
 out_basepath <- paste0("../plots_all_pheno/v2/cytokines_with_breakpoints_intervals_t3_d1.5e-4_v2")
 
@@ -157,16 +162,11 @@ for (idx in indices){
   trait_name = trait_id
   if (length(trait_name) > 0 & length(unique(traits_m[,idx])) > 1){ #if gene id in gene convertion table
     
-    merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = "IQR", log_tr = F, scale_tr = T)
-    #merged_tab[,1] = merged_tab[,1] + 1
+    merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = "zscore", log_tr = F, scale_tr = T)
     res_dif = NULL
-    #tryCatch({
-    sex_dif_pval <- calculate_sex_diff_anova(merged_tab, correctForCellCounts = correct_for_cellcounts, min_age, max_age)
-    res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, correctForCellCounts = correct_for_cellcounts, n_points = n_points, make_plots = make_plots, gam_family = gaussian(), label = '', add_breakpoints = add_breakpoints,  t_threshold = ttest_cutoff, derivatives_cutoff = deriv_cutoff)
-    #res_dif_lst <- plot_scatter_and_gam2(merged_tab[merged_tab$statins != 1,], trait_name, correctForCellCounts = F, n_points = 300, make_plots = make_plots, gam_family = gaussian(), label = '')
-    #},error=function(e) {
-    #      message(paste("Fitting failed for ", idx))
-    # })
+    sex_dif_pval <- calculate_sex_diff_ttest(merged_tab, covariates = c(covariateslinear, covariatesnonlinear), min_age, max_age)
+    res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, covariates_linear = covariateslinear, covariates_nonlinear = covariatesnonlinear, n_points = n_points, make_plots = make_plots, gam_family = gaussian(), label = '', add_breakpoints = add_breakpoints,  t_threshold = ttest_cutoff, derivatives_cutoff = deriv_cutoff)
+
     if (res_dif_lst[["inter_p"]] < 0.05){
       cnt <- cnt + 1
       res_dif_all[,trait_id] <- res_dif_lst[["dif"]]
@@ -181,12 +181,7 @@ for (idx in indices){
         res_summary[trait_id, "breakpoints_men"] = ifelse(length(res_dif_lst[['breakpoints']][[2]]) > 0, res_dif_lst[['breakpoints']][[2]], "NA")
         res_summary[trait_id, "breakpoints_women"] = ifelse(length(res_dif_lst[['breakpoints']][[1]]) > 0, res_dif_lst[['breakpoints']][[1]], "NA")
       }
-      #res_summary[trait_id,'p1'] = res_dif_lst[["plots"]][[1]]
-      #res_summary[trait_id,'p2'] = res_dif_lst[["p2"]]
-      #plot_list[[idx]] = res_dif_lst[["plots"]]
-  
   }
-
 }
 res_summary$inter_p_adj <- p.adjust(res_summary$inter_p, method = "BH")
 res_summary$g_lm_pv_adj <- p.adjust(res_summary$g_lm_pv, method = "BH")

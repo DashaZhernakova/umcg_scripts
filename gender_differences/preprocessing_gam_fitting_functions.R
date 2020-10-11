@@ -4,7 +4,7 @@ library('mgcv')
 #library('gamlss')
 
 # Combine phenotype and trait of interest and remove outliers in the trai of interest
-rm_na_outliers <- function(traits_m, pheno_m, idx, method = "IQR", scale_tr = F, log_tr = F, int_tr = F){
+rm_na_outliers <- function(traits_m, pheno_m, idx, method = "zscore", scale_tr = F, log_tr = F, int_tr = F){
   traits_na.rm <- traits_m[!is.na(traits_m[,idx]),idx]
   pheno_na.rm <- pheno_m[!is.na(traits_m[,idx]),]
   women <- pheno_na.rm$gender_F1M2 == 1
@@ -61,21 +61,21 @@ rm_na_outliers <- function(traits_m, pheno_m, idx, method = "IQR", scale_tr = F,
 }
 
 # Fit a GAM with age : gender interaction and (optional) correction for cell counts
-plot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts, n_points = 300, make_plots, label = '', gam_family = gaussian(), min_age = 20, max_age = 80, add_breakpoints = F, t_threshold = 3, derivatives_cutoff = 0.0002){
+plot_scatter_and_gam2 <- function(merged_tab, pheno_name, covariates_linear = c(), covariates_nonlinear = c(), n_points = 300, make_plots, label = '', gam_family = gaussian(), min_age = 20, max_age = 80, add_breakpoints = F, t_threshold = 3, derivatives_cutoff = 0.0002){
   colnames(merged_tab)[1] <- "phenotype"
   merged_tab <- merged_tab[(merged_tab$age < max_age) & (merged_tab$age >= min_age),]
+  factor_cols <- sapply(merged_tab, function(col) length(unique(col)) < 3)
+  merged_tab[,factor_cols] <- sapply(merged_tab[,factor_cols], as.factor)
   
   merged_tab <- mutate(merged_tab, ord_gender_F1M2 = ordered(gender_F1M2, levels = c('1', '2')))
-  merged_tab <- mutate(merged_tab, gender_F1M2 = factor(gender_F1M2))
   #pheno_name = gene_table[gene_table[,1] == colnames(merged_tab)[1],2]
   
-  women <- merged_tab$gender_F1M2 == 1
   res_dif = NULL
   
-  if (!correctForCellCounts){
+  if (length(covariates_linear) == 0 & length(covariates_nonlinear) == 0){
     
-      m1 <- gam(phenotype ~ gender_F1M2 + s(age) + s(age, by = gender_F1M2), data = merged_tab, method = "REML", family = gam_family)
-      m_o <- gam(phenotype ~ ord_gender_F1M2 + s(age) + s(age, by = ord_gender_F1M2), 
+    m1 <- gam(phenotype ~ gender_F1M2 + s(age) + s(age, by = gender_F1M2), data = merged_tab, method = "REML", family = gam_family)
+    m_o <- gam(phenotype ~ ord_gender_F1M2 + s(age) + s(age, by = ord_gender_F1M2), 
                  data = merged_tab, method = 'REML', family = gam_family)
     
     
@@ -86,38 +86,27 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts, 
     if (m_o_p > 0.05){
       return (list("dif" = NULL, "inter_p" = m_o_p,"g_beta" = m_o_g_beta, "g_pv" = m_o_g_pv))
     }
+    
     new.x <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = n_points), gender_F1M2 = c('1', '2'))) 
-                                          
     new.y <- data.frame(predict(m1, newdata = new.x, se.fit = TRUE, type = "response"))
     pdat <- data.frame(new.x, new.y)
     pdat <- rename(pdat, pred = fit, SE = se.fit)
     pdat <- mutate(pdat, lwr = pred - 1.96 * SE, upr = pred + 1.96 * SE) # calculating the 95% confidence interval
     
     
+  } else { # Correct for covariates
+    terms_linear_covar <- ""
+    terms_nonlinear_covar <- ""
+    if (length(covariates_linear) > 0) terms_linear_covar <- paste0("+", paste(covariates_linear, collapse = "+"))
+    if (length(covariates_nonlinear) > 0) terms_nonlinear_covar <- paste0("+ s(", paste(covariates_nonlinear, collapse = ")+ s("), ")")
     
-    if (! "Ordered Categorical" %in% gam_family$family){
-      pdat_dif <- expand.grid(age = seq(min_age, max_age, length = n_points),
-                              gender_F1M2 = c('1', '2'))
-      #res_dif <- smooth_diff(m1, pdat_dif, '2', '1', "gender_F1M2")
-      #res_dif$age = seq(min_age, max_age, length = n_points)
-      res_dif <- simple_diff(pdat)
-    } else { # stupid way to go
-      m1 <- gam(phenotype ~ gender_F1M2 + s(age) + s(age, by = gender_F1M2), data = merged_tab, method = "REML")
-      new.x <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = n_points), gender_F1M2 = c('1', '2')))
-      new.y <- data.frame(predict(m1, newdata = new.x, se.fit = TRUE, type = "response"))
-      pdat <- data.frame(new.x, new.y)
-      pdat <- rename(pdat, pred = fit, SE = se.fit)
-      pdat <- mutate(pdat, lwr = pred - 1.96 * SE, upr = pred + 1.96 * SE) # calculating the 95% confidence interval
-      
-    }
-  } else { # Correct for cell counts
+    m1 <- gam(as.formula(paste("phenotype ~ gender_F1M2 +", terms_linear_covar, terms_nonlinear_covar,
+                               "+ s(age, by = gender_F1M2)", sep = " ")), 
+              data = merged_tab, method = "REML")
+    m_o <- gam(as.formula(paste("phenotype ~ gender_F1M2 +", terms_linear_covar, terms_nonlinear_covar,
+                               "+ s(age, by = ord_gender_F1M2)", sep = " ")), 
+              data = merged_tab, method = "REML")
     
-    m1 <- gam(phenotype ~ gender_F1M2 + ba + eo + er + gr + 
-                ly + mo + tr + s(age, by = gender_F1M2), data = merged_tab, method = "REML")
-    
-    m_o <- gam(phenotype ~ ord_gender_F1M2 + s(age) + ba + eo + er + gr + 
-                 ly + mo + tr + s(age, by = ord_gender_F1M2), 
-               data = merged_tab, method = 'REML')
     m_o_p <- summary(m_o)$s.pv[length(summary(m_o)$s.pv)]
     m_o_g_beta <- m_o$coefficients["ord_gender_F1M2.L"]
     m_o_g_pv <- summary(m_o)$p.pv["ord_gender_F1M2.L"]
@@ -126,47 +115,22 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts, 
       return (list("dif" = NULL, "inter_p" = m_o_p,"g_beta" = m_o_g_beta, "g_pv" = m_o_g_pv))
     }
     
-    new.x <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = n_points), gender_F1M2 = c('1', '2'), 
-                                          ba = mean(ba), eo = mean(eo), er = mean(er), gr = mean(gr), 
-                                          ly = mean(ly),  mo = mean(mo), tr = mean(tr)))
+    new.x <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = n_points), gender_F1M2 = c('1', '2'))) 
+    for (c in c(covariates_linear, covariates_nonlinear)){
+      new.x[,c] <- mean(merged_tab[,c])
+    }
+    
     new.y <- data.frame(predict(m1, newdata = new.x, se.fit = TRUE, type = "response"))
     pdat <- data.frame(new.x, new.y)
     pdat <- rename(pdat, pred = fit, SE = se.fit)
     pdat <- mutate(pdat, lwr = pred - 1.96 * SE, upr = pred + 1.96 * SE) # calculating the 95% confidence interval
-    
-    if (! "Ordered Categorical" %in% gam_family$family){
-      pdat_dif <- expand.grid(age = seq(min_age, max_age, length = n_points), gender_F1M2 = c('1', '2'), 
-                              ba = mean(merged_tab$ba), eo = mean(merged_tab$eo), er = mean(merged_tab$er), gr = mean(merged_tab$gr), 
-                              ly = mean(merged_tab$ly),  mo = mean(merged_tab$mo), tr = mean(merged_tab$tr))
-      #res_dif <- smooth_diff(m1, pdat_dif, '2', '1', "gender_F1M2")
-      #res_dif$age = seq(min_age, max_age, length = n_points)
-      new.x <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = n_points), gender_F1M2 = c('1', '2'), 
-                                            ba = mean(ba), eo = mean(eo), er = mean(er), gr = mean(gr), 
-                                            ly = mean(ly),  mo = mean(mo), tr = mean(tr)))
-      new.y <- data.frame(predict(m1, newdata = new.x, se.fit = TRUE, type = "response"))
-      pdat <- data.frame(new.x, new.y)
-      pdat <- rename(pdat, pred = fit, SE = se.fit)
-      pdat <- mutate(pdat, lwr = pred - 1.96 * SE, upr = pred + 1.96 * SE) # calculating the 95% confidence interval
-      
-      res_dif <- simple_diff(pdat)
-    } else { # stupid way to go
-      m1 <- gam(phenotype ~ gender_F1M2 + s(age) + s(age, by = gender_F1M2), data = merged_tab, method = "REML")
-      new.x <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = n_points), gender_F1M2 = c('1', '2'), 
-                                            ba = mean(ba), eo = mean(eo), er = mean(er), gr = mean(gr), 
-                                            ly = mean(ly),  mo = mean(mo), tr = mean(tr)))
-      new.y <- data.frame(predict(m1, newdata = new.x, se.fit = TRUE, type = "response"))
-      pdat <- data.frame(new.x, new.y)
-      pdat <- rename(pdat, pred = fit, SE = se.fit)
-      pdat <- mutate(pdat, lwr = pred - 1.96 * SE, upr = pred + 1.96 * SE) # calculating the 95% confidence interval
-      
-    }
   }
-   breakpoints_intervals <- NULL
-   breakpoints <- NULL
-    if (add_breakpoints){
+  breakpoints_intervals <- NULL
+  breakpoints <- NULL
+  if (add_breakpoints){
       breakpoints_intervals <- get_breakpoints(merged_tab, correctForCellCounts, t_threshold = t_threshold, derivatives_cutoff = derivatives_cutoff)
       #breakpoints2 <- get_breakpoints_derivatives(merged_tab, correctForCellCounts)
-    }
+  }
  
   
   if (make_plots){
@@ -292,17 +256,16 @@ draw_plot <- function(merged_tab, pheno_name, pdat, m_o_p, min_age, max_age, bre
   }
 }
 
-calculate_sex_diff_anova <- function(merged_tab, correctForCellCounts, min_age = 20, max_age = 80){
+calculate_sex_diff_ttest <- function(merged_tab, covariates = c(), min_age = 20, max_age = 80){
   colnames(merged_tab)[1] <- "phenotype"
   merged_tab <- merged_tab[(merged_tab$age < max_age) & (merged_tab$age >= min_age),]
   merged_tab <- mutate(merged_tab, gender_F1M2 = factor(gender_F1M2))
   
-  if (! correctForCellCounts){
+  if (length(covariates) == 0){
     resid <- merged_tab$phenotype 
     #res <- lm(phenotype ~ gender_F1M2, data = merged_tab)
   } else{
-    #res <- lm(phenotype ~ gender_F1M2 + ba + eo + er + gr + ly + mo + tr, data = merged_tab)
-    resid <- residuals( lm(phenotype ~  ba + eo + er + gr + ly + mo + tr, data = merged_tab))
+    resid <- residuals( lm(as.formula(paste("phenotype ~ ",  paste(covariates, collapse = "+"))), data = merged_tab))
   }
   #sex_p <- summary(res)$coefficients[2,4]
   t_res <- t.test(resid[merged_tab$gender_F1M2 == 1], resid[merged_tab$gender_F1M2 == 2])

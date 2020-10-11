@@ -8,7 +8,7 @@ library(MRInstruments)
 #
 source("/groups/umcg-lld/tmp03/umcg-dzhernakova/MR/results/v2/run_MR.R")
 access_token_fname = "/groups/umcg-lld/tmp03/umcg-dzhernakova/MR/results/v2/mrbase.oauth"
-out_dir = "/groups/umcg-lld/tmp03/umcg-dzhernakova/MR/results/mibiogenSep2019/per_bact3/"
+out_dir = "/groups/umcg-lld/tmp03/umcg-dzhernakova/MR/results/mibiogenSep2019/vitD_per_bact/"
 
 #
 #
