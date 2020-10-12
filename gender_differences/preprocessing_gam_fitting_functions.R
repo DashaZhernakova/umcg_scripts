@@ -57,6 +57,12 @@ rm_na_outliers <- function(traits_m, pheno_m, idx, method = "zscore", scale_tr =
   } else if (int_tr) {
     tab_nooutliers[,1] <- qnorm((rank(tab_nooutliers[,1],na.last="keep")-0.5)/sum(!is.na(tab_nooutliers[,1])))
   }
+  
+  factor_cols <- which(sapply(tab_nooutliers, function(col) length(unique(col)) < 3))
+  for (c in factor_cols){
+    tab_nooutliers[,c] <- as.factor(tab_nooutliers[,c])
+  }
+
   return(tab_nooutliers)
 }
 
@@ -64,8 +70,6 @@ rm_na_outliers <- function(traits_m, pheno_m, idx, method = "zscore", scale_tr =
 plot_scatter_and_gam2 <- function(merged_tab, pheno_name, covariates_linear = c(), covariates_nonlinear = c(), n_points = 300, make_plots, label = '', gam_family = gaussian(), min_age = 20, max_age = 80, add_breakpoints = F, t_threshold = 3, derivatives_cutoff = 0.0002){
   colnames(merged_tab)[1] <- "phenotype"
   merged_tab <- merged_tab[(merged_tab$age < max_age) & (merged_tab$age >= min_age),]
-  factor_cols <- sapply(merged_tab, function(col) length(unique(col)) < 3)
-  merged_tab[,factor_cols] <- sapply(merged_tab[,factor_cols], as.factor)
   
   merged_tab <- mutate(merged_tab, ord_gender_F1M2 = ordered(gender_F1M2, levels = c('1', '2')))
   #pheno_name = gene_table[gene_table[,1] == colnames(merged_tab)[1],2]
@@ -100,10 +104,10 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, covariates_linear = c(
     if (length(covariates_linear) > 0) terms_linear_covar <- paste0("+", paste(covariates_linear, collapse = "+"))
     if (length(covariates_nonlinear) > 0) terms_nonlinear_covar <- paste0("+ s(", paste(covariates_nonlinear, collapse = ")+ s("), ")")
     
-    m1 <- gam(as.formula(paste("phenotype ~ gender_F1M2 +", terms_linear_covar, terms_nonlinear_covar,
+    m1 <- gam(as.formula(paste("phenotype ~ gender_F1M2 ", terms_linear_covar, terms_nonlinear_covar,
                                "+ s(age, by = gender_F1M2)", sep = " ")), 
               data = merged_tab, method = "REML")
-    m_o <- gam(as.formula(paste("phenotype ~ gender_F1M2 +", terms_linear_covar, terms_nonlinear_covar,
+    m_o <- gam(as.formula(paste("phenotype ~ gender_F1M2 ", terms_linear_covar, terms_nonlinear_covar,
                                "+ s(age, by = ord_gender_F1M2)", sep = " ")), 
               data = merged_tab, method = "REML")
     

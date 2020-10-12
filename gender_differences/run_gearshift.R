@@ -10,7 +10,8 @@ traits_path <- args[1]
 out_basepath <- args[2]
 st_col = 1
 
-pheno_path <- "age_gender_all_LL.txt"
+#pheno_path <- "age_gender_all_LL.txt"
+pheno_path <- "age_gender_bmi_smk_all_LL.txt"
 
 correct_for_cellcounts = F
 make_plots = T
@@ -43,8 +44,8 @@ min_age = 20
 max_age = 80
 ttest_cutoff <- 4
 deriv_cutoff <- 0.0004
-covariateslinear <- c()
-covariatesnonlinear <- c("BMI", "SMK3")
+covariateslinear <- c("SMK3")
+covariatesnonlinear <- c("BMI")
 
 #out_basepath <- basename(traits_path)
 #plot_basepath <- paste0("plots/", out_basepath, "breakpoints_intervals_t",ttest_cutoff,"_d", deriv_cutoff,".png")
