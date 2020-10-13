@@ -85,7 +85,9 @@ for (idx in indices){
   res_summary[trait_id,'g_beta'] = res_dif_lst[["g_beta"]]
   res_summary[trait_id,'g_pv'] = res_dif_lst[["g_pv"]]
   sex_dif_pval <- calculate_sex_diff_ttest(merged_tab, covariates = c(covariateslinear, covariatesnonlinear), min_age, max_age)
-  res_summary[trait_id,'g_lm_pv'] = sex_dif_pval
+  res_summary[trait_id,'g_ttest_pv'] = sex_dif_pval
+  res_summary[trait_id,'cohen_f2'] = res_dif_lst[["cohen_f2"]]
+  
   if (!is.null(res_dif_lst[['breakpoints_intervals']])){
       res_summary[trait_id, "breakpoints_men"] = ifelse(length(res_dif_lst[['breakpoints_intervals']][[2]]) > 0, paste0(res_dif_lst[['breakpoints_intervals']][[2]], collapse = ","), "NA")
       res_summary[trait_id, "breakpoints_women"] = ifelse(length(res_dif_lst[['breakpoints_intervals']][[1]]) > 0, paste0(res_dif_lst[['breakpoints']][[1]], collapse = ","), "NA")
@@ -94,11 +96,11 @@ for (idx in indices){
 #write.table(res_dif_all, file=paste0("summary_tables/", traits_path, "diff.txt"), sep = "\t", quote = F, col.names = NA)
 #write.table(res_pred_all, file=paste0("summary_tables/", traits_path, ".fitted.txt"), sep = "\t", quote = F, col.names = NA)
 res_summary$inter_p_adj <- p.adjust(res_summary$inter_p, method = "BH")
-res_summary$g_lm_pv_adj <- p.adjust(res_summary$g_lm_pv, method = "BH")
+res_summary$g_ttest_pv_adj <- p.adjust(res_summary$g_ttest_pv, method = "BH")
 nrow(res_summary[res_summary$inter_p_adj < 0.05,])
-nrow(res_summary[res_summary$g_lm_pv_adj < 0.05,])
-nrow(res_summary[res_summary$g_lm_pv_adj < 0.05 & res_summary$inter_p_adj < 0.05,])
-paste0(row.names(res_summary[res_summary$g_lm_pv_adj > 0.05 & res_summary$inter_p_adj < 0.05,]), collapse = ",")
+nrow(res_summary[res_summary$g_ttest_adj < 0.05,])
+nrow(res_summary[res_summary$g_ttest_adj < 0.05 & res_summary$inter_p_adj < 0.05,])
+paste0(row.names(res_summary[res_summary$g_ttest_adj > 0.05 & res_summary$inter_p_adj < 0.05,]), collapse = ",")
 
 write.table(res_summary, file = paste0("summary_tables/", out_basepath, ".txt"), sep = "\t", quote = F, col.names = NA)
 

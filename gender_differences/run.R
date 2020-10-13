@@ -21,7 +21,7 @@ st_col = 3
 traits_path <- "CVD3_olinkNormal_1447_LLDsamples_t_ProtNames.txt"
 st_col = 1
 traits0 <- as.data.frame(t(read.delim(traits_path, header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)))
-out_basepath <- paste0("../plots_all_pheno/v2/proteins_with_breakpoints_intervals_t4_d1.5e-4")
+out_basepath <- paste0("../plots_all_pheno/v2/proteins_with_f2")
 
 
 # telomeres
@@ -101,7 +101,7 @@ gene_table_path <- "geneid_to_gene_proteincoding_mainchr.txt"
 
 correct_for_cellcounts = T
 make_plots = T
-add_breakpoints = T
+add_breakpoints = F
 
 setwd(wd_path)
 
@@ -175,7 +175,8 @@ for (idx in indices){
       res_summary[trait_id,'inter_p'] = res_dif_lst[["inter_p"]]
       res_summary[trait_id,'g_beta'] = res_dif_lst[["g_beta"]]
       res_summary[trait_id,'g_pv'] = res_dif_lst[["g_pv"]]
-      res_summary[trait_id,'g_lm_pv'] = sex_dif_pval
+      res_summary[trait_id,'g_ttest_pv'] = sex_dif_pval
+      res_summary[trait_id,'cohen_f2'] = res_dif_lst[["cohen_f2"]]
       
       if (!is.null(res_dif_lst[['breakpoints']])){
         res_summary[trait_id, "breakpoints_men"] = ifelse(length(res_dif_lst[['breakpoints']][[2]]) > 0, res_dif_lst[['breakpoints']][[2]], "NA")
@@ -184,15 +185,14 @@ for (idx in indices){
   }
 }
 res_summary$inter_p_adj <- p.adjust(res_summary$inter_p, method = "BH")
-res_summary$g_lm_pv_adj <- p.adjust(res_summary$g_lm_pv, method = "BH")
+res_summary$g_ttest_pv_adj <- p.adjust(res_summary$g_ttest_pv, method = "BH")
 write.table(res_summary, file = paste0(out_basepath, ".txt"), sep = "\t", quote = F, col.names = NA)
 nrow(res_summary[res_summary$inter_p_adj < 0.05,])
-nrow(res_summary[res_summary$g_lm_pv_adj < 0.05,])
-nrow(res_summary[res_summary$g_lm_pv_adj < 0.05 & res_summary$inter_p_adj < 0.05,])
-paste0(row.names(res_summary[res_summary$g_lm_pv_adj > 0.05 & res_summary$inter_p_adj < 0.05,]), collapse = ",")
+nrow(res_summary[res_summary$g_ttest_pv_adj < 0.05,])
+nrow(res_summary[res_summary$g_ttest_pv_adj < 0.05 & res_summary$inter_p_adj < 0.05,])
+paste0(row.names(res_summary[res_summary$g_ttest_pv_adj > 0.05 & res_summary$inter_p_adj < 0.05,]), collapse = ",")
 if (make_plots){
   dev.off()
-
 }
 
 ###################################################

@@ -66,7 +66,7 @@ rm_na_outliers <- function(traits_m, pheno_m, idx, method = "zscore", scale_tr =
   return(tab_nooutliers)
 }
 
-# Fit a GAM with age : gender interaction and (optional) correction for cell counts
+# Fit a GAM with age : gender interaction and (optional) correction for covariates (linear or spline)
 plot_scatter_and_gam2 <- function(merged_tab, pheno_name, covariates_linear = c(), covariates_nonlinear = c(), n_points = 300, make_plots, label = '', gam_family = gaussian(), min_age = 20, max_age = 80, add_breakpoints = F, t_threshold = 3, derivatives_cutoff = 0.0002){
   colnames(merged_tab)[1] <- "phenotype"
   merged_tab <- merged_tab[(merged_tab$age < max_age) & (merged_tab$age >= min_age),]
@@ -78,21 +78,23 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, covariates_linear = c(
   
   if (length(covariates_linear) == 0 & length(covariates_nonlinear) == 0){
     
-    m1 <- gam(phenotype ~ gender_F1M2 + s(age) + s(age, by = gender_F1M2), data = merged_tab, method = "REML", family = gam_family)
-    m_o <- gam(phenotype ~ ord_gender_F1M2 + s(age) + s(age, by = ord_gender_F1M2), 
+    gam.fit <- gam(phenotype ~ gender_F1M2 + s(age) + s(age, by = gender_F1M2), data = merged_tab, method = "REML", family = gam_family)
+    gam.fit.ordered_sex <- gam(phenotype ~ ord_gender_F1M2 + s(age) + s(age, by = ord_gender_F1M2), 
                  data = merged_tab, method = 'REML', family = gam_family)
+    gam.fit.ordered_sex.no_interaction <- gam(phenotype ~ ord_gender_F1M2 + s(age), 
+                               data = merged_tab, method = 'REML', family = gam_family)
     
+    gam.p <- summary(gam.fit.ordered_sex)$s.pv[length(summary(gam.fit.ordered_sex)$s.pv)]
+    gam.g_beta <- gam.fit.ordered_sex$coefficients["ord_gender_F1M2.L"]
+    gam.g_pv <- summary(gam.fit.ordered_sex)$p.pv["ord_gender_F1M2.L"]
+    gam.cohen_f2 <- calculate_cohens_f2(gam.fit.ordered_sex, gam.fit.ordered_sex.no_interaction)
     
-    m_o_p <- summary(m_o)$s.pv[length(summary(m_o)$s.pv)]
-    m_o_g_beta <- m_o$coefficients["ord_gender_F1M2.L"]
-    m_o_g_pv <- summary(m_o)$p.pv["ord_gender_F1M2.L"]
-    
-    if (m_o_p > 0.05){
-      return (list("dif" = NULL, "inter_p" = m_o_p,"g_beta" = m_o_g_beta, "g_pv" = m_o_g_pv))
+    if (gam.p > 0.05){
+      return (list("dif" = NULL, "inter_p" = gam.p,"g_beta" = gam.g_beta, "g_pv" = gam.g_pv, "cohen_f2" = gam.cohen_f2))
     }
     
     new.x <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = n_points), gender_F1M2 = c('1', '2'))) 
-    new.y <- data.frame(predict(m1, newdata = new.x, se.fit = TRUE, type = "response"))
+    new.y <- data.frame(predict(gam.fit, newdata = new.x, se.fit = TRUE, type = "response"))
     pdat <- data.frame(new.x, new.y)
     pdat <- rename(pdat, pred = fit, SE = se.fit)
     pdat <- mutate(pdat, lwr = pred - 1.96 * SE, upr = pred + 1.96 * SE) # calculating the 95% confidence interval
@@ -104,19 +106,23 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, covariates_linear = c(
     if (length(covariates_linear) > 0) terms_linear_covar <- paste0("+", paste(covariates_linear, collapse = "+"))
     if (length(covariates_nonlinear) > 0) terms_nonlinear_covar <- paste0("+ s(", paste(covariates_nonlinear, collapse = ")+ s("), ")")
     
-    m1 <- gam(as.formula(paste("phenotype ~ gender_F1M2 ", terms_linear_covar, terms_nonlinear_covar,
+    gam.fit <- gam(as.formula(paste("phenotype ~ gender_F1M2 ", terms_linear_covar, terms_nonlinear_covar,
                                "+ s(age) + s(age, by = gender_F1M2)", sep = " ")), 
               data = merged_tab, method = "REML")
-    m_o <- gam(as.formula(paste("phenotype ~ gender_F1M2 ", terms_linear_covar, terms_nonlinear_covar,
+    gam.fit.ordered_sex <- gam(as.formula(paste("phenotype ~ gender_F1M2 ", terms_linear_covar, terms_nonlinear_covar,
                                "+ s(age) + s(age, by = ord_gender_F1M2)", sep = " ")), 
               data = merged_tab, method = "REML")
+    gam.fit.ordered_sex.no_interaction <- gam(as.formula(paste("phenotype ~ gender_F1M2 ", terms_linear_covar, terms_nonlinear_covar,
+                                                               "+ s(age)", sep = " ")), 
+                                              data = merged_tab, method = "REML")
     
-    m_o_p <- summary(m_o)$s.pv[length(summary(m_o)$s.pv)]
-    m_o_g_beta <- m_o$coefficients["ord_gender_F1M2.L"]
-    m_o_g_pv <- summary(m_o)$p.pv["ord_gender_F1M2.L"]
+    gam.p <- summary(gam.fit.ordered_sex)$s.pv[length(summary(gam.fit.ordered_sex)$s.pv)]
+    gam.g_beta <- gam.fit.ordered_sex$coefficients["ord_gender_F1M2.L"]
+    gam.g_pv <- summary(gam.fit.ordered_sex)$p.pv["ord_gender_F1M2.L"]
+    gam.cohen_f2 <- calculate_cohens_f2(gam.fit.ordered_sex, gam.fit.ordered_sex.no_interaction)
     
-    if (m_o_p > 0.05){
-      return (list("dif" = NULL, "inter_p" = m_o_p,"g_beta" = m_o_g_beta, "g_pv" = m_o_g_pv))
+    if (gam.p > 0.05){
+      return (list("dif" = NULL, "inter_p" = gam.p,"g_beta" = gam.g_beta, "g_pv" = gam.g_pv, "cohen_f2" = gam.cohen_f2))
     }
     
     new.x <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = n_points), gender_F1M2 = c('1', '2'))) 
@@ -129,7 +135,7 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, covariates_linear = c(
       }
     }
     
-    new.y <- data.frame(predict(m1, newdata = new.x, se.fit = TRUE, type = "response"))
+    new.y <- data.frame(predict(gam.fit, newdata = new.x, se.fit = TRUE, type = "response"))
     pdat <- data.frame(new.x, new.y)
     pdat <- rename(pdat, pred = fit, SE = se.fit)
     pdat <- mutate(pdat, lwr = pred - 1.96 * SE, upr = pred + 1.96 * SE) # calculating the 95% confidence interval
@@ -143,10 +149,10 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, covariates_linear = c(
  
   
   if (make_plots){
-    draw_plot(merged_tab, pheno_name, pdat, m_o_p, min_age, max_age, breakpoints, alpha_points, breakpoints_intervals)
+    draw_plot(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, breakpoints, alpha_points, breakpoints_intervals, label = paste0("Fsq = ", formatC(gam.cohen_f2, digits = 4, format = "f")))
   }
   
-  return (list("pdat" = pdat, "dif" = res_dif$diff, "inter_p" = m_o_p,"g_beta" = m_o_g_beta, "g_pv" = m_o_g_pv, "breakpoints_intervals" = breakpoints_intervals))
+  return (list("pdat" = pdat, "dif" = res_dif$diff, "inter_p" = gam.p,"g_beta" = gam.g_beta, "g_pv" = gam.g_pv, "breakpoints_intervals" = breakpoints_intervals, "cohen_f2" = gam.cohen_f2))
 } 
 
 # Calculate a simple difference between every fitted value pair in men and women
@@ -190,7 +196,7 @@ col2transparent <- function(col, transparency){
   dodgerblueTransparent <- rgb(colRgb[1,1], colRgb[2,1], colRgb[3,1], transparency, names = NULL, maxColorValue = 255)
 }
 
-draw_plot <- function(merged_tab, pheno_name, pdat, m_o_p, min_age, max_age, breakpoints, alpha_points = 40, breakpoints_intervals, label = ""){
+draw_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, breakpoints, alpha_points = 40, breakpoints_intervals, label = ""){
   cex_main = 1
   ylims <- with(merged_tab, range(phenotype))
   ylabel <- pheno_name
@@ -215,7 +221,7 @@ draw_plot <- function(merged_tab, pheno_name, pdat, m_o_p, min_age, max_age, bre
   
   merged_tab2 <- merged_tab[merged_tab$phenotype < ylims[2] & merged_tab$phenotype > ylims[1],]
   plot(phenotype ~ age, data = merged_tab2,  col = gender_F1M2,  pch = 16, 
-       main = paste0(pheno_name, ' ', label, "\nGAM interaction p = ", format(m_o_p, digits = 3)), 
+       main = paste0(pheno_name, '\n', label, "\nGAM interaction p = ", format(gam.p, digits = 3)), 
        cex = 0.6, xlab = "age", ylab = ylabel, cex.main = cex_main, frame.plot = F, axes = T, 
        ylim =c(min(pretty(merged_tab2$phenotype)), max(pretty(merged_tab2$phenotype))),
        xlim = c(min(min_age,merged_tab2$age), max(max_age, merged_tab2$age)))
@@ -299,7 +305,7 @@ draw_plot0 <- function(merged_tab, pheno_name, pdat){
   ## draw base plot
   palette(c(col2transparent("indianred1", 40),col2transparent("dodgerblue1", 40)))
   plot(phenotype ~ age, data = merged_tab,  col = gender_F1M2,  pch = 16, 
-       main = paste0(pheno_name, ' ', label, "\nGAM interaction p = ", format(m_o_p, digits = 3)), 
+       main = paste0(pheno_name, ' ', label, "\nGAM interaction p = ", format(gam.p, digits = 3)), 
        cex = 0.6, xlab = "age", ylab = ylabel, cex.main = cex_main)
   
   levs <- levels(merged_tab$gender_F1M2)
@@ -333,18 +339,18 @@ draw_plot0 <- function(merged_tab, pheno_name, pdat){
 
 test_polynomial_interaction <- function(merged_tab, model_fam = NO(), gm_mean_cov = F){
   if (! gm_mean_cov){
-    #lm1 <- gamlss(phenotype ~ gender_F1M2 + age + I(age^2) + I(age^3) + I(age^4), data = merged_tab, family = model_fam, method = RS(30))
+    #lgam.fit <- gamlss(phenotype ~ gender_F1M2 + age + I(age^2) + I(age^3) + I(age^4), data = merged_tab, family = model_fam, method = RS(30))
     #lm2 <- gamlss(phenotype ~ gender_F1M2 + age + I(age^3) + I(age^4) + gender_F1M2:(age + I(age^2) + I(age^3) + I(age^4)), data = merged_tab, family = model_fam, method = RS(30)) 
-    lm1 <- gamlss(phenotype ~ gender_F1M2 + age + I(age^2) + I(age^3) , data = merged_tab, family = model_fam, method = RS(30))
+    lgam.fit <- gamlss(phenotype ~ gender_F1M2 + age + I(age^2) + I(age^3) , data = merged_tab, family = model_fam, method = RS(30))
     lm2 <- gamlss(phenotype ~ gender_F1M2 + age + I(age^3) + gender_F1M2:(age + I(age^2) + I(age^3)), data = merged_tab, family = model_fam, method = RS(30)) 
   } else {
-    lm1 <- gamlss(phenotype ~ gender_F1M2 + age + gm_mean + I(age^2) + I(age^3) , data = merged_tab, family = model_fam, method = RS(30))
+    lgam.fit <- gamlss(phenotype ~ gender_F1M2 + age + gm_mean + I(age^2) + I(age^3) , data = merged_tab, family = model_fam, method = RS(30))
     lm2 <- gamlss(phenotype ~ gender_F1M2 + age + gm_mean + I(age^3) + gender_F1M2:(age + I(age^2) + I(age^3)), data = merged_tab, family = model_fam, method = RS(30)) 
     
   }
   
-  lr <- LR.test(lm1, lm2, print = F)
-  m <- lm1
+  lr <- LR.test(lgam.fit, lm2, print = F)
+  m <- lgam.fit
   if (lr$p.val < 0.05){
     m <- lm2
   }
@@ -360,14 +366,14 @@ plot_scatter_and_gamlss <- function(merged_tab, pheno_name, n_points = 300, make
   
   res <- test_polynomial_interaction(merged_tab, gam_family)  
   inter_pval <- res[["lr_p.val"]]
-  m1 <- res[["mod"]] 
+  gam.fit <- res[["mod"]] 
   if (inter_pval > 0.05){
       return (NULL)
   }
 
   pdat <- with(merged_tab, expand.grid(age = seq(min_age, 75, length = n_points), 
                                        gender_F1M2 = c('1', '2')))
-  pdat <- transform(pdat, pred = predict(m1, newdata = pdat, type = "response"))
+  pdat <- transform(pdat, pred = predict(gam.fit, newdata = pdat, type = "response"))
   pdat_dif <- expand.grid(age = seq(min_age, max_age, length = n_points),
                           gender_F1M2 = c('1', '2'))
   res_dif <- simple_diff(pdat)
@@ -422,70 +428,71 @@ ggplot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts
   
   if (!correctForCellCounts){
     
-    m1 <- gam(phenotype ~ gender_F1M2 + s(age) + s(age, by = gender_F1M2), data = merged_tab, method = "REML", family = gam_family)
-    m_o <- gam(phenotype ~ ord_gender_F1M2 + s(age) + s(age, by = ord_gender_F1M2), 
+    gam.fit <- gam(phenotype ~ gender_F1M2 + s(age) + s(age, by = gender_F1M2), data = merged_tab, method = "REML", family = gam_family)
+    gam.fit.ordered_sex <- gam(phenotype ~ ord_gender_F1M2 + s(age) + s(age, by = ord_gender_F1M2), 
+               data = merged_tab, method = 'REML', family = gam_family)
+    gam.nointer <- gam(phenotype ~ ord_gender_F1M2 + s(age), 
                data = merged_tab, method = 'REML', family = gam_family)
     
-    
-    m_o_p <- summary(m_o)$s.pv[length(summary(m_o)$s.pv)]
-    m_o_g_beta <- m_o$coefficients["ord_gender_F1M2.L"]
-    m_o_g_pv <- summary(m_o)$p.pv["ord_gender_F1M2.L"]
-    
-    if (m_o_p > 0.05){
-      return (list("dif" = NULL, "inter_p" = m_o_p,"g_beta" = m_o_g_beta, "g_pv" = m_o_g_pv))
+    gam.p <- summary(gam.fit.ordered_sex)$s.pv[length(summary(gam.fit.ordered_sex)$s.pv)]
+    gam.g_beta <- gam.fit.ordered_sex$coefficients["ord_gender_F1M2.L"]
+    gam.g_pv <- summary(gam.fit.ordered_sex)$p.pv["ord_gender_F1M2.L"]
+    calculate_cohens_f2
+    if (gam.p > 0.05){
+      return (list("dif" = NULL, "inter_p" = gam.p,"g_beta" = gam.g_beta, "g_pv" = gam.g_pv))
     }
     pdat <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = n_points), 
                                          gender_F1M2 = c('1', '2')))
-    pdat <- transform(pdat, pred = predict(m1, newdata = pdat, type = "response"))
+    pdat <- transform(pdat, pred = predict(gam.fit, newdata = pdat, type = "response"))
     
     
     
     if (! "Ordered Categorical" %in% gam_family$family){
       pdat_dif <- expand.grid(age = seq(min_age, max_age, length = n_points),
                               gender_F1M2 = c('1', '2'))
-      #res_dif <- smooth_diff(m1, pdat_dif, '2', '1', "gender_F1M2")
+      #res_dif <- smooth_diff(gam.fit, pdat_dif, '2', '1', "gender_F1M2")
       #res_dif$age = seq(min_age, max_age, length = n_points)
       res_dif <- simple_diff(pdat)
     } else { # stupid way to go
-      m1 <- gam(phenotype ~ gender_F1M2 + s(age) + s(age, by = gender_F1M2), data = merged_tab, method = "REML")
+      gam.fit <- gam(phenotype ~ gender_F1M2 + s(age) + s(age, by = gender_F1M2), data = merged_tab, method = "REML")
       pdat <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = n_points), 
                                            gender_F1M2 = c('1', '2')))
-      pdat <- transform(pdat, pred = predict(m1, newdata = pdat, type = "response"))
+      pdat <- transform(pdat, pred = predict(gam.fit, newdata = pdat, type = "response"))
       
     }
   } else { # Correct for cell counts
     
-    m1 <- gam(phenotype ~ gender_F1M2 + ba + eo + er + gr + 
+    gam.fit <- gam(phenotype ~ gender_F1M2 + ba + eo + er + gr + 
                 ly + mo + tr + s(age, by = gender_F1M2), data = merged_tab, method = "REML")
     
-    m_o <- gam(phenotype ~ ord_gender_F1M2 + s(age) + ba + eo + er + gr + 
+    gam.fit.ordered_sex <- gam(phenotype ~ ord_gender_F1M2 + s(age) + ba + eo + er + gr + 
                  ly + mo + tr + s(age, by = ord_gender_F1M2), 
                data = merged_tab, method = 'REML')
-    m_o_p <- summary(m_o)$s.pv[length(summary(m_o)$s.pv)]
-    m_o_g_beta <- m_o$coefficients["ord_gender_F1M2.L"]
-    m_o_g_pv <- summary(m_o)$p.pv["ord_gender_F1M2.L"]
+    gam.p <- summary(gam.fit.ordered_sex)$s.pv[length(summary(gam.fit.ordered_sex)$s.pv)]
+    gam.g_beta <- gam.fit.ordered_sex$coefficients["ord_gender_F1M2.L"]
+    gam.g_pv <- summary(gam.fit.ordered_sex)$p.pv["ord_gender_F1M2.L"]
     
-    if (m_o_p > 0.05){
-      return (list("dif" = NULL, "inter_p" = m_o_p,"g_beta" = m_o_g_beta, "g_pv" = m_o_g_pv))
+    if (gam.p > 0.05){
+      return (list("dif" = NULL, "inter_p" = gam.p,"g_beta" = gam.g_beta, "g_pv" = gam.g_pv))
     }
     
     pdat <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = n_points), gender_F1M2 = c('1', '2'), 
                                          ba = mean(ba), eo = mean(eo), er = mean(er), gr = mean(gr), 
                                          ly = mean(ly),  mo = mean(mo), tr = mean(tr)))
-    pdat <- transform(pdat, pred = predict(m1, newdata = pdat, type = "response"))
+    pdat <- transform(pdat, pred = predict(gam.fit, newdata = pdat, type = "response"))
     
     if (! "Ordered Categorical" %in% gam_family$family){
       pdat_dif <- expand.grid(age = seq(min_age, max_age, length = n_points), gender_F1M2 = c('1', '2'), 
                               ba = mean(merged_tab$ba), eo = mean(merged_tab$eo), er = mean(merged_tab$er), gr = mean(merged_tab$gr), 
                               ly = mean(merged_tab$ly),  mo = mean(merged_tab$mo), tr = mean(merged_tab$tr))
-      #res_dif <- smooth_diff(m1, pdat_dif, '2', '1', "gender_F1M2")
+      #res_dif <- smooth_diff(gam.fit, pdat_dif, '2', '1', "gender_F1M2")
       #res_dif$age = seq(min_age, max_age, length = n_points)
       res_dif <- simple_diff(pdat)
     } else { # stupid way to go
-      m1 <- gam(phenotype ~ gender_F1M2 + s(age) + s(age, by = gender_F1M2), data = merged_tab, method = "REML")
+      gam.fit <- gam(phenotype ~ gender_F1M2 + s(age) + s(age, by = gender_F1M2), data = merged_tab, method = "REML")
       pdat <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = n_points), 
                                            gender_F1M2 = c('1', '2')))
-      pdat <- transform(pdat, pred = predict(m1, newdata = pdat, type = "response"))
+      pdat <- transform(pdat, pred = predict(gam.fit, newdata = pdat, type = "response"))
     }
   }
   
@@ -500,7 +507,7 @@ ggplot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts
           axis.line.x = element_line(colour = 'grey', size=0.5, linetype='solid'),
           axis.line.y = element_line(colour = 'grey', size=0.5, linetype='solid')) + 
     ylab(pheno_name) + 
-    ggtitle(paste0(pheno_name, ' ', label, "\nGAM interaction p = ", format(m_o_p, digits = 3))) + 
+    ggtitle(paste0(pheno_name, ' ', label, "\nGAM interaction p = ", format(gam.p, digits = 3))) + 
     scale_x_discrete(name ="age", limits=seq(10,80,10))
   
   levs <- levels(merged_tab$gender_F1M2)
@@ -531,5 +538,15 @@ ggplot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts
     print(p2)
   }
   
-  return (list("pdat" = pdat, "dif" = res_dif$diff, "inter_p" = m_o_p,"g_beta" = m_o_g_beta, "g_pv" = m_o_g_pv))
+  return (list("pdat" = pdat, "dif" = res_dif$diff, "inter_p" = gam.p,"g_beta" = gam.g_beta, "g_pv" = gam.g_pv))
 } 
+
+# Calculates Cohen's R^2 to estimate the local effect size of the variable of interest
+# https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3328081/
+# According to Cohen’s (1988) guidelines, f2>=0.02, f2>=0.15, and f2>=0.35 represent small, medium, and large effect sizes, respectively.
+calculate_cohens_f2 <- function(mod_full, mod_part){
+  r_full <- summary(mod_full)$r.sq
+  r_sub <- summary(mod_part)$r.sq
+  f2 <- (r_full - r_sub)/(1-r_full)
+  return(f2)
+}
