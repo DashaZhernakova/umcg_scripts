@@ -105,10 +105,10 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, covariates_linear = c(
     if (length(covariates_nonlinear) > 0) terms_nonlinear_covar <- paste0("+ s(", paste(covariates_nonlinear, collapse = ")+ s("), ")")
     
     m1 <- gam(as.formula(paste("phenotype ~ gender_F1M2 ", terms_linear_covar, terms_nonlinear_covar,
-                               "+ s(age, by = gender_F1M2)", sep = " ")), 
+                               "+ s(age) + s(age, by = gender_F1M2)", sep = " ")), 
               data = merged_tab, method = "REML")
     m_o <- gam(as.formula(paste("phenotype ~ gender_F1M2 ", terms_linear_covar, terms_nonlinear_covar,
-                               "+ s(age, by = ord_gender_F1M2)", sep = " ")), 
+                               "+ s(age) + s(age, by = ord_gender_F1M2)", sep = " ")), 
               data = merged_tab, method = "REML")
     
     m_o_p <- summary(m_o)$s.pv[length(summary(m_o)$s.pv)]
@@ -121,7 +121,12 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, covariates_linear = c(
     
     new.x <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = n_points), gender_F1M2 = c('1', '2'))) 
     for (c in c(covariates_linear, covariates_nonlinear)){
-      new.x[,c] <- mean(merged_tab[,c])
+      if (is.factor(merged_tab[,c])){
+        new.x[,c] <- 0
+        new.x[,c] <- as.factor(new.x[,c])
+      } else {
+        new.x[,c] <- mean(merged_tab[,c])
+      }
     }
     
     new.y <- data.frame(predict(m1, newdata = new.x, se.fit = TRUE, type = "response"))
