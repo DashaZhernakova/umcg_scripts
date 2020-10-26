@@ -37,7 +37,7 @@ st_col = 1
 # NMR metabolomics
 traits_path <- "C:/Users/Dasha/work/UMCG/data/Metabolomics_shared_folder/2.metabolites/LLD_bloodlipids_nmr.txt"
 st_col=5
-out_basepath <- paste0("../plots_all_pheno/v2/NMR_with_breakpoints_intervals_t3_d1.5e-4")
+out_basepath <- paste0("../plots_all_pheno/v2/NMR_with_f2")
 
 # Untargeted metabolomics
 traits_path <- "C:/Users/Dasha/work/UMCG/data/LifeLines_phenotypes/data_1442samples_LLD_baseline_1183plasma_metabolites.txt"
@@ -99,7 +99,7 @@ gte_path <- "gte_all.txt"
 pheno_path <- "age_gender_cell_counts_070920.txt"
 gene_table_path <- "geneid_to_gene_proteincoding_mainchr.txt"
 
-correct_for_cellcounts = T
+correct_for_cellcounts = F
 make_plots = T
 add_breakpoints = F
 
