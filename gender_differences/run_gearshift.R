@@ -46,7 +46,8 @@ ttest_cutoff <- 4
 deriv_cutoff <- 0.0004
 covariateslinear <- c("SMK3")
 covariatesnonlinear <- c("BMI")
-
+#covariateslinear <- c()
+#covariatesnonlinear <- c()
 #out_basepath <- basename(traits_path)
 #plot_basepath <- paste0("plots/", out_basepath, "breakpoints_intervals_t",ttest_cutoff,"_d", deriv_cutoff,".png")
 plot_basepath <- paste0("plots/", basename(out_basepath), ".png")
