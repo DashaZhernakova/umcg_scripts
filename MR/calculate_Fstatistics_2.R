@@ -1,8 +1,9 @@
 args <- commandArgs(trailingOnly = TRUE)
 library(TwoSampleMR)
 library(MRInstruments)
+library("LDlinkR")
 
-
+ao <- available_outcomes()
 
 get_r_from_lor <- function(dat)
 {
@@ -30,21 +31,21 @@ calulateVPE <- function(exp_dat){
 
 calculateFstats2 <- function(dat, binary = NA){
   
-  if (is.na(binary)){
-    if ("units.exposure" %in% colnames(dat) & !is.na(dat$units.exposure[1])){
-      if (dat$units.exposure[1] == "log odds"){
-        binary = T
-      }
-    } else if ("units.exposure_dat" %in% colnames(dat) & !is.na(dat$units.exposure_dat[1])){
-      if (dat$units.exposure_dat[1] == "log odds"){
-        binary = T
-      }
-    } else if (exp_dat$id.exposure [1] == "1112"){
-      binary = T
-    } else{
-      print(paste("ERROR! Binary status impossible to determine!!!"))
-    }
-  }
+  # if (is.na(binary)){
+  #   if ("units.exposure" %in% colnames(dat) & !is.na(dat$units.exposure[1])){
+  #     if (dat$units.exposure[1] == "log odds"){
+  #       binary = T
+  #     }
+  #   } else if ("units.exposure_dat" %in% colnames(dat) & !is.na(dat$units.exposure_dat[1])){
+  #     if (dat$units.exposure_dat[1] == "log odds"){
+  #       binary = T
+  #     }
+  #   } else if (exp_dat$id.exposure [1] == "1112"){
+  #     binary = T
+  #   } else{
+  #     print(paste("ERROR! Binary status impossible to determine!!!"))
+  #   }
+  # }
   
   if (binary){
     R2 <- sum(get_r_from_lor(dat)^2)
@@ -82,7 +83,8 @@ getMbAF <- function(exp_dat, af_table){
 get1kgAF <- function(snps, ea, oa, exp_id){
   afs <- rep(NA, length(snps))
   
-  pop <- ao[ao$id == exp_id, "population"]
+  #pop <- ao[ao$id == exp_id, "population"]
+  pop = "European"
   if (pop == "European"){
     kg_pop <- c("CEU", "TSI", "GBR", "IBS")
   } else if (pop == "Mixed"){
@@ -134,7 +136,7 @@ readExpDatFromUKBFile <- function(snps, exp_whole_table){
 }
 run_for_mb <- function(in_table, binary_exp = F){
   #mb_af_fpath <- args[2]
-  #mb_af_fpath <- "/groups/umcg-lld/scr01/dasha/MR/results/mibiogenSep2019/fstat/snps.mafs.txt"
+  #mb_af_fpath <- "/groups/umcg-lld/scr01/umcg-dzhernakova/MR/results/mibiogenSep2019/fstat/snps.mafs.txt"
   #af_table <- read.table(mb_af_fpath, sep = "\t", check.names = F, as.is = T, header = T, quote="")
   
   in_table$F_exposure_2 <- NA
@@ -143,7 +145,7 @@ run_for_mb <- function(in_table, binary_exp = F){
   for (bac in all_bac){
     print(paste("##### Starting with", bac))
     table_subs <- in_table[in_table$exposure == bac,]
-    exp_dat_path <- paste0("/groups/umcg-lld/scr01/dasha/MR/data/mibiogenOct2019/", bac, ".summary.afs.txt.gz")
+    exp_dat_path <- paste0("/groups/umcg-lld/tmp03/umcg-dzhernakova/MR/data/mibiogenOct2020/", bac, ".summary.afs.txt.gz")
     exp_whole_table <- read.table(gzfile(exp_dat_path), header = T, sep = "\t", as.is = T, check.names = F)
     for (i in 1:nrow(table_subs)){
       outcome <- table_subs[i, "outcome"]
@@ -166,12 +168,20 @@ run_for_mb <- function(in_table, binary_exp = F){
 run_for_gwas <- function(in_table){
   in_table$F_exposure_2 <- NA
   all_pheno_ids <- unique(in_table$id.exposure)
-  
+  mrbase_old <- read.delim("/groups/umcg-lld/tmp03/umcg-dzhernakova/MR/data/MRBase_all_outcomes.200919.txt", header = T, sep = "\t", as.is = T, check.names = F)
+  binary_ids <- c("44", "815", "806", "45", "812", "276", "990", "22", "32", "30", "833", "1085", "970", "1086", "1024", "1058", "1025", "798", "9", "814", "297", "12", "7", "10", "803", "800", "801", "292", "31", "294", "1054", "298", "24", "996", "1110", "1108", "1109", "1112")
   for (pheno_id in all_pheno_ids){
     print(paste("##### Starting with", pheno_id))
     table_subs <- in_table[in_table$id.exposure == pheno_id,]
     exp_whole_table <- extract_instruments(outcomes=pheno_id, clump = FALSE)
     
+    binary = F
+    unit <- mrbase_old[mrbase_old$id == gsub("ieu-a-", "", pheno_id), "unit"]
+    if (!is.na(unit)) {
+      if (unit == "log odds") binary = T
+    } else {
+      binary = ifelse(gsub("ieu-a-", "", pheno_id) %in% binary_ids, T, F)
+    }
     for (i in 1:nrow(table_subs)){
       outcome <- table_subs$outcome[i]
       print(paste(pheno_id, outcome))
@@ -179,7 +189,9 @@ run_for_gwas <- function(in_table){
       fstat <- NA
       tryCatch({
         exp_dat <- readExpDatFromMRbase(pheno_id, snps, exp_whole_table)
-        fstat <- calculateFstats2(exp_dat)
+        #unit <- mrbase_old[mrbase_old$id == gsub("ieu-a-", "", pheno_id), "unit"]
+        #if (unit == "log odds") binary = T
+        fstat <- calculateFstats2(exp_dat, binary)
       }, error=function(e) {print(paste("Failed:", pheno_id, table_subs[i, "outcome"]))})
       if (!is.na(fstat)){
         in_table[in_table$id.exposure == pheno_id & in_table$outcome == outcome, "F_exposure_2"] <- fstat
@@ -220,8 +232,9 @@ run_for_ukb <- function(in_table, binary){
 
 fpath = args[1]
 exp_type = args[2]
-#fpath <- "/groups/umcg-lld/scr01/dasha/MR/results/mibiogenSep2019/fstat/mb-gwas.txt"
-#fpath <- "/Users/dashazhernakova/Documents/UMCG/data/MR/results2/mibiogen/mibiogenSep2019/v5/gwas-mb.v5.txt"
+#fpath <- "/groups/umcg-lld/scr01/umcg-dzhernakova/MR/results/mibiogenSep2019/fstat/mb-gwas.txt"
+#fpath <- "/Users/umcg-dzhernakovazhernakova/Documents/UMCG/data/MR/results2/mibiogen/mibiogenSep2019/v5/gwas-mb.v5.txt"
+#fpath="per_bact/5e-08/gwas-mibiogen.5e-08.all_res.txt"
 
 in_table <- read.table(fpath, sep = "\t", check.names = F, as.is = T, header = T, quote="")
 

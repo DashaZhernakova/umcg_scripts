@@ -1,7 +1,6 @@
 import sys
 import os
 import gzip
-import glob
 
 def get_AF(spl, mr_alleles):
     maf_alleles = spl[2].split("/")
@@ -19,21 +18,19 @@ def get_AF(spl, mr_alleles):
     return(AC, AN)
 
 
-mr_dir = "/groups/umcg-lld/tmp03/umcg-dzhernakova/MR/data/mibiogenOct2020"
+mr_dir = "/groups/umcg-lld/tmp03/umcg-dzhernakova/MR/data/mibiogenOct2020/"
 maf_dir = "/groups/umcg-lifelines/tmp03/users/umcg-akurilshchikov/MiBioGen/MAFs/"
 res_fname = "/groups/umcg-lld/tmp03/umcg-dzhernakova/MR/data/mibiogenOct2020/all_snp_afs.txt"
 #mr_dir = "C:/Users/Dasha/work/UMCG/data/MR/results2/mibiogen/mibiogenOct2020/test/res/"
 #maf_dir = "C:/Users/Dasha/work/UMCG/data/MR/results2/mibiogen/mibiogenOct2020/test/mafs/"
 mr_snp_dict = {}
 
-for mr_fname in glob.glob(mr_dir + "*820.summary.txt.gz"):
-    print("reading", mr_fname)
-    with gzip.open(mr_fname, 'rt') as mr_file:
+for mr_fname in os.listdir(mr_dir):
+    with gzip.open(mr_dir + mr_fname, 'rt') as mr_file:
         mr_file.readline()
         for l in mr_file:
             spl = l.rstrip().split("\t")
             mr_snp_dict.setdefault(spl[1] + ":" + spl[2], [spl[4] + "/" + spl[5], 0, 0])
-
 print("Read", len(mr_snp_dict), "SNPs")
 
 for maf_fname in os.listdir(maf_dir):
@@ -51,22 +48,21 @@ for maf_fname in os.listdir(maf_dir):
             mr_snp[2] += AN
             mr_snp_dict[spl[0]] = mr_snp
 
-#res_file = open(res_fname, "w")
-#res_file.write("SNP\tother_allele\teffect_allele\teaf\n")
-#for snp, lst in mr_snp_dict.items():
-#    res_file.write(snp + "\t" + "\t".join(lst[0].split("/")) + "\t" + str(lst[1]/lst[2]) + "\n")
-#res_file.close()
+res_file = open(res_fname, "w")
+res_file.write("SNP\tother_allele\teffect_allele\teaf\n")
+for snp, lst in mr_snp_dict.items():
+    res_file.write(snp + "\t" + "\t".join(lst[0].split("/")) + "\t" + str(lst[1]/lst[2]) + "\n")
+res_file.close()
 
-for mr_fname in glob.glob(mr_dir + "*.summary.txt.gz"):
-    print("reading", mr_fname)
-    with gzip.open(mr_fname, 'rt') as mr_file:
-        res_mr_file = open(mr_fname.replace("summary.txt.gz", "summary.afs.txt"), "w")
+for mr_fname in os.listdir(mr_dir):
+    with gzip.open(mr_dir + mr_fname, 'rt') as mr_file:
+        res_mr_file = open(mr_dir + mr_fname.replace("summary.txt.gz", "summary.afs.txt"), "w")
         l = mr_file.readline()
         res_mr_file.write(l.rstrip() + "\teaf\n")
         for l in mr_file:
             spl = l.rstrip().split("\t")
             mr_snp = mr_snp_dict.get(spl[1] + ":" + spl[2])
-            af = str(float(mr_snp[1])/mr_snp[2])
+            af = str(mr_snp[1]/mr_snp[2])
             res_mr_file.write(l.rstrip() + "\t" + af + "\n")
         res_mr_file.close()
 print("Finished")
