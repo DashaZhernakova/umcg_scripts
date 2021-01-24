@@ -21,7 +21,7 @@ st_col = 3
 traits_path <- "CVD3_olinkNormal_1447_LLDsamples_t_ProtNames.txt"
 st_col = 1
 traits0 <- as.data.frame(t(read.delim(traits_path, header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)))
-out_basepath <- paste0("../plots_all_pheno/v2/proteins_with_f2")
+out_basepath <- paste0("../plots_all_pheno/v2/proteins_with_f2_contraceptives")
 
 
 # telomeres
@@ -37,7 +37,7 @@ st_col = 1
 # NMR metabolomics
 traits_path <- "C:/Users/Dasha/work/UMCG/data/Metabolomics_shared_folder/2.metabolites/LLD_bloodlipids_nmr.txt"
 st_col=5
-out_basepath <- paste0("../plots_all_pheno/v2/NMR_with_f2")
+out_basepath <- paste0("../plots_all_pheno/v2/NMR_with_f2_contrac")
 
 # Untargeted metabolomics
 traits_path <- "C:/Users/Dasha/work/UMCG/data/LifeLines_phenotypes/data_1442samples_LLD_baseline_1183plasma_metabolites.txt"
@@ -96,7 +96,7 @@ row.names(traits) <- row.names(traits1)
 
 ###############################################################
 gte_path <- "gte_all.txt"
-pheno_path <- "age_gender_cell_counts_070920.txt"
+pheno_path <- "LLD_covariates_291220.txt"
 gene_table_path <- "geneid_to_gene_proteincoding_mainchr.txt"
 
 correct_for_cellcounts = F
@@ -130,10 +130,13 @@ min_age = 20
 max_age = 80
 ttest_cutoff <- 3
 deriv_cutoff <- 0.00015
-covariateslinear <- c("ba", "eo", "er", "gr", "ly", "mo", "tr")
+covariateslinear <- c()
 covariatesnonlinear <- c()
 
-out_basepath <- paste0("../plots_all_pheno/v2/cytokines_with_breakpoints_intervals_t3_d1.5e-4_v2")
+covariates_before <- c("ba", "eo", "er", "gr", "ly", "mo", "tr", "smk1", "oral_contr_merged")
+traits_m <- correct_for_covariates_before(traits_m, pheno_m, covariates_before)
+
+out_basepath <- paste0("../plots_all_pheno/v2/proteins_corrected_cellcounts_smk_contrac")
 
 res_dif_all <- data.frame(age = seq(min_age, max_age, length = n_points))
 res_pdat_all <- data.frame(age = c(seq(min_age, max_age, length = n_points), seq(min_age, max_age, length = n_points)))
