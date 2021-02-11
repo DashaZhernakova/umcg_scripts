@@ -1,9 +1,9 @@
 library(feather)
 args <- commandArgs(trailingOnly = TRUE)
-setwd('/groups/umcg-lld/scr01/dasha/methylation/permutation_FDR')
+setwd('/groups/umcg-lld/scr01/dasha/methylation/')
 
-traits_path <- "../ILLUMINA450K_All2Blood_mValue.Selection.Dasen.QuantileNormalized.LLDsubset.LLD_ids.scaled.feather"
-gene_table_path <- "../meth_probe2gene.txt"
+traits_path <- "data/ILLUMINA450K_All2Blood_mValue.Selection.Dasen.QuantileNormalized.LLDsubset.LLD_ids.scaled.feather"
+gene_table_path <- "data/meth_probe2gene.txt"
 
 pheno_path <- args[1]
 out_path <- args[2]
@@ -59,13 +59,13 @@ for (g in seq_along(colnames(traits_m))) {
   if (cnt %% 10000 == 0){
           print(paste0("Processed ", cnt, " pairs (", format(100 * cnt / n, digits = 4), "%)"))
   }
-
+  
   for (p_name in phenos2) {
         merged_tab <- cbind(probe, pheno_m[, c(p_name, "age", "gender", "ba", "eo", "er", "gr", "ly", "mo", "tr")])
         colnames(merged_tab) <- c("pheno1", "pheno2", "age", "gender", "ba", "eo", "er", "gr", "ly", "mo", "tr")
         merged_tab$pheno1 <- as.numeric(as.character(merged_tab$pheno1))
         merged_tab <- na.omit(merged_tab)
-        lm_res <- summary(lm(pheno1 ~ age + gender + pheno2 + ba + eo + er + gr + ly + mo + tr, data = merged_tab))$coefficients
+        lm_res <- summary(lm(pheno1 ~ age + gender + pheno2 + ba + eo + er + gr + ly + mo + tr, data = merged_tab))$coefficients	
         res_table[cnt, ] <- c(g_id, g_name, p_name, as.numeric(lm_res[4, ]), nrow(merged_tab))
         cnt <- cnt + 1
   }
@@ -73,3 +73,4 @@ for (g in seq_along(colnames(traits_m))) {
 
 
 write.table(res_table, file = out_path, sep = "\t", quote = F, col.names = NA)
+
