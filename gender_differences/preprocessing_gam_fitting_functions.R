@@ -18,6 +18,12 @@ rm_na_outliers <- function(traits_m, pheno_m, idx, method = "zscore", scale_tr =
   
   row.names(merged_tab) <- row.names(pheno_na.rm)
   
+  if (length(unique(merged_tab[,1])) < 3 & any(scale_tr, log_tr, int_tr)){
+    scale_tr = F
+    log_tr = F
+    int_tr = F
+    print("outcome is a factor, skipping all transformations!")
+  }
   # remove outliers ( skip this if outcome is a factor )
   if (length(unique(merged_tab[,1])) > 3){
     w <- merged_tab[women,]
@@ -60,7 +66,9 @@ rm_na_outliers <- function(traits_m, pheno_m, idx, method = "zscore", scale_tr =
   
   factor_cols <- which(sapply(tab_nooutliers, function(col) length(unique(col)) < 3))
   for (c in factor_cols){
+    if (c != 1){
     tab_nooutliers[,c] <- as.factor(tab_nooutliers[,c])
+    }
   }
 
   return(tab_nooutliers)

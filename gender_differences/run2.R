@@ -71,6 +71,7 @@ if (length(covariates_before) > 0){
   traits_m <- correct_for_covariates_before(traits_m, pheno_m, covariates_before)
 }
 
+print(paste0("Number of traits: ", num_traits))
 #
 # Other parameters
 #
@@ -137,6 +138,7 @@ for (idx in indices){
   
   if (res_dif_lst[["inter_p"]] < 0.05){
     cnt <- cnt + 1
+    print("Significant interaction detected.")
   }
   
   sex_dif_pval <- calculate_sex_diff_ttest(merged_tab, covariates = c(covariateslinear, covariatesnonlinear), min_age, max_age)
