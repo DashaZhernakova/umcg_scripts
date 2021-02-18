@@ -2,6 +2,20 @@ library(rprojroot)
 library(tidyverse)
 
 
+getCurrentFileLocation <-  function()
+{
+  this_file <- commandArgs() %>%
+    tibble::enframe(name = NULL) %>%
+    tidyr::separate(col=value, into=c("key", "value"), sep="=", fill='right') %>%
+    dplyr::filter(key == "--file") %>%
+    dplyr::pull(value)
+  if (length(this_file)==0)
+  {
+    this_file <- rstudioapi::getSourceEditorContext()$path
+  }
+  return(dirname(this_file))
+}
+
 isRStudio <- Sys.getenv("RSTUDIO") == "1"
 if (isRStudio) {
   script_folder <- "C:/Users/Dasha/work/UMCG/umcg_scripts/gender_differences/"
@@ -165,17 +179,3 @@ if (make_plots){
   dev.off()
 }
 
-
-getCurrentFileLocation <-  function()
-{
-  this_file <- commandArgs() %>%
-    tibble::enframe(name = NULL) %>%
-    tidyr::separate(col=value, into=c("key", "value"), sep="=", fill='right') %>%
-    dplyr::filter(key == "--file") %>%
-    dplyr::pull(value)
-  if (length(this_file)==0)
-  {
-    this_file <- rstudioapi::getSourceEditorContext()$path
-  }
-  return(dirname(this_file))
-}
