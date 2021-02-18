@@ -382,3 +382,51 @@ ggplot_scatter_and_gam2 <- function(merged_tab, pheno_name, correctForCellCounts
   
   return (list("pdat" = pdat, "dif" = res_dif$diff, "inter_p" = gam.p,"g_beta" = gam.g_beta, "g_pv" = gam.g_pv))
 } 
+
+
+
+
+# Fit a GAM with age : gender interaction and (optional) correction for covariates (linear or spline)
+fit_gam_age_only <- function(merged_tab, pheno_name, covariates_linear = c(), covariates_nonlinear = c(), n_points = 300, make_plots = T,  gam_family = gaussian(), min_age = 20, max_age = 80){
+  colnames(merged_tab)[1] <- "phenotype"
+  merged_tab <- merged_tab[(merged_tab$age < max_age) & (merged_tab$age >= min_age),]
+  
+  if (length(covariates_linear) == 0 & length(covariates_nonlinear) == 0){
+    gam.fit <- gam(phenotype ~ s(age), data = merged_tab, method = "REML", family = gam_family)
+    
+    new.x <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = n_points))) 
+    new.y <- data.frame(predict(gam.fit, newdata = new.x, se.fit = TRUE, type = "response"))
+    pdat <- data.frame(new.x, new.y)
+    pdat <- rename(pdat, pred = fit, SE = se.fit)
+    pdat <- mutate(pdat, lwr = pred - 1.96 * SE, upr = pred + 1.96 * SE) # calculating the 95% confidence interval
+    
+    
+  } else { # Correct for covariates
+    terms_linear_covar <- ""
+    terms_nonlinear_covar <- ""
+    if (length(covariates_linear) > 0) terms_linear_covar <- paste0("+", paste(covariates_linear, collapse = "+"))
+    if (length(covariates_nonlinear) > 0) terms_nonlinear_covar <- paste0("+ s(", paste(covariates_nonlinear, collapse = ")+ s("), ")")
+    
+    gam.fit <- gam(as.formula(paste("phenotype ~ ", terms_linear_covar, terms_nonlinear_covar,
+                                    "+ s(age)", sep = " ")), 
+                   data = merged_tab, method = "REML")
+    
+    new.x <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = n_points))) 
+    for (c in c(covariates_linear, covariates_nonlinear)){
+      if (is.factor(merged_tab[,c])){
+        new.x[,c] <- 0
+        new.x[,c] <- as.factor(new.x[,c])
+      } else {
+        new.x[,c] <- mean(merged_tab[,c])
+      }
+    }
+    
+    new.y <- data.frame(predict(gam.fit, newdata = new.x, se.fit = TRUE, type = "response"))
+    pdat <- data.frame(new.x, new.y)
+    pdat <- rename(pdat, pred = fit, SE = se.fit)
+    pdat <- mutate(pdat, lwr = pred - 1.96 * SE, upr = pred + 1.96 * SE) # calculating the 95% confidence interval
+  }
+  return (pdat)
+}
+
+

@@ -6,7 +6,7 @@ col2transparent <- function(col, transparency){
   dodgerblueTransparent <- rgb(colRgb[1,1], colRgb[2,1], colRgb[3,1], transparency, names = NULL, maxColorValue = 255)
 }
 
-draw_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, breakpoints, alpha_points = 40, breakpoints_intervals, label = ""){
+draw_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, breakpoints = F, factor_name = "", alpha_points = 40, breakpoints_intervals, label = ""){
   cex_main = 1
   ylims <- with(merged_tab, range(phenotype))
   ylabel <- pheno_name
@@ -37,8 +37,9 @@ draw_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, bre
        ylim =c(min(pretty(merged_tab2$phenotype)), max(pretty(merged_tab2$phenotype))),
        xlim = c(min(min_age,merged_tab2$age), max(max_age, merged_tab2$age)))
   
-  points(merged_tab2[merged_tab2$contrac == 1,"age"], merged_tab2[merged_tab2$contrac == 1,"phenotype"], pch = 8, col = col2transparent("gold", 120), cex = 0.6)
-  
+  if (length(factor_name) > 0){
+    points(merged_tab2[merged_tab2[,factor_name] == 1,"age"], merged_tab2[merged_tab2[,factor_name],"phenotype"], pch = 8, col = col2transparent("gold", 120), cex = 0.6)
+  }
   
   abline(h = pretty(merged_tab2$phenotype), col = "grey90")
   abline(v = pretty(merged_tab2$age), col = "grey90")
@@ -83,6 +84,53 @@ draw_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, bre
     for (br in br_w){
       rect(br[1], ymin, br[2], ymax, col = 1, border = 1, density = -1)
     }
+  }
+}
+
+# plot more than two fitted lines 
+draw_plot_multiline <- function(merged_tab, pheno_name, pdat_list, color_list, factor_name = "", min_age = 20, max_age = 80, label = ''){
+  cex_main = 1
+  ylims <- with(merged_tab, range(phenotype))
+  ylabel <- pheno_name
+  if (nchar(pheno_name) > 40){
+    spl <- unlist(strsplit(pheno_name, "\\|"))
+    ylabel <- spl[length(spl)]
+    cex_main <- 0.8
+    if (nchar(pheno_name) > 50) cex_main <- 0.7
+    if (nchar(pheno_name) > 60) cex_main <- 0.6
+    
+  }
+  if (all(ylims == c(0,1))) ylabel <- "Probability"
+  
+  
+  ## draw base plot
+  palette(c(col2transparent("#ff9999", 120),col2transparent("#99ccff", 120)))
+  par(mar = c(6, 6, 6, 3), # Dist' from plot to side of page
+      mgp = c(2, 0.4, 0), # Dist' plot to label
+      las = 1, # Rotate y-axis text
+      tck = -.01, # Reduce tick length
+      xaxs = "i", yaxs = "i") # Remove plot padding
+  
+  merged_tab2 <- merged_tab[merged_tab$phenotype <= ylims[2] & merged_tab$phenotype >= ylims[1],]
+  plot(phenotype ~ age, data = merged_tab2,  col = gender_F1M2,  pch = 16, 
+       main = pheno_name, 
+       cex = 0.6, xlab = "age", ylab = ylabel, cex.main = cex_main, frame.plot = F, axes = T, 
+       ylim =c(min(pretty(merged_tab2$phenotype)), max(pretty(merged_tab2$phenotype))),
+       xlim = c(min(min_age,merged_tab2$age), max(max_age, merged_tab2$age)))
+  
+  if (factor_name != ""){
+    subs <- merged_tab2[merged_tab2[,factor_name] == 1,]
+    points(subs$age, subs$phenotype, pch = 8, col = col2transparent("gold", 120), cex = 0.6)
+  }
+  
+  abline(h = pretty(merged_tab2$phenotype), col = "grey90")
+  abline(v = pretty(merged_tab2$age), col = "grey90")
+  
+  ## add the fitted lines
+  for (i in 1:length(pdat_list)) {
+    dd <- pdat_list[[i]]
+    lines(pred ~ age, data = dd, col = color_list[[i]], lwd = 2)
+    polygon(c(rev(dd$age), dd$age), c(rev(dd$lwr), dd$upr), col = col2transparent(color_list[[i]], 65), border = NA)
   }
 }
 
@@ -398,4 +446,28 @@ draw_disease_prevalence <- function(merged_tab){
   bp <- barplot(as.matrix(x2), beside = T, border="white", col=c("indianred1","dodgerblue1"),
                 xlab = "age", ylab = "disease prevalence", main = paste0(colnames(prev_m)[pheno_idx]))
   
+}
+
+run_for_split_by_covariate <- function(merged_tab, pheno_name, covariate_to_split, highlight_positive = F, covariates_linear = c(), covariates_nonlinear = c(), n_points = 300, make_plots = T,  gam_family = gaussian(), min_age = 20, max_age = 80){
+  pdat_list <- list()
+  col_list <- list()
+  colors <- list("indianred1", "orange1", "dodgerblue1", "cadetblue1")
+  w0 <- merged_tab[merged_tab$gender_F1M2 == 1 & merged_tab[,covariate_to_split] == 0,]
+  w1 <- merged_tab[merged_tab$gender_F1M2 == 1 & merged_tab[,covariate_to_split] == 1,]
+  m0 <- merged_tab[merged_tab$gender_F1M2 == 2 & merged_tab[,covariate_to_split] == 0,]
+  m1 <- merged_tab[merged_tab$gender_F1M2 == 2 & merged_tab[,covariate_to_split] == 1,]  
+  
+  cnt <- 1
+  cnt2 <- 1
+  for (dat in list(w0,w1,m0,m1)){
+    if (nrow(dat) > 0){
+      pdat_list[[cnt]] <- fit_gam_age_only(dat, pheno_name, covariates_linear = c(), covariates_nonlinear = c(), n_points = 300, make_plots = T,  gam_family = gaussian(), min_age = 20, max_age = 80)
+      col_list[[cnt]] <- colors[[cnt2]]
+      cnt <- cnt + 1
+    }
+    cnt2 <- cnt2 + 1
+  }
+  factor_to_highlight <- ""
+  if (highlight_positive) factor_to_highlight <- covariate_to_split
+  draw_plot_multiline(merged_tab, pheno_name, pdat_list, col_list, factor_name = factor_to_highlight)
 }

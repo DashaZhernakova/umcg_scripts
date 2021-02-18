@@ -33,7 +33,7 @@ cat(paste("Data paths:\nphenotype traits:", traits_path, "\r\ncovariates:", phen
 traits0 <- read.delim(traits_path, header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)
 traits <- sapply(traits0, function(x) as.numeric(as.character(x)))
 row.names(traits) <- row.names(traits0)
-traits2use <- unlist(strsplit(config$traits2use, ",")) # choose phenotypes to run the analysis for
+traits2use <- unlist(strsplit(config$phenos2use, ",")) # choose phenotypes to run the analysis for
 if (length(traits2use) > 0) {
   traits <- traits[,traits2use]
   print(paste0("Running the analysis only for a subset of phenotypes: ", paste(traits2use, collapse = ", ")))
@@ -87,6 +87,7 @@ outlier_correction_method <- config$outlier_correction_method
 log_transform = config$log_transform
 scale_transform = config$scale_transform
 gam_family = config$gam_family
+split_by_covariate = config$split_by_covariate
 ttest_cutoff <- config$breakpoints_ttest_cutoff
 deriv_cutoff <- config$breakpoints_derivates_cutoff
 
@@ -134,8 +135,11 @@ for (idx in indices){
   trait_name <- colnames(traits_m)[idx]
   print(paste0(idx, " : ", trait_name))
   merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = outlier_correction_method, log_tr = log_transform, scale_tr = scale_transform)
-  res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, covariates_linear = covariateslinear, covariates_nonlinear = covariatesnonlinear, n_points = n_points, make_plots = make_plots, gam_family = gam_family, label = '', add_breakpoints = add_breakpoints,  t_threshold = ttest_cutoff, derivatives_cutoff = deriv_cutoff)
-  
+  if (length(split_by_covariate) == 0){
+    res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, covariates_linear = covariateslinear, covariates_nonlinear = covariatesnonlinear, n_points = n_points, make_plots = make_plots, gam_family = gam_family, label = '', add_breakpoints = add_breakpoints,  t_threshold = ttest_cutoff, derivatives_cutoff = deriv_cutoff)
+  } else {
+    run_for_split_by_covariate(merged_tab, trait_name, covariate_to_split = split_by_covariate , covariates_linear = covariateslinear, covariates_nonlinear = covariatesnonlinear, n_points = n_points, make_plots = make_plots, gam_family = gam_family)
+  }
   if (res_dif_lst[["inter_p"]] < 0.05){
     cnt <- cnt + 1
     print("Significant interaction detected.")
