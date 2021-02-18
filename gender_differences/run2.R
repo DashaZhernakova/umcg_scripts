@@ -149,7 +149,7 @@ for (idx in indices){
   trait_name <- colnames(traits_m)[idx]
   print(paste0(idx, " : ", trait_name))
   merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = outlier_correction_method, log_tr = log_transform, scale_tr = scale_transform)
-  if (length(split_by_covariate) == 0){
+  if (split_by_covariate == ""){
     res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, covariates_linear = covariateslinear, covariates_nonlinear = covariatesnonlinear, n_points = n_points, make_plots = make_plots, gam_family = gam_family, label = '', add_breakpoints = add_breakpoints,  t_threshold = ttest_cutoff, derivatives_cutoff = deriv_cutoff)
   } else {
     run_for_split_by_covariate(merged_tab, trait_name, covariate_to_split = split_by_covariate , covariates_linear = covariateslinear, covariates_nonlinear = covariatesnonlinear, n_points = n_points, make_plots = make_plots, gam_family = gam_family)
