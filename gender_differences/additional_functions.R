@@ -375,7 +375,7 @@ add_prevalence_hist_to_plot <- function(merged_tab, scale.hist = 5, las.h1 = 1, 
   depend.m <- merged_tab[merged_tab$gender_F1M2 == 2, 1]
   
   
-  h.x <- hist(independ[depend == 0],
+  h.x <- hist(independ.m[depend.m == 0],
               breaks = h.br,
               plot = FALSE
   )$mid
