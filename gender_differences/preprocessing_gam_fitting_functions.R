@@ -157,7 +157,7 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, covariates_linear = c(
  
   
   if (make_plots){
-    draw_plot(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, breakpoints, alpha_points, breakpoints_intervals, label = paste0("Fsq = ", formatC(gam.cohen_f2, digits = 4, format = "f")))
+    draw_plot(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, breakpoints, breakpoints_intervals, label = paste0("Fsq = ", formatC(gam.cohen_f2, digits = 4, format = "f")))
   }
   
   return (list("pdat" = pdat, "dif" = res_dif$diff, "inter_p" = gam.p,"g_beta" = gam.g_beta, "g_pv" = gam.g_pv, "breakpoints_intervals" = breakpoints_intervals, "cohen_f2" = gam.cohen_f2))
