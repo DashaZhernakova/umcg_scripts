@@ -22,7 +22,7 @@ rm_na_outliers <- function(traits_m, pheno_m, idx, method = "zscore", scale_tr =
     scale_tr = F
     log_tr = F
     int_tr = F
-    print("outcome is a factor, skipping all transformations!")
+    message("Outcome is a factor, skipping all transformations!")
   }
   # remove outliers ( skip this if outcome is a factor )
   if (length(unique(merged_tab[,1])) > 3){
@@ -46,7 +46,7 @@ rm_na_outliers <- function(traits_m, pheno_m, idx, method = "zscore", scale_tr =
       
       tab_nooutliers <- rbind(w_clean, m_clean)
     } else {
-      print ("Wrong method! No outlier removal!")
+      message ("Wrong method! No outlier removal!")
       tab_nooutliers <- merged_tab
     }
     
