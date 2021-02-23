@@ -7,27 +7,39 @@ library('mgcv')
 rm_na_outliers <- function(traits_m, pheno_m, idx, method = "zscore", scale_tr = F, log_tr = F, int_tr = F){
   traits_na.rm <- traits_m[!is.na(traits_m[,idx]),idx]
   pheno_na.rm <- pheno_m[!is.na(traits_m[,idx]),]
-  women <- pheno_na.rm$gender_F1M2 == 1
-  
-  #merged_tab <- cbind(traits_na.rm, pheno_na.rm[,c("age", "gender_F1M2", "contrac")])
-  #colnames(merged_tab) <- c(colnames(traits_m)[idx], "age", "gender_F1M2", "contrac")
   all(row.names(traits_na.rm) == row.names(pheno_na.rm))
-  
   merged_tab <- cbind(traits_na.rm, pheno_na.rm)
   colnames(merged_tab) <- c(colnames(traits_m)[idx], colnames(pheno_na.rm))
-  
   row.names(merged_tab) <- row.names(pheno_na.rm)
   
-  if (length(unique(merged_tab[,1])) < 3 & any(scale_tr, log_tr, int_tr)){
+  pheno_is_factor <- F
+  if (length(unique(merged_tab[,1])) < 3) pheno_is_factor <- T
+  
+  # apply transfromations
+  if (pheno_is_factor & any(scale_tr, log_tr, int_tr)){
     scale_tr = F
     log_tr = F
     int_tr = F
+    pheno_is_factor <- T
     message("Outcome is a factor, skipping all transformations!")
   }
+  
+  min_val <- min(merged_tab[,1], na.rm = T)
+  if (log_tr & scale_tr){
+    merged_tab[,1] <- scale(log(merged_tab[,1] + min_val))
+  } else if (log_tr & ! scale_tr) {
+    merged_tab[,1] <- log(merged_tab[,1] + min_val)
+  } else if (!log_tr & scale_tr) {
+    merged_tab[,1] <- scale(merged_tab[,1])
+  } else if (int_tr) {
+    merged_tab[,1] <- qnorm((rank(merged_tab[,1],na.last="keep")-0.5)/sum(!is.na(merged_tab[,1])))
+  }
+  
+  
   # remove outliers ( skip this if outcome is a factor )
-  if (length(unique(merged_tab[,1])) > 3){
-    w <- merged_tab[women,]
-    m <- merged_tab[!women,]
+  if (! pheno_is_factor){
+    w <- merged_tab[merged_tab$gender_F1M2 == 1,]
+    m <- merged_tab[merged_tab$gender_F1M2 == 2,]
    
     if (method == "zscore"){ 
       # Zscore < 3
@@ -54,23 +66,13 @@ rm_na_outliers <- function(traits_m, pheno_m, idx, method = "zscore", scale_tr =
     tab_nooutliers <- merged_tab
   }
   
-  if (log_tr & scale_tr){ 
-    tab_nooutliers[,1] <- scale(log(tab_nooutliers[,1] + 1))
-  } else if (log_tr & ! scale_tr) {
-    tab_nooutliers[,1] <- log(tab_nooutliers[,1] + 1)
-  } else if (!log_tr & scale_tr) {
-    tab_nooutliers[,1] <- scale(tab_nooutliers[,1])
-  } else if (int_tr) {
-    tab_nooutliers[,1] <- qnorm((rank(tab_nooutliers[,1],na.last="keep")-0.5)/sum(!is.na(tab_nooutliers[,1])))
-  }
-  
-  factor_cols <- which(sapply(tab_nooutliers, function(col) length(unique(col)) < 3))
-  for (c in factor_cols){
-    if (c != 1){
-    tab_nooutliers[,c] <- as.factor(tab_nooutliers[,c])
-    }
-  }
-
+  # convert binary phenotypes to factors
+  #factor_cols <- which(sapply(tab_nooutliers, function(col) length(unique(col)) < 3))
+  #for (c in factor_cols){
+  #  if (c != 1){
+  #  tab_nooutliers[,c] <- as.factor(tab_nooutliers[,c])
+  #  }
+  #}
   return(tab_nooutliers)
 }
 
@@ -80,8 +82,7 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, covariates_linear = c(
   merged_tab <- merged_tab[(merged_tab$age < max_age) & (merged_tab$age >= min_age),]
   
   merged_tab <- mutate(merged_tab, ord_gender_F1M2 = ordered(gender_F1M2, levels = c('1', '2')))
-  #pheno_name = gene_table[gene_table[,1] == colnames(merged_tab)[1],2]
-  
+  merged_tab$gender_F1M2 <- as.factor(merged_tab$gender_F1M2)
   res_dif = NULL
   
   if (length(covariates_linear) == 0 & length(covariates_nonlinear) == 0){
