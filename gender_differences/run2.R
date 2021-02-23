@@ -122,11 +122,16 @@ if (make_plots && config$plot_extention == "pdf"){
     cat("Saving plots to ", plot_path, ".pdf", "\n")
   }
 } else if (make_plots && config$plot_extention == "png"){
-  nrows <- ceiling(sqrt(num_traits))
-  size <- 3*nrows
-  png(paste0(plot_path, ".png"), width = size, height = size, units = 'in', res = 400)
-  cat("Saving plots to ", plot_path, ".png", "\n")
-  if (nplotspp > 1) par(mfrow=c(nrows,nrows))
+  if (nplotspp > 1) {
+    nrows <- ceiling(sqrt(num_traits))
+    size <- 3*nrows
+    png(paste0(plot_path, ".png"), width = size, height = size, units = 'in', res = 400)
+    cat("Saving plots to ", plot_path, ".png", "\n")
+    par(mfrow=c(nrows,nrows))
+  } else {
+    png(paste0(plot_path, ".png"), width = 5, height = 4, units = 'in', res = 400)
+    cat("Saving plots to ", plot_path, ".png", "\n")
+  }
 }
 
 
