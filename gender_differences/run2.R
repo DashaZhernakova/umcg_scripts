@@ -48,7 +48,7 @@ cat("Data paths:\nphenotype traits:", traits_path, "\r\ncovariates:", pheno_path
 traits0 <- read.delim(traits_path, header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)
 traits <- sapply(traits0, function(x) as.numeric(as.character(x)))
 row.names(traits) <- row.names(traits0)
-traits2use <- unlist(strsplit(config$phenos2use, ",")) # choose phenotypes to run the analysis for
+traits2use <- unlist(strsplit(config$traits2use, ",")) # choose phenotypes to run the analysis for
 if (length(traits2use) > 0) {
   traits <- traits[,traits2use]
   cat("Running the analysis only for a subset of phenotypes: ", paste(traits2use, collapse = ", "), "\n")
