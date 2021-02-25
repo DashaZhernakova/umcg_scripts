@@ -50,7 +50,7 @@ traits <- sapply(traits0, function(x) as.numeric(as.character(x)))
 row.names(traits) <- row.names(traits0)
 traits2use <- unlist(strsplit(config$traits2use, ",")) # choose phenotypes to run the analysis for
 if (length(traits2use) > 0) {
-  traits <- traits[,traits2use]
+  traits <- as.data.frame(traits[,traits2use, drop = F])
   cat("Running the analysis only for a subset of phenotypes: ", paste(traits2use, collapse = ", "), "\n")
 }
 
@@ -62,13 +62,13 @@ if (length(phenos2use) > 0) pheno0 <- pheno0[,c("age", "gender_F1M2", phenos2use
 pheno <- na.omit(pheno0)
 
 #order samples in the two tables
-traits_m <- traits[match(row.names(pheno), row.names(traits), nomatch = 0 ),]
-pheno_m <- pheno[match(row.names(traits_m), row.names(pheno), nomatch = 0),]
+traits_m <- traits[match(row.names(pheno), row.names(traits), nomatch = 0 ), , drop = F]
+pheno_m <- pheno[match(row.names(traits_m), row.names(pheno), nomatch = 0), ]
 all(row.names(traits_m) == row.names(pheno_m))
 num_traits <- ncol(traits_m)
 
-traits_m <- traits_m[order(pheno_m$age),]
-pheno_m <- pheno_m[order(pheno_m$age),]
+#traits_m <- traits_m[order(pheno_m$age), , drop = F]
+#pheno_m <- pheno_m[order(pheno_m$age),]
 
 cat("Number of available phenotypes: ", num_traits, "\n")
 cat("Number of shared samples: ", nrow(traits_m), "\n")
@@ -102,6 +102,7 @@ log_transform = config$log_transform
 scale_transform = config$scale_transform
 gam_family = config$gam_family
 split_by_covariate = config$split_by_covariate
+highlight_positive_in_split = config$highlight_positive_in_split
 ttest_cutoff <- config$breakpoints_ttest_cutoff
 deriv_cutoff <- config$breakpoints_derivates_cutoff
 
@@ -156,24 +157,24 @@ for (idx in indices){
   merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = outlier_correction_method, log_tr = log_transform, scale_tr = scale_transform)
   if (split_by_covariate == ""){
     res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, covariates_linear = covariateslinear, covariates_nonlinear = covariatesnonlinear, n_points = n_points, make_plots = make_plots, gam_family = gam_family, label = '', add_breakpoints = add_breakpoints,  t_threshold = ttest_cutoff, derivatives_cutoff = deriv_cutoff)
+    if (res_dif_lst[["inter_p"]] < 0.05){
+      cnt <- cnt + 1
+      cat("\tSignificant interaction detected.\n")
+    }
+    
+    sex_dif_pval <- calculate_sex_diff_ttest(merged_tab, covariates = c(covariateslinear, covariatesnonlinear), min_age, max_age)
+    res_summary[trait_name,'inter_p'] = res_dif_lst[["inter_p"]]
+    res_summary[trait_name,'g_beta'] = res_dif_lst[["g_beta"]]
+    res_summary[trait_name,'g_pv'] = res_dif_lst[["g_pv"]]
+    res_summary[trait_name,'g_ttest_pv'] = sex_dif_pval
+    res_summary[trait_name,'cohen_f2'] = res_dif_lst[["cohen_f2"]]
+    
+    if (!is.null(res_dif_lst[['breakpoints']])){
+      res_summary[trait_name, "breakpoints_men"] = ifelse(length(res_dif_lst[['breakpoints']][[2]]) > 0, res_dif_lst[['breakpoints']][[2]], "NA")
+      res_summary[trait_name, "breakpoints_women"] = ifelse(length(res_dif_lst[['breakpoints']][[1]]) > 0, res_dif_lst[['breakpoints']][[1]], "NA")
+    }
   } else {
-    run_for_split_by_covariate(merged_tab, trait_name, covariate_to_split = split_by_covariate , covariates_linear = covariateslinear, covariates_nonlinear = covariatesnonlinear, n_points = n_points, make_plots = make_plots, gam_family = gam_family)
-  }
-  if (res_dif_lst[["inter_p"]] < 0.05){
-    cnt <- cnt + 1
-    cat("\tSignificant interaction detected.\n")
-  }
-  
-  sex_dif_pval <- calculate_sex_diff_ttest(merged_tab, covariates = c(covariateslinear, covariatesnonlinear), min_age, max_age)
-  res_summary[trait_name,'inter_p'] = res_dif_lst[["inter_p"]]
-  res_summary[trait_name,'g_beta'] = res_dif_lst[["g_beta"]]
-  res_summary[trait_name,'g_pv'] = res_dif_lst[["g_pv"]]
-  res_summary[trait_name,'g_ttest_pv'] = sex_dif_pval
-  res_summary[trait_name,'cohen_f2'] = res_dif_lst[["cohen_f2"]]
-  
-  if (!is.null(res_dif_lst[['breakpoints']])){
-    res_summary[trait_name, "breakpoints_men"] = ifelse(length(res_dif_lst[['breakpoints']][[2]]) > 0, res_dif_lst[['breakpoints']][[2]], "NA")
-    res_summary[trait_name, "breakpoints_women"] = ifelse(length(res_dif_lst[['breakpoints']][[1]]) > 0, res_dif_lst[['breakpoints']][[1]], "NA")
+    run_for_split_by_covariate(merged_tab, trait_name, covariate_to_split = split_by_covariate , highlight_positive = highlight_positive_in_split, covariates_linear = covariateslinear, covariates_nonlinear = covariatesnonlinear, n_points = n_points, make_plots = make_plots, gam_family = gam_family)
   }
 }
 res_summary$inter_p_adj <- p.adjust(res_summary$inter_p, method = "BH")

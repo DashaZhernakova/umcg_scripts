@@ -91,5 +91,6 @@ run_for_split_by_covariate <- function(merged_tab, pheno_name, covariate_to_spli
   }
   factor_to_highlight <- ""
   if (highlight_positive) factor_to_highlight <- covariate_to_split
+  colnames(merged_tab)[1] <- "phenotype"
   draw_plot_multiline(merged_tab, pheno_name, pdat_list, col_list, factor_name = factor_to_highlight)
 }
