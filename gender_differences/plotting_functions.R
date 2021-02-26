@@ -6,7 +6,7 @@ col2transparent <- function(col, transparency){
   dodgerblueTransparent <- rgb(colRgb[1,1], colRgb[2,1], colRgb[3,1], transparency, names = NULL, maxColorValue = 255)
 }
 
-draw_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add_inter_p_to_plot = T, breakpoints = NULL, factor_name = "", alpha_points = 40, breakpoints_intervals = NULL, label = ""){
+draw_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add_inter_p_to_plot = T, plot_title = NULL, breakpoints = NULL, factor_name = "", alpha_points = 40, breakpoints_intervals = NULL, label = ""){
   cex_main = 1
   ylims <- with(merged_tab, range(phenotype))
   ylabel <- pheno_name
@@ -35,10 +35,12 @@ draw_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add
       xaxs = "i", yaxs = "i") # Remove plot padding
   
   merged_tab2 <- merged_tab[merged_tab$phenotype <= ylims[2] & merged_tab$phenotype >= ylims[1],]
-  if (add_inter_p_to_plot) {
-    plot_title <- paste0(pheno_name, '\n', label, "\nGAM interaction p = ", format(gam.p, digits = 3))
-  } else {
-    plot_title <- pheno_name
+  if (length(plot_title) == 0){
+    if (add_inter_p_to_plot) {
+      plot_title <- paste0(pheno_name, '\n', label, "\nGAM interaction p = ", format(gam.p, digits = 3))
+    } else {
+      plot_title <- pheno_name
+    }
   }
   if (! binaryPhenotype){
     plot(phenotype ~ age, data = merged_tab2,  col = gender_F1M2,  pch = 16, 
