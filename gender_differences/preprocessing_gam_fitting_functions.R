@@ -77,7 +77,7 @@ rm_na_outliers <- function(traits_m, pheno_m, idx, method = "zscore", scale_tr =
 }
 
 # Fit a GAM with age : gender interaction and (optional) correction for covariates (linear or spline)
-plot_scatter_and_gam2 <- function(merged_tab, pheno_name, covariates_linear = c(), covariates_nonlinear = c(), n_points = 300, make_plots, label = '', gam_family = gaussian(), min_age = 20, max_age = 80, add_inter_p_to_plot = T, plot_title = NULL, add_breakpoints = F, t_threshold = 3, derivatives_cutoff = 0.0002){
+plot_scatter_and_gam2 <- function(merged_tab, pheno_name, covariates_linear = c(), covariates_nonlinear = c(), n_points = 300, make_plots, label = '', gam_family = gaussian(), min_age = 20, max_age = 80, add_inter_p_to_plot = T, plot_title = NULL, interp_cutoff = 1, add_breakpoints = F, t_threshold = 3, derivatives_cutoff = 0.0002){
   colnames(merged_tab)[1] <- "phenotype"
   merged_tab <- merged_tab[(merged_tab$age < max_age) & (merged_tab$age >= min_age),]
   
@@ -98,7 +98,7 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, covariates_linear = c(
     gam.g_pv <- summary(gam.fit.ordered_sex)$p.pv["ord_gender_F1M2.L"]
     gam.cohen_f2 <- calculate_cohens_f2(gam.fit.ordered_sex, gam.fit.ordered_sex.no_interaction)
     
-    if (gam.p > 0.05){
+    if (gam.p > 0.05 | gam.p > interp_cutoff){
       return (list("dif" = NULL, "inter_p" = gam.p,"g_beta" = gam.g_beta, "g_pv" = gam.g_pv, "cohen_f2" = gam.cohen_f2))
     }
     
@@ -130,7 +130,7 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, covariates_linear = c(
     gam.g_pv <- summary(gam.fit.ordered_sex)$p.pv["ord_gender_F1M2.L"]
     gam.cohen_f2 <- calculate_cohens_f2(gam.fit.ordered_sex, gam.fit.ordered_sex.no_interaction)
     
-    if (gam.p > 0.05){
+    if (gam.p > 0.05 | gam.p > interp_cutoff){
       return (list("dif" = NULL, "inter_p" = gam.p,"g_beta" = gam.g_beta, "g_pv" = gam.g_pv, "cohen_f2" = gam.cohen_f2))
     }
     

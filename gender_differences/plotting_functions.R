@@ -35,7 +35,7 @@ draw_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add
       xaxs = "i", yaxs = "i") # Remove plot padding
   
   merged_tab2 <- merged_tab[merged_tab$phenotype <= ylims[2] & merged_tab$phenotype >= ylims[1],]
-  if (length(plot_title) == 0){
+  if (plot_title == ""){
     if (add_inter_p_to_plot) {
       plot_title <- paste0(pheno_name, '\n', label, "\nGAM interaction p = ", format(gam.p, digits = 3))
     } else {

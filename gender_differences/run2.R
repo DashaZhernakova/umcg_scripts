@@ -107,6 +107,7 @@ split_by_covariate = config$split_by_covariate
 highlight_positive_in_split = config$highlight_positive_in_split
 ttest_cutoff <- config$breakpoints_ttest_cutoff
 deriv_cutoff <- config$breakpoints_derivates_cutoff
+interp_cutoff <- config$interp_cutoff
 
 #
 # Plot initialization
@@ -158,8 +159,8 @@ for (idx in indices){
   cat(idx, " : ", trait_name, "\n")
   merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = outlier_correction_method, log_tr = log_transform, scale_tr = scale_transform)
   if (split_by_covariate == ""){
-    res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, covariates_linear = covariateslinear, covariates_nonlinear = covariatesnonlinear, n_points = n_points, make_plots = make_plots, gam_family = gam_family, label = '', add_inter_p_to_plot = add_inter_p_to_plot, plot_title = plot_title, add_breakpoints = add_breakpoints,  t_threshold = ttest_cutoff, derivatives_cutoff = deriv_cutoff)
-    if (res_dif_lst[["inter_p"]] < 0.05){
+    res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, covariates_linear = covariateslinear, covariates_nonlinear = covariatesnonlinear, n_points = n_points, make_plots = make_plots, gam_family = gam_family, label = '', add_inter_p_to_plot = add_inter_p_to_plot, plot_title = plot_title, interp_cutoff = interp_cutoff, add_breakpoints = add_breakpoints,  t_threshold = ttest_cutoff, derivatives_cutoff = deriv_cutoff)
+    if (res_dif_lst[["inter_p"]] < 0.05 & res_dif_lst[["inter_p"]] < interp_cutoff){
       cnt <- cnt + 1
       cat("\tSignificant interaction detected.\n")
     }
