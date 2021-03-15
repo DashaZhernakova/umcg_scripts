@@ -60,10 +60,10 @@ fill_coefficients <- function(lm_fit, coef_names){
       res_coef[cnt] <- lm_fit$coefficients[c]
       
     }
-    if ("gender_F1M22:age" %in% names(lm_fit$coefficients) |  "gender_F1M22:I(age^2)" %in% names(lm_fit$coefficients) | 
-                 "gender_F1M22:I(age^3)" %in% names(lm_fit$coefficients)){
-      res_coef[cnt, "InteractionPresent"] == T
-    }
+    #if ("gender_F1M22:age" %in% names(lm_fit$coefficients) |  "gender_F1M22:I(age^2)" %in% names(lm_fit$coefficients) | 
+    #             "gender_F1M22:I(age^3)" %in% names(lm_fit$coefficients)){
+    #  res_coef[cnt, "InteractionPresent"] == T
+    #}
     cnt = cnt + 1
   }
   return(res_coef)

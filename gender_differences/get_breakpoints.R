@@ -31,7 +31,7 @@ get_breakpoints_ttest <- function(merged_tab, ttest_window = 5, tval_threshold =
     t_m <- t.test(left[left$gender_F1M2 == 2,1], right[right$gender_F1M2 == 2,1])
     res[as.character(i),"w"] <- t_w$statistic
     res[as.character(i),"m"] <- t_m$statistic
-    #print(paste(i, t_w$statistic, t_w$p.value, t_m$statistic, t_m$p.value))
+    print(paste(i, t_w$statistic, t_w$p.value, t_m$statistic, t_m$p.value))
   }
   #res
   

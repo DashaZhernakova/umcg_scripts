@@ -98,7 +98,7 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, covariates_linear = c(
     gam.g_pv <- summary(gam.fit.ordered_sex)$p.pv["ord_gender_F1M2.L"]
     gam.cohen_f2 <- calculate_cohens_f2(gam.fit.ordered_sex, gam.fit.ordered_sex.no_interaction)
     
-    if (gam.p > 0.05 | gam.p > interp_cutoff){
+    if (gam.p > interp_cutoff){
       return (list("dif" = NULL, "inter_p" = gam.p,"g_beta" = gam.g_beta, "g_pv" = gam.g_pv, "cohen_f2" = gam.cohen_f2))
     }
     
@@ -118,10 +118,10 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, covariates_linear = c(
     gam.fit <- gam(as.formula(paste("phenotype ~ gender_F1M2 ", terms_linear_covar, terms_nonlinear_covar,
                                "+ s(age) + s(age, by = gender_F1M2)", sep = " ")), 
               data = merged_tab, method = "REML")
-    gam.fit.ordered_sex <- gam(as.formula(paste("phenotype ~ gender_F1M2 ", terms_linear_covar, terms_nonlinear_covar,
+    gam.fit.ordered_sex <- gam(as.formula(paste("phenotype ~ ord_gender_F1M2 ", terms_linear_covar, terms_nonlinear_covar,
                                "+ s(age) + s(age, by = ord_gender_F1M2)", sep = " ")), 
               data = merged_tab, method = "REML")
-    gam.fit.ordered_sex.no_interaction <- gam(as.formula(paste("phenotype ~ gender_F1M2 ", terms_linear_covar, terms_nonlinear_covar,
+    gam.fit.ordered_sex.no_interaction <- gam(as.formula(paste("phenotype ~ ord_gender_F1M2 ", terms_linear_covar, terms_nonlinear_covar,
                                                                "+ s(age)", sep = " ")), 
                                               data = merged_tab, method = "REML")
     
@@ -130,8 +130,8 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, covariates_linear = c(
     gam.g_pv <- summary(gam.fit.ordered_sex)$p.pv["ord_gender_F1M2.L"]
     gam.cohen_f2 <- calculate_cohens_f2(gam.fit.ordered_sex, gam.fit.ordered_sex.no_interaction)
     
-    if (gam.p > 0.05 | gam.p > interp_cutoff){
-      return (list("dif" = NULL, "inter_p" = gam.p,"g_beta" = gam.g_beta, "g_pv" = gam.g_pv, "cohen_f2" = gam.cohen_f2))
+    if (gam.p > interp_cutoff){
+     return (list("dif" = NULL, "inter_p" = gam.p,"g_beta" = gam.g_beta, "g_pv" = gam.g_pv, "cohen_f2" = gam.cohen_f2))
     }
     
     new.x <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = n_points), gender_F1M2 = c('1', '2'))) 

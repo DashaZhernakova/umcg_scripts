@@ -24,6 +24,8 @@ if (isRStudio) {
   args <- commandArgs(trailingOnly = TRUE)
   config_path <- args[1]
   script_folder <- getCurrentFileLocation()
+  #config_path <- "./config.yml"
+  #script_folder <- "../../scripts/umcg_scripts/gender_differences/"
 }
 cat("script folder:", script_folder, "\n")
 source(paste0(script_folder, "/preprocessing_gam_fitting_functions.R"))
@@ -57,8 +59,22 @@ if (length(traits2use) > 0) {
 
 # read age, gender and other covariate phenotypes
 pheno0 <- read.table(pheno_path, header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)
+
+
+# Covariates
+covariateslinear <- unlist(strsplit(config$covariateslinear, ","))
+covariatesnonlinear <- unlist(strsplit(config$covariatesnonlinear, ","))
+
+if (length(covariateslinear) > 0) print(paste0("covariates to add as linear terms in the gam model:", paste(covariateslinear, collapse = ", ")))
+if (length(covariatesnonlinear) > 0) print(paste0("covariates to add as spline non-linear terms in the gam model:", paste(covariateslinear, collapse = ", ")))
+
+
 phenos2use <- unlist(strsplit(config$phenos2use, ","))
-if (length(phenos2use) > 0) pheno0 <- pheno0[,c("age", "gender_F1M2", phenos2use)] #choose covariate phenotypes to select from the file
+if (length(phenos2use) > 0) {
+  pheno0 <- pheno0[,c("age", "gender_F1M2", phenos2use)] #choose covariate phenotypes to select from the file
+} else {
+  pheno0 <- pheno0[,c("age", "gender_F1M2", covariateslinear, covariatesnonlinear)]
+}
 pheno <- na.omit(pheno0)
 
 #order samples in the two tables
@@ -72,13 +88,6 @@ num_traits <- ncol(traits_m)
 
 cat("Number of available phenotypes: ", num_traits, "\n")
 cat("Number of shared samples: ", nrow(traits_m), "\n")
-
-# Covariates
-covariateslinear <- unlist(strsplit(config$covariateslinear, ","))
-covariatesnonlinear <- unlist(strsplit(config$covariatesnonlinear, ","))
-
-if (length(covariateslinear) > 0) print(paste0("covariates to add as linear terms in the gam model:", paste(covariateslinear, collapse = ", ")))
-if (length(covariatesnonlinear) > 0) print(paste0("covariates to add as spline non-linear terms in the gam model:", paste(covariateslinear, collapse = ", ")))
 
 covariates_before <- unlist(strsplit(config$covariates_before, ","))
 if (length(covariates_before) > 0){
@@ -107,8 +116,8 @@ split_by_covariate = config$split_by_covariate
 highlight_positive_in_split = config$highlight_positive_in_split
 ttest_cutoff <- config$breakpoints_ttest_cutoff
 deriv_cutoff <- config$breakpoints_derivates_cutoff
-interp_cutoff <- config$interp_cutoff
-
+interp_cutoff <- ifelse("interp_cutoff" %in% names(config),  config$interp_cutoff, 0.05) 
+write_fitted <- ifelse("write_fitted" %in% names(config),  config$write_fitted, F) 
 #
 # Plot initialization
 #
@@ -142,12 +151,15 @@ if (make_plots && config$plot_extention == "pdf"){
 #
 # Run the analyses
 #
+indices = 1:ncol(traits_m)
 
 res_summary <- data.frame()
 res_dif_lst <- data.frame()
+fitted_lines <- data.frame(matrix(nrow = n_points*2, ncol = length(indices)))
+colnames(fitted_lines) <- colnames(traits_m)[indices]
 out_table_path <- paste0(out_basepath, "tables/", config$output_fname)
 cat("\nStarting the analyses\n")
-indices = 1:ncol(traits_m)
+
 cnt = 1
 
 for (idx in indices){
@@ -160,30 +172,35 @@ for (idx in indices){
   merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = outlier_correction_method, log_tr = log_transform, scale_tr = scale_transform)
   if (split_by_covariate == ""){
     res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, covariates_linear = covariateslinear, covariates_nonlinear = covariatesnonlinear, n_points = n_points, make_plots = make_plots, gam_family = gam_family, label = '', add_inter_p_to_plot = add_inter_p_to_plot, plot_title = plot_title, interp_cutoff = interp_cutoff, add_breakpoints = add_breakpoints,  t_threshold = ttest_cutoff, derivatives_cutoff = deriv_cutoff)
-    if (res_dif_lst[["inter_p"]] < 0.05 & res_dif_lst[["inter_p"]] < interp_cutoff){
+    if (res_dif_lst[["inter_p"]] < interp_cutoff){
       cnt <- cnt + 1
       cat("\tSignificant interaction detected.\n")
     }
     
-    sex_dif_pval <- calculate_sex_diff_ttest(merged_tab, covariates = c(covariateslinear, covariatesnonlinear), min_age, max_age)
+    sex_dif_lm <- calculate_sex_diff_lm(merged_tab, covariates = c(covariateslinear, covariatesnonlinear), min_age, max_age)
     res_summary[trait_name,'inter_p'] = res_dif_lst[["inter_p"]]
     res_summary[trait_name,'g_beta'] = res_dif_lst[["g_beta"]]
     res_summary[trait_name,'g_pv'] = res_dif_lst[["g_pv"]]
-    res_summary[trait_name,'g_ttest_pv'] = sex_dif_pval
+    res_summary[trait_name,'g_lm_pv'] = sex_dif_lm[[1]]
+    res_summary[trait_name,'g_lm_f2'] = sex_dif_lm[[2]]
     res_summary[trait_name,'cohen_f2'] = res_dif_lst[["cohen_f2"]]
     
     if (!is.null(res_dif_lst[['breakpoints']])){
       res_summary[trait_name, "breakpoints_men"] = ifelse(length(res_dif_lst[['breakpoints']][[2]]) > 0, res_dif_lst[['breakpoints']][[2]], "NA")
       res_summary[trait_name, "breakpoints_women"] = ifelse(length(res_dif_lst[['breakpoints']][[1]]) > 0, res_dif_lst[['breakpoints']][[1]], "NA")
     }
+    if (write_fitted) fitted_lines[,trait_name] = res_dif_lst[["pdat"]]$pred
+
   } else {
     run_for_split_by_covariate(merged_tab, trait_name, covariate_to_split = split_by_covariate , highlight_positive = highlight_positive_in_split, covariates_linear = covariateslinear, covariates_nonlinear = covariatesnonlinear, n_points = n_points, make_plots = make_plots, gam_family = gam_family)
   }
 }
-res_summary$inter_p_adj <- p.adjust(res_summary$inter_p, method = "BH")
-res_summary$g_ttest_pv_adj <- p.adjust(res_summary$g_ttest_pv, method = "BH")
+res_summary$inter_p_adj_BH <- p.adjust(res_summary$inter_p, method = "BH")
+res_summary$g_lm_pv_adj_BH <- p.adjust(res_summary$g_lm_pv, method = "BH")
+res_summary$inter_p_adj_bonferroni <- p.adjust(res_summary$inter_p, method = "bonferroni")
+res_summary$g_lm_pv_adj_bonferroni <- p.adjust(res_summary$g_lm_pv, method = "bonferroni")
 write.table(res_summary, file = paste0(out_table_path, "_summary.txt"), sep = "\t", quote = F, col.names = NA)
-
+if (write_fitted) write.table(fitted_lines, file = paste0(out_table_path, "_fitted.txt"), sep = "\t", quote = F, col.names = NA)
 if (make_plots){
   dev.off()
 }

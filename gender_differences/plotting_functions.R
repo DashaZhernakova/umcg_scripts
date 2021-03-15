@@ -107,7 +107,7 @@ draw_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add
 }
 
 # plot more than two fitted lines 
-draw_plot_multiline <- function(merged_tab, pheno_name, pdat_list, color_list, factor_name = "", min_age = 20, max_age = 80, label = ''){
+draw_plot_multiline <- function(merged_tab, pheno_name, pdat_list, color_list, factor_name = "", min_age = 20, max_age = 80, n_points = 300, label = ''){
   cex_main = 1
   ylims <- with(merged_tab, range(phenotype))
   ylabel <- pheno_name
@@ -152,6 +152,40 @@ draw_plot_multiline <- function(merged_tab, pheno_name, pdat_list, color_list, f
     polygon(c(rev(dd$age), dd$age), c(rev(dd$lwr), dd$upr), col = col2transparent(color_list[[i]], 65), border = NA)
   }
 }
+
+draw_multiple_fitted_lines <- function(fitted_matrix, sign_inters, min_age = 20, max_age = 80, n_points = 300, ylab = 'phenotype', plot_title = ''){
+  
+  ## draw base plot
+  par(mar = c(6, 6, 6, 3), # Dist' from plot to side of page
+      mgp = c(2, 0.4, 0), # Dist' plot to label
+      las = 1, # Rotate y-axis text
+      tck = -.01, # Reduce tick length
+      xaxs = "i", yaxs = "i") # Remove plot padding
+  
+  plot(1, type="n",cex = 0.6, xlab = "age",  ylab = ylab, frame.plot = T, axes = T, main = plot_title, ylim = c(-1, 1),
+#       ylim =c(min(fitted_matrix), max(fitted_matrix)),
+       xlim = c(min_age,max_age))
+  
+  age_seq <- seq(min_age, max_age,length.out = n_points)
+  
+  ## add the fitted lines
+  
+  for (i in 1:ncol(fitted_matrix)) {
+    
+    ltype = 1
+    cols <- c(col2transparent("indianred1", 120), col2transparent("dodgerblue1", 120))
+    if (! colnames(fitted_matrix)[i] %in% sign_inters) {
+      ltype = 2 
+      cols <- c(col2transparent("indianred1", 90), col2transparent("dodgerblue1", 90))
+    }
+    lines(age_seq, fitted_matrix[1:n_points, i] , col = cols[1], lwd = 2, lty = ltype)
+    lines(age_seq, fitted_matrix[(n_points + 1):(n_points*2), i] , col = cols[2], lwd = 2, lty = ltype)
+    #text(x = 28, y = fitted_matrix[1, i], col = "indianred1", colnames(fitted_matrix)[i])
+    #text(x = 28, y = fitted_matrix[301, i], col = "dodgerblue1", colnames(fitted_matrix)[i])
+    #Sys.sleep(4)
+  }
+}
+
 
 draw_plot0 <- function(merged_tab, pheno_name, pdat){
   cex_main = 1

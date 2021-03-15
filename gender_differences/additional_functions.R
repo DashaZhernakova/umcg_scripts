@@ -18,6 +18,23 @@ calculate_sex_diff_ttest <- function(merged_tab, covariates = c(), min_age = 20,
   return(sex_p)
 }
 
+calculate_sex_diff_lm <- function(merged_tab, covariates = c(), min_age = 20, max_age = 80){
+  colnames(merged_tab)[1] <- "phenotype"
+  merged_tab <- merged_tab[(merged_tab$age < max_age) & (merged_tab$age >= min_age),]
+  merged_tab <- mutate(merged_tab, gender_F1M2 = factor(gender_F1M2))
+  
+  if (length(covariates) == 0){
+    lm_res <- lm(phenotype ~ gender_F1M2, data = merged_tab)
+    lm_res0 <- lm(phenotype ~ 1, data = merged_tab)
+  } else{
+    lm_res <- lm(as.formula(paste("phenotype ~ gender_F1M2 + ",  paste(covariates, collapse = "+"))), data = merged_tab)
+    lm_res0 <- lm(as.formula(paste("phenotype ~ ",  paste(covariates, collapse = "+"))), data = merged_tab)
+  }
+  pval <- summary(lm_res)$coefficients["gender_F1M22",4]
+  f2 <- calculate_cohens_f2(lm_res, lm_res0)
+  return(list(pval, f2))
+  
+}
 test_polynomial_interaction <- function(merged_tab, model_fam = NO(), gm_mean_cov = F){
   if (! gm_mean_cov){
     #lgam.fit <- gamlss(phenotype ~ gender_F1M2 + age + I(age^2) + I(age^3) + I(age^4), data = merged_tab, family = model_fam, method = RS(30))
