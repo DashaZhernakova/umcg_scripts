@@ -31,5 +31,6 @@ with open(fname2) as f:
         else:
             dict_all[sid] = ['NA']*ncols1 + spl[1:]
 
+print("\t".join(header1) + "\t" + "\t".join(header2[1:]))
 for sid, dict_entry in dict_all.items():
     print (sid + "\t" + "\t".join(dict_entry))
