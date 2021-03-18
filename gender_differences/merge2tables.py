@@ -4,14 +4,16 @@ from collections import defaultdict
 fname1 = sys.argv[1]
 fname2 = sys.argv[2]
 
-n_res_cols = int(sys.argv[3])
+with open(fname1) as f:
+    header1 = f.readline().rstrip().split("\t")
+    ncols1 = len(header1) - 1
+with open(fname2) as f:
+    header2 = f.readline().rstrip().split("\t")
+    ncols2 = len(header1) - 1
 
 all_samples = set()
 dict_all = {}
 with open(fname1) as f:
-    header1 = f.readline().rstrip().split("\t")
-    ncols1 = len(header1) - 1
-    ncols2 = n_res_cols - ncols1
     for l in f:
         spl = l.rstrip().split("\t")
         sid = spl[0]
@@ -19,8 +21,6 @@ with open(fname1) as f:
         dict_all[sid] = spl[1:] + ['NA']*ncols2
 
 with open(fname2) as f:
-    header2 = f.readline().rstrip().split("\t")
-    assert(len(header2) - 1 == ncols2)
     for l in f:
         spl = l.rstrip().split("\t")
         sid = spl[0]
