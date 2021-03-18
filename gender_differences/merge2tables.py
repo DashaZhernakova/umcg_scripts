@@ -4,7 +4,7 @@ from collections import defaultdict
 fname1 = sys.argv[1]
 fname2 = sys.argv[2]
 
-n_res_cols = sys.argv[3]
+n_res_cols = int(sys.argv[3])
 
 all_samples = set()
 dict_all = {}
