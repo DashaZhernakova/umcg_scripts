@@ -153,18 +153,18 @@ draw_plot_multiline <- function(merged_tab, pheno_name, pdat_list, color_list, f
   }
 }
 
-draw_multiple_fitted_lines <- function(fitted_matrix, sign_inters, min_age = 20, max_age = 80, n_points = 300, ylab = 'phenotype', plot_title = ''){
+draw_multiple_fitted_lines <- function(fitted_matrix, sign_inters = colnames(fitted_matrix), min_age = 20, max_age = 80, n_points = 300, ylab = 'phenotype', plot_title = ''){
   
-  ## draw base plot
-  par(mar = c(6, 6, 6, 3), # Dist' from plot to side of page
-      mgp = c(2, 0.4, 0), # Dist' plot to label
-      las = 1, # Rotate y-axis text
-      tck = -.01, # Reduce tick length
-      xaxs = "i", yaxs = "i") # Remove plot padding
+  # ## draw base plot
+  # par(mar = c(6, 6, 6, 3), # Dist' from plot to side of page
+  #     mgp = c(2, 0.4, 0), # Dist' plot to label
+  #     las = 1, # Rotate y-axis text
+  #     tck = -.01, # Reduce tick length
+  #     xaxs = "i", yaxs = "i") # Remove plot padding
   
-  plot(1, type="n",cex = 0.6, xlab = "age",  ylab = ylab, frame.plot = T, axes = T, main = plot_title, ylim = c(-1, 1),
+  plot(1, type="n",cex = 0.6, xlab = "age",  ylab = ylab, frame.plot = T, axes = T, main = plot_title, ylim = c(-1, 1),xlim = c(min_age,max_age))
 #       ylim =c(min(fitted_matrix), max(fitted_matrix)),
-       xlim = c(min_age,max_age))
+       
   
   age_seq <- seq(min_age, max_age,length.out = n_points)
   
