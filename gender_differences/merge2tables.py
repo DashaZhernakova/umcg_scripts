@@ -14,6 +14,7 @@ with open(fname2) as f:
 all_samples = set()
 dict_all = {}
 with open(fname1) as f:
+    f.readline()
     for l in f:
         spl = l.rstrip().split("\t")
         sid = spl[0]
@@ -21,6 +22,7 @@ with open(fname1) as f:
         dict_all[sid] = spl[1:] + ['NA']*ncols2
 
 with open(fname2) as f:
+    f.readline()
     for l in f:
         spl = l.rstrip().split("\t")
         sid = spl[0]
