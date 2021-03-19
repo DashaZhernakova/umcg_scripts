@@ -95,6 +95,12 @@ if (length(covariates_before) > 0){
   traits_m <- correct_for_covariates_before(traits_m, pheno_m, covariates_before)
 }
 
+pheno_table <- NULL
+if ("phenotype_table" %in% names(config)){
+  pheno_table <- read.delim(config$phenotype_table, sep = "\t", as.is = T, check.names = F)
+  
+}
+
 #
 # Other parameters
 #
@@ -167,7 +173,8 @@ for (idx in indices){
     cnt = 1
     if (nplotspp > 1) par(mfrow=c(5,4))
   }
-  trait_name <- colnames(traits_m)[idx]
+  trait_name <- ifelse(is.null(pheno_table), colnames(traits_m)[idx], pheno_table[pheno_table[,1] == colnames(traits_m)[idx], 2])
+  
   cat(idx, " : ", trait_name, "\n")
   merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = outlier_correction_method, log_tr = log_transform, scale_tr = scale_transform)
   if (split_by_covariate == ""){

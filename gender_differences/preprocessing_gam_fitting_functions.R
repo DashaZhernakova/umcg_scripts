@@ -98,6 +98,9 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, covariates_linear = c(
     gam.g_pv <- summary(gam.fit.ordered_sex)$p.pv["ord_gender_F1M2.L"]
     gam.cohen_f2 <- calculate_cohens_f2(gam.fit.ordered_sex, gam.fit.ordered_sex.no_interaction)
     
+    if (gam.p > interp_cutoff){
+      return (list("dif" = NULL, "inter_p" = gam.p,"g_beta" = gam.g_beta, "g_pv" = gam.g_pv, "cohen_f2" = gam.cohen_f2))
+    }
     new.x <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = n_points), gender_F1M2 = c('1', '2'))) 
     new.y <- data.frame(predict(gam.fit, newdata = new.x, se.fit = TRUE, type = "response"))
     pdat <- data.frame(new.x, new.y)
@@ -142,6 +145,9 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, covariates_linear = c(
     pdat <- mutate(pdat, lwr = pred - 1.96 * SE, upr = pred + 1.96 * SE) # calculating the 95% confidence interval
   }
   
+  if (gam.p > interp_cutoff){
+    return (list("dif" = NULL, "inter_p" = gam.p,"g_beta" = gam.g_beta, "g_pv" = gam.g_pv, "cohen_f2" = gam.cohen_f2))
+  }
   breakpoints_intervals <- NULL
   breakpoints <- NULL
   if (add_breakpoints){
