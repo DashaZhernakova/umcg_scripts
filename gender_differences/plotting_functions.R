@@ -115,7 +115,7 @@ draw_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add
 }
 
 # plot more than two fitted lines 
-draw_plot_multiline <- function(merged_tab, pheno_name, pdat_list, color_list, factor_name = "", min_age = 20, max_age = 80, n_points = 300, label = ''){
+draw_plot_multiline <- function(merged_tab, pheno_name, pdat_list, color_list, factor_name = "", min_age = 20, max_age = 80, n_points = 300, label = '',plot_points = T){
   cex_main = 1
   ylims <- with(merged_tab, range(phenotype))
   ylabel <- pheno_name
@@ -139,17 +139,24 @@ draw_plot_multiline <- function(merged_tab, pheno_name, pdat_list, color_list, f
       xaxs = "i", yaxs = "i") # Remove plot padding
   
   merged_tab2 <- merged_tab[merged_tab$phenotype <= ylims[2] & merged_tab$phenotype >= ylims[1],]
-  plot(phenotype ~ age, data = merged_tab2,  col = gender_F1M2,  pch = 16, 
-       main = pheno_name, 
-       cex = 0.6, xlab = "age", ylab = ylabel, cex.main = cex_main, frame.plot = F, axes = T, 
-       ylim =c(min(pretty(merged_tab2$phenotype)), max(pretty(merged_tab2$phenotype))),
-       xlim = c(min(min_age,merged_tab2$age), max(max_age, merged_tab2$age)))
-  
-  if (factor_name != ""){
-    subs <- merged_tab2[merged_tab2[,factor_name] == 1,]
-    points(subs$age, subs$phenotype, pch = 8, col = col2transparent("gold", 120), cex = 0.6)
+  if (plot_points){
+    plot(phenotype ~ age, data = merged_tab2,  col = gender_F1M2,  pch = 16, 
+         main = pheno_name, 
+         cex = 0.6, xlab = "age", ylab = ylabel, cex.main = cex_main, frame.plot = F, axes = T, 
+         ylim =c(min(pretty(merged_tab2$phenotype)), max(pretty(merged_tab2$phenotype))),
+         xlim = c(min(min_age,merged_tab2$age), max(max_age, merged_tab2$age)))
+    
+    if (factor_name != ""){
+      subs <- merged_tab2[merged_tab2[,factor_name] == 1,]
+      points(subs$age, subs$phenotype, pch = 8, col = col2transparent("gold", 120), cex = 0.6)
+    }
+  } else{
+    plot(1, type="n", 
+         main = pheno_name, 
+         cex = 0.6, xlab = "age", ylab = ylabel, cex.main = cex_main, frame.plot = F, axes = T, 
+         ylim =c(min(pretty(merged_tab2$phenotype)), max(pretty(merged_tab2$phenotype))),
+         xlim = c(min(min_age,merged_tab2$age), max(max_age, merged_tab2$age)))
   }
-  
   abline(h = pretty(merged_tab2$phenotype), col = "grey90")
   abline(v = pretty(merged_tab2$age), col = "grey90")
   

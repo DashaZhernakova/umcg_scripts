@@ -200,7 +200,7 @@ for (idx in indices){
     if (write_fitted) fitted_lines[,trait_name] = res_dif_lst[["pdat"]]$pred
 
   } else {
-    run_for_split_by_covariate(merged_tab, trait_name, covariate_to_split = split_by_covariate , highlight_positive = highlight_positive_in_split, covariates_linear = covariateslinear, covariates_nonlinear = covariatesnonlinear, n_points = n_points, make_plots = make_plots, gam_family = gam_family)
+    run_for_split_by_covariate(merged_tab, trait_name, covariate_to_split = split_by_covariate , highlight_positive = highlight_positive_in_split, covariates_linear = covariateslinear, covariates_nonlinear = covariatesnonlinear, n_points = n_points, make_plots = make_plots, gam_family = gam_family, plot_points = plot_points)
   }
 }
 res_summary$inter_p_adj_BH <- p.adjust(res_summary$inter_p, method = "BH")

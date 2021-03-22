@@ -87,7 +87,7 @@ correct_for_covariates_before <- function(traits_m, pheno_m, covariates){
 }
 
 
-run_for_split_by_covariate <- function(merged_tab, pheno_name, covariate_to_split, highlight_positive = F, covariates_linear = c(), covariates_nonlinear = c(), n_points = 300, make_plots = T,  gam_family = gaussian(), min_age = 20, max_age = 80){
+run_for_split_by_covariate <- function(merged_tab, pheno_name, covariate_to_split, highlight_positive = F, covariates_linear = c(), covariates_nonlinear = c(), n_points = 300, make_plots = T,  gam_family = gaussian(), min_age = 20, max_age = 80, plot_points = T){
   pdat_list <- list()
   col_list <- list()
   colors <- list("indianred1", "orange1", "dodgerblue1", "cadetblue1")
@@ -109,5 +109,5 @@ run_for_split_by_covariate <- function(merged_tab, pheno_name, covariate_to_spli
   factor_to_highlight <- ""
   if (highlight_positive) factor_to_highlight <- covariate_to_split
   colnames(merged_tab)[1] <- "phenotype"
-  draw_plot_multiline(merged_tab, pheno_name, pdat_list, col_list, factor_name = factor_to_highlight)
+  draw_plot_multiline(merged_tab, pheno_name, pdat_list, col_list, factor_name = factor_to_highlight, plot_points = plot_points)
 }
