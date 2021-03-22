@@ -77,7 +77,7 @@ rm_na_outliers <- function(traits_m, pheno_m, idx, method = "zscore", scale_tr =
 }
 
 # Fit a GAM with age : gender interaction and (optional) correction for covariates (linear or spline)
-plot_scatter_and_gam2 <- function(merged_tab, pheno_name, covariates_linear = c(), covariates_nonlinear = c(), n_points = 300, make_plots, label = '', gam_family = gaussian(), min_age = 20, max_age = 80, add_inter_p_to_plot = T, plot_title = NULL, interp_cutoff = 1, add_breakpoints = F, t_threshold = 3, derivatives_cutoff = 0.0002){
+plot_scatter_and_gam2 <- function(merged_tab, pheno_name, covariates_linear = c(), covariates_nonlinear = c(), n_points = 300, make_plots, label = '', gam_family = gaussian(), min_age = 20, max_age = 80, add_inter_p_to_plot = T, plot_title = NULL, interp_cutoff = 1, plot_points = T, add_breakpoints = F, t_threshold = 3, derivatives_cutoff = 0.0002){
   colnames(merged_tab)[1] <- "phenotype"
   merged_tab <- merged_tab[(merged_tab$age < max_age) & (merged_tab$age >= min_age),]
   
@@ -157,7 +157,7 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, covariates_linear = c(
  
   
   if (make_plots & gam.p < interp_cutoff){
-    draw_plot(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add_inter_p_to_plot, plot_title, breakpoints, breakpoints_intervals, label = paste0("Fsq = ", formatC(gam.cohen_f2, digits = 4, format = "f")))
+    draw_plot(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add_inter_p_to_plot, plot_title, plot_points, breakpoints, breakpoints_intervals, label = paste0("Fsq = ", formatC(gam.cohen_f2, digits = 4, format = "f")))
   }
   
   return (list("pdat" = pdat, "dif" = res_dif$diff, "inter_p" = gam.p,"g_beta" = gam.g_beta, "g_pv" = gam.g_pv, "breakpoints_intervals" = breakpoints_intervals, "cohen_f2" = gam.cohen_f2))

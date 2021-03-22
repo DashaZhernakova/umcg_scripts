@@ -6,7 +6,7 @@ col2transparent <- function(col, transparency){
   dodgerblueTransparent <- rgb(colRgb[1,1], colRgb[2,1], colRgb[3,1], transparency, names = NULL, maxColorValue = 255)
 }
 
-draw_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add_inter_p_to_plot = T, plot_title = NULL, breakpoints = NULL, factor_name = "", alpha_points = 40, breakpoints_intervals = NULL, label = ""){
+draw_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add_inter_p_to_plot = T, plot_title = NULL, plot_points = T, breakpoints = NULL, factor_name = "", alpha_points = 40, breakpoints_intervals = NULL, label = ""){
   cex_main = 1
   ylims <- with(merged_tab, range(phenotype))
   ylabel <- pheno_name
@@ -43,14 +43,22 @@ draw_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add
     }
   }
   if (! binaryPhenotype){
-    plot(phenotype ~ age, data = merged_tab2,  col = gender_F1M2,  pch = 16, 
-         main = plot_title, 
-         cex = 0.6, xlab = "age", ylab = ylabel, cex.main = cex_main, frame.plot = F, axes = T, 
-         ylim =c(min(pretty(merged_tab2$phenotype)), max(pretty(merged_tab2$phenotype))),
-         xlim = c(min(min_age,merged_tab2$age), max(max_age, merged_tab2$age)))
-    
-    if (length(factor_name) > 0){
-      points(merged_tab2[merged_tab2[,factor_name] == 1,"age"], merged_tab2[merged_tab2[,factor_name],"phenotype"], pch = 8, col = col2transparent("gold", 120), cex = 0.6)
+    if (plot_points){
+      plot(phenotype ~ age, data = merged_tab2,  col = gender_F1M2,  pch = 16, 
+           main = plot_title, 
+           cex = 0.6, xlab = "age", ylab = ylabel, cex.main = cex_main, frame.plot = F, axes = T, 
+           ylim =c(min(pretty(merged_tab2$phenotype)), max(pretty(merged_tab2$phenotype))),
+           xlim = c(min(min_age,merged_tab2$age), max(max_age, merged_tab2$age)))
+      
+      if (length(factor_name) > 0){
+        points(merged_tab2[merged_tab2[,factor_name] == 1,"age"], merged_tab2[merged_tab2[,factor_name],"phenotype"], pch = 8, col = col2transparent("gold", 120), cex = 0.6)
+      }
+    } else{
+      plot(1, type="n", 
+           main = plot_title, 
+           cex = 0.6, xlab = "age", ylab = ylabel, cex.main = cex_main, frame.plot = F, axes = T, 
+           ylim =c(min(pretty(merged_tab2$phenotype)), max(pretty(merged_tab2$phenotype))),
+           xlim = c(min(min_age,merged_tab2$age), max(max_age, merged_tab2$age)))
     }
   } else { # do not add points for binary pheno
     plot(1, type="n",
