@@ -10,6 +10,8 @@ with open(fname1) as f:
 with open(fname2) as f:
     header2 = f.readline().rstrip().split("\t")
     ncols2 = len(header1) - 1
+sys.stderr.write("Numberr of columns in " + fname1 + ": " + str(ncols1) + "\n")
+sys.stderr.write("Numberr of columns in " + fname2 + ": " + str(ncols2) + "\n")
 
 all_samples = set()
 dict_all = {}
