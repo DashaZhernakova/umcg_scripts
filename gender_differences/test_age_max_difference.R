@@ -21,7 +21,7 @@ abline(h = pretty(d$w_p_log), col = "grey")
 abline(v = pretty(d$age), col = "grey")
 dev.off()
 
-pdf("../all_LL/ttest_max_differences_coloured.pdf", height = 5, width = 10)
+pdf("../all_LL/ttest_max_differences_coloured.pdf", height = 5, width = 10, useDingbats = F)
 par(mfrow=c(1,2))
 palette(brewer.pal(n = 12, name = "Set3"))
 plot(m_p_log~age, data = d, pch = 16, frame.plot = F, axes = T, col = as.factor(pheno), ylim = c(0, max(d$w_p_log, d$m_p_log)), ylab = "-log10(P)", main = "men")

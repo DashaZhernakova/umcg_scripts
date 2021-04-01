@@ -36,7 +36,7 @@ indices = 1:num_traits
 cnt = 1
 plots <- list()
 res <- data.frame(matrix(nrow = num_traits, ncol = 7))
-colnames(res) <- c("phenotype", "N", "N women", "N men", "mean (sd)", "mean (sd) women", "mean (sd) men")
+colnames(res) <- c("phenotype", "N", "N women", "N men", "mean (sd)", "mean (sd) women", "mean (sd) men", "median", "median women", "median men")
 
 for (idx in indices){
   trait_id <- colnames(traits_m)[idx]
@@ -52,6 +52,7 @@ for (idx in indices){
   colnames(merged_tab)[1] <- "phenotype"
   mu <- ddply(merged_tab, "gender_F1M2", summarise, grp.mean=mean(phenotype))
   stdev <- ddply(merged_tab, "gender_F1M2", summarise, grp.sd=sd(phenotype))
+  med <- ddply(merged_tab, "gender_F1M2", summarise, grp.median=median(phenotype))
   p <- ggplot(merged_tab, aes(x = phenotype, fill = gender_F1M2, color = gender_F1M2)) + geom_density(alpha=0.4) + 
     scale_fill_manual(values=c("indianred1", "dodgerblue1")) +
     scale_color_manual(values=c("indianred1", "dodgerblue1")) +
@@ -60,15 +61,18 @@ for (idx in indices){
     xlab(trait_id)
   plots[[cnt]] <- p
   
-  m <- formatC(mean(merged_tab$phenotype), digits = 2, format = "f")
-  mw <- formatC(mu[1,"grp.mean"], digits = 2, format = "f")
-  mm <- formatC(mu[2,"grp.mean"], digits = 2, format = "f")
-  sdev <- formatC(sd(merged_tab$phenotype), digits = 2, format = "f")
-  sdw <- formatC(stdev[1,"grp.sd"], digits = 2, format = "f")
-  sdm <- formatC(stdev[2,"grp.sd"], digits = 2, format = "f")
+  m <- formatC(mean(merged_tab$phenotype), digits = 3, format = "f")
+  mw <- formatC(mu[1,"grp.mean"], digits = 3, format = "f")
+  mm <- formatC(mu[2,"grp.mean"], digits = 3, format = "f")
+  sdev <- formatC(sd(merged_tab$phenotype), digits = 3, format = "f")
+  sdw <- formatC(stdev[1,"grp.sd"], digits = 3, format = "f")
+  sdm <- formatC(stdev[2,"grp.sd"], digits = 3, format = "f")
+  med <- formatC(median(merged_tab$phenotype), digits = 3, format = "f")
+  medw <- formatC(med[1,"grp.median"], digits = 3, format = "f")
+  medm <- formatC(med[2,"grp.median"], digits = 3, format = "f")
   
   res[cnt,] <- c(trait_id, nrow(merged_tab), nrow(merged_tab[merged_tab$gender_F1M2 == 1,]), nrow(merged_tab[merged_tab$gender_F1M2 == 2,]),
-                 paste0(m, " (", sdev, ")") , paste0(mw, " (", sdw, ")"), paste0(mm, " (", sdm, ")"))
+                 paste0(m, " (", sdev, ")") , paste0(mw, " (", sdw, ")"), paste0(mm, " (", sdm, ")"), med, medw, medm)
   cnt <- cnt + 1 
 }
 write.table(res, file = paste0(out_basepath, ".summary.txt"), sep = "\t", quote = F, col.names = NA)

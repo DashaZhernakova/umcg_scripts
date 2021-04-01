@@ -8,7 +8,7 @@ col2transparent <- function(col, transparency){
 
 setwd("/groups/umcg-lifelines/tmp01/users/umcg-dzhernakova/gender_difs/tmp/")
 
-d <- read.delim("/groups/umcg-lifelines/tmp01/projects/phenotypes/tab_seperated_labels/Laboratory_assessment_Blood.dat", header = T, sep = "\t", as.is = T, check.names = F)
+d <- read.delim("/groups/umcg-lifelines/tmp01/releases/pheno_lifelines/v1/tab_separated_labels/Laboratory_assessment_Blood.dat", header = T, sep = "\t", as.is = T, check.names = F)
 d <- d[d$NUCHTER == "Yes", ]
 a1 <- d[d$ENCOUNTERCODE == "Baseline assessment (1A)", ]
 a2 <- d[d$ENCOUNTERCODE == "Second assessment (2A)", ]
@@ -24,14 +24,20 @@ a2m <- a2[match(row.names(a1m), row.names(a2), nomatch = 0), ]
 dif <- a1m - a2m
 dif <- dif[,which(sapply(dif, function(x) all(is.na(x))) == F)]
 
-pheno <- read.delim("/groups/umcg-lifelines/tmp01/projects/phenotypes/tab_seperated_labels/Participant (Pa_99_G).dat", header = T, sep = "\t", as.is = T, check.names = F)
-rownames(pheno) <- pheno$PSEUDOIDEXT
-pheno_m <- pheno[match(rownames(a1m), rownames(pheno), nomatch = 0), ]
-all(rownames(pheno_m) == rownames(a1m))
-pheno_m <- pheno_m[, c("GESLACHT", "AGE_1A1", "AGE_2A1")]
-pheno_m$mean_age <- (pheno_m$AGE_1A1 + pheno_m$AGE_2A1)/2
-pheno_m$GESLACHT <- as.factor(pheno_m$GESLACHT)
-m <- cbind(pheno_m, dif)
+pheno <- read.delim("../age_gender_medications_newCVD_all_LL.txt", header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)
+pheno <- pheno[pheno$statins == 0 && pheno$estrogens ==0 && pheno$antihypertensives == 0,]
+
+ind <- intersect(row.names(dif), row.names(pheno))
+pheno_m <- pheno[ind,]
+dif_m <- dif[ind,]
+all(rownames(pheno_m) == rownames(dif_m))
+
+pheno_m <- subset(pheno_m, select = -c(statins, estrogens, antihypertensives))
+
+m <- cbind(pheno_m, dif_m[,"CHO"])
+colnames(m) <- c(colnames(pheno_m), "CHO_dif")
+
+
 
 tmp <- m[,c("mean_age", "GESLACHT", "CHO")]
 tmp <- na.omit(tmp)
