@@ -24,7 +24,7 @@ rm_na_outliers <- function(traits_m, pheno_m, idx, method = "zscore", scale_tr =
     message("Outcome is a factor, skipping all transformations!")
   }
   
-  min_val <- min(merged_tab[,1], na.rm = T)
+  min_val <- min(merged_tab[merged_tab[,1] != 0,1], na.rm = T)
   if (log_tr & scale_tr){
     merged_tab[,1] <- scale(log(merged_tab[,1] + min_val))
   } else if (log_tr & ! scale_tr) {

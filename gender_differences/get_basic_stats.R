@@ -35,7 +35,7 @@ pheno_m <- pheno_m[order(pheno_m$age),]
 indices = 1:num_traits
 cnt = 1
 plots <- list()
-res <- data.frame(matrix(nrow = num_traits, ncol = 7))
+res <- data.frame(matrix(nrow = num_traits, ncol = 10))
 colnames(res) <- c("phenotype", "N", "N women", "N men", "mean (sd)", "mean (sd) women", "mean (sd) men", "median", "median women", "median men")
 
 for (idx in indices){
@@ -67,12 +67,12 @@ for (idx in indices){
   sdev <- formatC(sd(merged_tab$phenotype), digits = 3, format = "f")
   sdw <- formatC(stdev[1,"grp.sd"], digits = 3, format = "f")
   sdm <- formatC(stdev[2,"grp.sd"], digits = 3, format = "f")
-  med <- formatC(median(merged_tab$phenotype), digits = 3, format = "f")
+  med_all <- formatC(median(merged_tab$phenotype), digits = 3, format = "f")
   medw <- formatC(med[1,"grp.median"], digits = 3, format = "f")
   medm <- formatC(med[2,"grp.median"], digits = 3, format = "f")
   
   res[cnt,] <- c(trait_id, nrow(merged_tab), nrow(merged_tab[merged_tab$gender_F1M2 == 1,]), nrow(merged_tab[merged_tab$gender_F1M2 == 2,]),
-                 paste0(m, " (", sdev, ")") , paste0(mw, " (", sdw, ")"), paste0(mm, " (", sdm, ")"), med, medw, medm)
+                 paste0(m, " (", sdev, ")") , paste0(mw, " (", sdw, ")"), paste0(mm, " (", sdm, ")"), med_all, medw, medm)
   cnt <- cnt + 1 
 }
 write.table(res, file = paste0(out_basepath, ".summary.txt"), sep = "\t", quote = F, col.names = NA)
