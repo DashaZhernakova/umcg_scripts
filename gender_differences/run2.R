@@ -167,7 +167,7 @@ rownames(res_summary) <- colnames(traits_m)
 cnt = 1
 if (runCV){
   cat("\nRunning only cross-validation\n")
-  out_table_path <- paste0(out_basepath, "tables/", config$output_fname + ".cross_validation.txt")
+  out_table_path <- paste0(out_basepath, "tables/", config$output_fname,".cross_validation.txt")
   for (idx in indices){
     trait_name <- ifelse(is.null(pheno_table), colnames(traits_m)[idx], pheno_table[pheno_table[,1] == colnames(traits_m)[idx], 2])
     cat(idx, " : ", trait_name, "\n")
