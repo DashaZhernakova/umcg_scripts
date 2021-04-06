@@ -1,5 +1,6 @@
 library(RColorBrewer)
 library('dplyr')
+library(gamclass)
 
 calculate_sex_diff_ttest <- function(merged_tab, covariates = c(), min_age = 20, max_age = 80){
   colnames(merged_tab)[1] <- "phenotype"
