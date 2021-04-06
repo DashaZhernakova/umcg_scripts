@@ -125,6 +125,7 @@ deriv_cutoff <- config$breakpoints_derivates_cutoff
 interp_cutoff <- ifelse("interp_cutoff" %in% names(config),  config$interp_cutoff, 0.05) 
 write_fitted <- ifelse("write_fitted" %in% names(config),  config$write_fitted, F)
 plot_points <- ifelse("plot_points" %in% names(config),  config$plot_points, T)
+runCV <- ifelse("run_cross_validation" %in% names(config),  config$run_cross_validation, F)
 #
 # Plot initialization
 #
@@ -160,15 +161,30 @@ if (make_plots && config$plot_extention == "pdf"){
 #
 indices = 1:ncol(traits_m)
 
+res_summary <- data.frame(matrix(nrow = num_traits, ncol = 4))
+colnames(res_summary) <- c("gam_inter", "gam_nointer", "lm_inter", "lm_nointer")
+rownames(res_summary) <- colnames(traits_m)
+cnt = 1
+if (runCV){
+  cat("\nRunning only cross-validation\n")
+  out_table_path <- paste0(out_basepath, "tables/", config$output_fname + ".cross_validation.txt")
+  for (idx in indices){
+    trait_name <- ifelse(is.null(pheno_table), colnames(traits_m)[idx], pheno_table[pheno_table[,1] == colnames(traits_m)[idx], 2])
+    cat(idx, " : ", trait_name, "\n")
+    merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = outlier_correction_method, log_tr = log_transform, scale_tr = scale_transform)
+    cv_lst <- run_cross_validation(merged_tab, pheno_name, covariateslinear, covariatesnonlinear, min_age, max_age)
+    #print (unlist(cv_lst))
+    res_summary[trait_name,] <- unlist(cv_lst)
+  }
+  quit()
+}
+
 res_summary <- data.frame()
 res_dif_lst <- data.frame()
 fitted_lines <- data.frame(matrix(nrow = n_points*2, ncol = length(indices)))
 colnames(fitted_lines) <- colnames(traits_m)[indices]
 out_table_path <- paste0(out_basepath, "tables/", config$output_fname)
 cat("\nStarting the analyses\n")
-
-cnt = 1
-
 for (idx in indices){
   if (config$plot_extention == "pdf" && cnt > nplotspp && make_plots){
     cnt = 1

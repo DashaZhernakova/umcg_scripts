@@ -111,3 +111,43 @@ run_for_split_by_covariate <- function(merged_tab, pheno_name, covariate_to_spli
   colnames(merged_tab)[1] <- "phenotype"
   draw_plot_multiline(merged_tab, pheno_name, pdat_list, col_list, factor_name = factor_to_highlight, plot_points = plot_points)
 }
+
+run_cross_validation <- function(merged_tab, pheno_name, covariates_linear = c(), covariates_nonlinear = c(), min_age, max_age){
+  colnames(merged_tab)[1] <- "phenotype"
+  merged_tab <- merged_tab[(merged_tab$age < max_age) & (merged_tab$age >= min_age),]
+  
+  merged_tab <- mutate(merged_tab, ord_gender_F1M2 = ordered(gender_F1M2, levels = c('1', '2')))
+  merged_tab$gender_F1M2 <- as.factor(merged_tab$gender_F1M2)
+
+  if (length(covariates_linear) == 0 & length(covariates_nonlinear) == 0){
+    
+    cv_gam_full <- CVgam(formula = phenotype ~ ord_gender_F1M2 + s(age) + s(age, by = ord_gender_F1M2), 
+                         data = merged_tab, method = 'REML', nfold = 10, printit = F)
+    cv_gam_nointer <- CVgam(formula = phenotype ~ ord_gender_F1M2 + s(age), 
+                            data = merged_tab, method = 'REML', nfold = 10, printit = F)
+    cv_lm_full <- CVgam(formula = phenotype ~ ord_gender_F1M2 + age + age:ord_gender_F1M2, 
+                        data = merged_tab, method = 'REML', nfold = 10, printit = F)
+    cv_lm_nointer <- CVgam(formula = phenotype ~ ord_gender_F1M2 + age, 
+                            data = merged_tab, method = 'REML', nfold = 10, printit = F)
+  } else { # Correct for covariates
+    terms_linear_covar <- ""
+    terms_nonlinear_covar <- ""
+    if (length(covariates_linear) > 0) terms_linear_covar <- paste0("+", paste(covariates_linear, collapse = "+"))
+    if (length(covariates_nonlinear) > 0) terms_nonlinear_covar <- paste0("+ s(", paste(covariates_nonlinear, collapse = ")+ s("), ")")
+    
+    cv_gam_full <- CVgam(formula = as.formula(paste("phenotype ~ ord_gender_F1M2 ", terms_linear_covar, terms_nonlinear_covar,
+                                                    "+ s(age) + s(age, by = ord_gender_F1M2)", sep = " ")), 
+                         data = merged_tab, method = "REML", nfold = 10, printit = F)
+    cv_gam_nointer <- CVgam(formula = as.formula(paste("phenotype ~ ord_gender_F1M2 ", terms_linear_covar, terms_nonlinear_covar,
+                                                       "+ s(age)", sep = " ")), 
+                            data = merged_tab, method = "REML", nfold = 10, printit = F)  
+    cv_lm_full <- CVgam(formula = as.formula(paste("phenotype ~ ord_gender_F1M2 ", terms_linear_covar, terms_nonlinear_covar,
+                                                   "+ age + age:ord_gender_F1M2", sep = " ")), 
+                        data = merged_tab, method = "REML", nfold = 10, printit = F)
+    cv_lm_nointer <- CVgam(formula = as.formula(paste("phenotype ~ ord_gender_F1M2 ", terms_linear_covar, terms_nonlinear_covar,
+                                                      "+ age", sep = " ")), 
+                           data = merged_tab, method = "REML", nfold = 10, printit = F)  
+  }
+  
+  return(list(cv_gam_full$cvscale, cv_gam_nointer$cvscale, cv_lm_full$cvscale, cv_lm_nointer$cvscale))
+}
