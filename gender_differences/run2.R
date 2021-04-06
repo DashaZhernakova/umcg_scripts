@@ -129,6 +129,7 @@ runCV <- ifelse("run_cross_validation" %in% names(config),  config$run_cross_val
 #
 # Plot initialization
 #
+if (runCV) make_plots = F
 
 out_basepath <- paste0(config$basedir_path, "/results/")
 plot_path <- paste0(out_basepath, "plots/", config$output_fname)
@@ -160,14 +161,14 @@ if (make_plots && config$plot_extention == "pdf"){
 # Run the analyses
 #
 indices = 1:ncol(traits_m)
+out_table_path <- paste0(out_basepath, "tables/", config$output_fname)
 
-res_summary <- data.frame(matrix(nrow = num_traits, ncol = 4))
-colnames(res_summary) <- c("gam_inter", "gam_nointer", "lm_inter", "lm_nointer")
-rownames(res_summary) <- colnames(traits_m)
-cnt = 1
+
 if (runCV){
   cat("\nRunning only cross-validation\n")
-  out_table_path <- paste0(out_basepath, "tables/", config$output_fname,".cross_validation.txt")
+  res_summary <- data.frame(matrix(nrow = num_traits, ncol = 4))
+  colnames(res_summary) <- c("gam_inter", "gam_nointer", "lm_inter", "lm_nointer")
+  rownames(res_summary) <- colnames(traits_m)
   for (idx in indices){
     trait_name <- ifelse(is.null(pheno_table), colnames(traits_m)[idx], pheno_table[pheno_table[,1] == colnames(traits_m)[idx], 2])
     cat(idx, " : ", trait_name, "\n")
@@ -176,6 +177,7 @@ if (runCV){
     #print (unlist(cv_lst))
     res_summary[trait_name,] <- unlist(cv_lst)
   }
+  write.table(res_summary, file = paste0(out_table_path, "_cross_validation.txt"), sep = "\t", quote = F, col.names = NA)
   quit()
 }
 
@@ -183,7 +185,8 @@ res_summary <- data.frame()
 res_dif_lst <- data.frame()
 fitted_lines <- data.frame(matrix(nrow = n_points*2, ncol = length(indices)))
 colnames(fitted_lines) <- colnames(traits_m)[indices]
-out_table_path <- paste0(out_basepath, "tables/", config$output_fname)
+
+cnt = 1
 cat("\nStarting the analyses\n")
 for (idx in indices){
   if (config$plot_extention == "pdf" && cnt > nplotspp && make_plots){
