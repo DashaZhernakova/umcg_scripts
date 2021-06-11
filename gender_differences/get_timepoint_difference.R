@@ -34,10 +34,10 @@ all(rownames(pheno_m) == rownames(dif_m))
 
 pheno_m <- subset(pheno_m, select = -c(statins, estrogens, antihypertensives))
 
-m <- cbind(pheno_m, dif_m[,"CHO"])
-colnames(m) <- c(colnames(pheno_m), "CHO_dif")
+m <- cbind(pheno_m, dif_m[,"CHO"], a1m[ind,"CHO"], a2m[ind, "CHO"])
+colnames(m) <- c(colnames(pheno_m), "CHO_dif", "CHO_a1", "CHO_a2")
 
-
+###
 
 tmp <- m[,c("mean_age", "GESLACHT", "CHO")]
 tmp <- na.omit(tmp)
@@ -45,7 +45,7 @@ tmp$CHOpos <- ifelse(tmp$CHO > 0, tmp$CHO, NA)
 tmp$CHOneg <- ifelse(tmp$CHO < 0, tmp$CHO, NA)
 tmp$CHOabs <- abs(tmp$CHO)
 
-male <- aggregate(tmp[tmp$GESLACHT == "Male","CHO"], list(tmp[tmp$GESLACHT == "Male","mean_age"]), mean)
+
 fem <- aggregate(tmp[tmp$GESLACHT == "Female","CHO"], list(tmp[tmp$GESLACHT == "Female","mean_age"]), mean)
 
 

@@ -1,11 +1,42 @@
 library(RColorBrewer)
 
+setwd("C:/Users/Dasha/work/UMCG/data/gender_differences/omics/")
 col2transparent <- function(col, transparency){
   colRgb <- col2rgb(col)
   dodgerblueTransparent <- rgb(colRgb[1,1], colRgb[2,1], colRgb[3,1], transparency, names = NULL, maxColorValue = 255)
 }
 
-d <- read.delim("../all_LL/ttest_res.txt", sep = "\t", header = T, as.is = T, check.names = F)
+
+run_ttests <- function(traits_m, pheno_m, ttest_window = 5, outlier_correction_method = "zscore", log_tr = F, scale_tr = F){
+  indices = 1:ncol(traits_m)
+  for (idx in indices){
+    trait_name <- colnames(traits_m)[idx]
+    merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = outlier_correction_method, log_tr = log_transform, scale_tr = scale_transform)
+    
+    colnames(merged_tab)[1] <- "phenotype"
+    merged_tab <- merged_tab[(merged_tab$age < max_age) & (merged_tab$age >= min_age),]
+    #print(trait_name)
+    for (i in age2test){
+      left <- merged_tab[merged_tab$age <= i & merged_tab$age > (i - ttest_window),]
+      right <- merged_tab[merged_tab$age > i & merged_tab$age <= (i + ttest_window),]
+      
+      t_w <- t.test(left[left$gender_F1M2 == 1,1], right[right$gender_F1M2 == 1,1])
+      t_m <- t.test(left[left$gender_F1M2 == 2,1], right[right$gender_F1M2 == 2,1])
+      t_w_e <- t.test(left[left$gender_F1M2 == 1 & left[,pheno2test] == 1,1], right[right$gender_F1M2 == 1 & right[,pheno2test] == 1,1])
+      t_w_e2 <- t.test(left[left$gender_F1M2 == 1 ,1], right[right$gender_F1M2 == 1 & right[,pheno2test] == 1,1])
+      
+      
+      #res[as.character(i),"w"] <- t_w$statistic
+      #res[as.character(i),"m"] <- t_m$statistic
+      #print(paste(i, t_w$statistic, t_w$p.value, t_m$statistic, t_m$p.value))
+      cat(trait_name, i, t_w$p.value, t_m$p.value, t_w_e$p.value, t_w_e2$p.value, "\n", sep = "\t")
+      
+    }
+  }
+}
+
+
+d <- read.delim("all_LL/ttest_res.txt", sep = "\t", header = T, as.is = T, check.names = F)
 d$w_p_log <- -log10(d$w_p)
 d$m_p_log <- -log10(d$m_p)
 

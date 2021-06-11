@@ -126,6 +126,7 @@ interp_cutoff <- ifelse("interp_cutoff" %in% names(config),  config$interp_cutof
 write_fitted <- ifelse("write_fitted" %in% names(config),  config$write_fitted, F)
 plot_points <- ifelse("plot_points" %in% names(config),  config$plot_points, T)
 runCV <- ifelse("run_cross_validation" %in% names(config),  config$run_cross_validation, F)
+ymax_hist <- ifelse("ymax_hist" %in% names(config),  config$ymax_hist, 1)
 #
 # Plot initialization
 #
@@ -198,7 +199,7 @@ for (idx in indices){
   cat(idx, " : ", trait_name, "\n")
   merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = outlier_correction_method, log_tr = log_transform, scale_tr = scale_transform)
   if (split_by_covariate == ""){
-    res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, covariates_linear = covariateslinear, covariates_nonlinear = covariatesnonlinear, n_points = n_points, make_plots = make_plots, gam_family = gam_family, min_age = min_age, max_age = max_age,label = '', add_inter_p_to_plot = add_inter_p_to_plot, plot_title = plot_title, interp_cutoff = interp_cutoff, plot_points = plot_points, add_breakpoints = add_breakpoints,  t_threshold = ttest_cutoff, derivatives_cutoff = deriv_cutoff)
+    res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, covariates_linear = covariateslinear, covariates_nonlinear = covariatesnonlinear, n_points = n_points, make_plots = make_plots, gam_family = gam_family, min_age = min_age, max_age = max_age, ymax_hist = ymax_hist, label = '', add_inter_p_to_plot = add_inter_p_to_plot, plot_title = plot_title, interp_cutoff = interp_cutoff, plot_points = plot_points, add_breakpoints = add_breakpoints,  t_threshold = ttest_cutoff, derivatives_cutoff = deriv_cutoff)
     if (res_dif_lst[["inter_p"]] < interp_cutoff){
       cnt <- cnt + 1
       cat("\tSignificant interaction detected.\n")

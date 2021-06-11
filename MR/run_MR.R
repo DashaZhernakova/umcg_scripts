@@ -80,7 +80,7 @@ run_mr = function(exp_dat, out_dat, exp_table = NULL){
     if (nrow(res_loo) > 1){
       res$leave_one_out_pval <- paste(res_loo[res_loo$SNP != "All","p"], collapse = ',')
     
-    if (max(res_loo$p, na.rm = T) > 0.05){
+    if (length(which(res_loo$p > 0.05))){
       res$filter_loo=FALSE
     }
     }

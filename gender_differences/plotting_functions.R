@@ -6,8 +6,9 @@ col2transparent <- function(col, transparency){
   dodgerblueTransparent <- rgb(colRgb[1,1], colRgb[2,1], colRgb[3,1], transparency, names = NULL, maxColorValue = 255)
 }
 
-draw_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add_inter_p_to_plot = T, plot_title = NULL, plot_points = T, breakpoints = NULL, factor_name = "", alpha_points = 40, breakpoints_intervals = NULL, label = ""){
+draw_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add_inter_p_to_plot = T, plot_title = NULL, plot_points = T, breakpoints = NULL, factor_name = "", alpha_points = 40, breakpoints_intervals = NULL, ymax_hist = 1, label = "", ylims_usr = NULL){
   cex_main = 1
+  
   ylims <- with(merged_tab, range(phenotype))
   ylabel <- pheno_name
   if (nchar(pheno_name) > 40){
@@ -64,7 +65,7 @@ draw_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add
     plot(1, type="n",
          main = paste0(pheno_name, '\n', label, "\nGAM interaction p = ", format(gam.p, digits = 3)), 
          cex = 0.6, xlab = "age", ylab = ylabel, cex.main = cex_main, frame.plot = F, axes = T, 
-         ylim =c(min(pretty(merged_tab2$phenotype)), max(pretty(merged_tab2$phenotype))),
+         ylim =c(0,ymax_hist),
          xlim = c(min(min_age,merged_tab2$age), max(max_age, merged_tab2$age)))
     
     add_prevalence_hist_to_plot(merged_tab2)
@@ -422,11 +423,11 @@ add_prevalence_hist_to_plot <- function(merged_tab, scale.hist = 5, las.h1 = 1, 
     }
   }
   
-  axis(
-    side = 4, at = seq(0,1,0.2), labels = seq(0,1,0.2),
-    las = 1
-  )
-  text(par("usr")[2] * 1.08, 0.75, "Frequency", srt = -90, xpd = TRUE, pos = 4)
+  #axis(
+  #  side = 4, at = seq(0,1,0.2), labels = seq(0,1,0.2),
+  #  las = 1
+  #)
+  #text(par("usr")[2] * 1.08, 0.75, "Frequency", srt = -90, xpd = TRUE, pos = 4)
 }
 
 
