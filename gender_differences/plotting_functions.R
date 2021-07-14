@@ -62,6 +62,7 @@ draw_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add
            xlim = c(min(min_age,merged_tab2$age), max(max_age, merged_tab2$age)))
     }
   } else { # do not add points for binary pheno
+    cat(ymax_hist)
     plot(1, type="n",
          main = paste0(pheno_name, '\n', label, "\nGAM interaction p = ", format(gam.p, digits = 3)), 
          cex = 0.6, xlab = "age", ylab = ylabel, cex.main = cex_main, frame.plot = F, axes = T, 
