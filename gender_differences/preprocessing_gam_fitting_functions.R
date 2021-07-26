@@ -78,13 +78,7 @@ rm_na_outliers <- function(traits_m, pheno_m, idx, method = "zscore", scale_tr =
 
 # Fit a GAM with age : gender interaction and (optional) correction for covariates (linear or spline)
 plot_scatter_and_gam2 <- function(merged_tab, pheno_name, covariates_linear = c(), covariates_nonlinear = c(), n_points = 300, make_plots, ymax_hist = 1, label = '', gam_family = gaussian(), min_age = 20, max_age = 80, add_inter_p_to_plot = T, plot_title = NULL, interp_cutoff = 1, plot_points = T, add_breakpoints = F, t_threshold = 3, derivatives_cutoff = 0.0002, ylims = NULL){
-  colnames(merged_tab)[1] <- "phenotype"
-  merged_tab <- merged_tab[(merged_tab$age < max_age) & (merged_tab$age >= min_age),]
-  
-  merged_tab <- mutate(merged_tab, ord_gender_F1M2 = ordered(gender_F1M2, levels = c('1', '2')))
-  merged_tab$gender_F1M2 <- as.factor(merged_tab$gender_F1M2)
-  res_dif = NULL
-  
+  g
   if (length(covariates_linear) == 0 & length(covariates_nonlinear) == 0){
     
     gam.fit <- gam(phenotype ~ gender_F1M2 + s(age) + s(age, by = gender_F1M2), data = merged_tab, method = "REML", family = gam_family)
