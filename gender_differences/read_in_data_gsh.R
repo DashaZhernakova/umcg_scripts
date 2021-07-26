@@ -102,3 +102,5 @@ deriv_cutoff <- config$breakpoints_derivates_cutoff
 interp_cutoff <- ifelse("interp_cutoff" %in% names(config),  config$interp_cutoff, 0.05) 
 write_fitted <- ifelse("write_fitted" %in% names(config),  config$write_fitted, F)
 plot_points <- ifelse("plot_points" %in% names(config),  config$plot_points, T)
+runCV <- ifelse("run_cross_validation" %in% names(config),  config$run_cross_validation, F)
+ymax_hist <- ifelse("ymax_hist" %in% names(config),  config$ymax_hist, 1)
