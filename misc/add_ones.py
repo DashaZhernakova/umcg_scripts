@@ -22,7 +22,7 @@ else:
 
 
 if new_col_name:
-    print (f.readline().rstrip() + "\t" + new_col_name)
+    print (i_file.readline().rstrip() + "\t" + new_col_name)
 for l in i_file:
     spl = l.rstrip().split("\t")
     add_val = '0'
