@@ -42,10 +42,10 @@ for (idx in indices){
   trait_id <- colnames(traits_m)[idx]
   print(trait_id)
   if (trait_id %in% tologtr){
-    merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = "zscore", log_tr = T)
+    merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = "IQR", log_tr = T)
     trait_id <- paste0("log(", trait_id, "+1)")
   } else {
-    merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = "zscore", log_tr = F)
+    merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = "IQR", log_tr = F)
   }
   merged_tab <- na.omit(merged_tab)
   merged_tab$gender_F1M2 <- as.factor(merged_tab$gender_F1M2)
