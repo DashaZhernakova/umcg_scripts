@@ -10,7 +10,7 @@ setwd(wd_path)
 
 # Phenotypes
 traits_path <- args[1]
-pheno_path <- args[3]
+pheno_path <- args[2]
 out_basepath <- args[3]
 #tologtr <- c("LEU", "LY", "LYP", "MO", "MOP", "GR", "GRP", "BA", "BAP", "EO", "EOP", "ER", "TR", "TGL", "HAL1", "HALB", "AST", "ALT", "AF", "GGT", "LCRP", "TSH", "UKRO", "UKR24")
 tologtr <- c()
