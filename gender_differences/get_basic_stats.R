@@ -10,8 +10,8 @@ setwd(wd_path)
 
 # Phenotypes
 traits_path <- args[1]
-pheno_path <- "age_gender_all_LL.txt"
-out_basepath <- args[2]
+pheno_path <- args[3]
+out_basepath <- args[3]
 #tologtr <- c("LEU", "LY", "LYP", "MO", "MOP", "GR", "GRP", "BA", "BAP", "EO", "EOP", "ER", "TR", "TGL", "HAL1", "HALB", "AST", "ALT", "AF", "GGT", "LCRP", "TSH", "UKRO", "UKR24")
 tologtr <- c()
 

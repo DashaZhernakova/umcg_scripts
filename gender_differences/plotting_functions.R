@@ -190,13 +190,15 @@ draw_multiple_fitted_lines <- function(fitted_matrix, sign_inters = colnames(fit
   for (i in 1:ncol(fitted_matrix)) {
     
     ltype = 1
+    lwd = 3
     cols <- c(col2transparent("indianred1", 120), col2transparent("dodgerblue1", 120))
     if (! colnames(fitted_matrix)[i] %in% sign_inters) {
       ltype = 2 
+      lwd = 2
       cols <- c(col2transparent("indianred1", 90), col2transparent("dodgerblue1", 90))
     }
-    lines(age_seq, fitted_matrix[1:n_points, i] , col = cols[1], lwd = 2, lty = ltype)
-    lines(age_seq, fitted_matrix[(n_points + 1):(n_points*2), i] , col = cols[2], lwd = 2, lty = ltype)
+    lines(age_seq, fitted_matrix[1:n_points, i] , col = cols[1], lwd = lwd, lty = ltype)
+    lines(age_seq, fitted_matrix[(n_points + 1):(n_points*2), i] , col = cols[2], lwd = lwd, lty = ltype)
     #text(x = 28, y = fitted_matrix[1, i], col = "indianred1", colnames(fitted_matrix)[i])
     #text(x = 28, y = fitted_matrix[301, i], col = "dodgerblue1", colnames(fitted_matrix)[i])
     #Sys.sleep(4)
