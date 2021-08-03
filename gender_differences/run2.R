@@ -137,11 +137,11 @@ plot_path <- paste0(out_basepath, "plots/", config$output_fname)
 
 if (make_plots && config$plot_extention == "pdf"){
   if (nplotspp > 1){
-    pdf(paste0(plot_path, ".pdf"), width = 15, height = 15)
+    pdf(paste0(plot_path, ".pdf"), width = 15, height = 21)
     cat("Saving plots to ", plot_path, ".pdf", "\n")
     par(mfrow=c(5,4)) 
   } else {
-    pdf(paste0(plot_path, ".pdf"), width = 5, height = 4)
+    pdf(paste0(plot_path, ".pdf"), width = 4, height = 5)
     cat("Saving plots to ", plot_path, ".pdf", "\n")
   }
 } else if (make_plots && config$plot_extention == "png"){

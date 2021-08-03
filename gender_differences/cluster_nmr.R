@@ -16,14 +16,22 @@ cl <- km$cluster
 
 clusters <- as.data.frame(cl)
 clusters$signif_inter <- row.names(clusters) %in% signif_inters
-write.table(clusters, file = paste0("results/tables/nmr_clustering_kmeans.k",num_k,".txt"), sep = "\t", quote = F, col.names = NA)
+
+clusters2 <- clusters
+clusters2[clusters$cl == 3, "cl"] <- 1
+clusters2[clusters$cl == 4, "cl"] <- 2
+clusters2[clusters$cl == 5, "cl"] <- 3
+clusters2[clusters$cl == 1, "cl"] <- 4
+clusters2[clusters$cl == 2, "cl"] <- 5
+
+write.table(clusters, file = paste0("results/tables/nmr_clustering_kmeans.k",num_k,"_v2.txt"), sep = "\t", quote = F, col.names = NA)
 
 
-pdf(paste0("../nmr_clustering_kmeans_", num_k, ".pdf"), width = 20, height = 20)
+pdf(paste0("results/plots/nmr_clustering_kmeans_", num_k, ".pdf"), width = 20, height = 20)
 par(mfrow=c(3,3))
 cnt <- 1
 for (i in 1:max(cl)){
-  lipids <- names(cl[cl == i])
+  lipids <- row.names(clusters2[clusters2$cl == i,])
   print(length(lipids))
   print(i)
   
