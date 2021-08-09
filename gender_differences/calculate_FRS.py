@@ -1,4 +1,5 @@
 import sys
+import math
 
 def calculate_FRS(age, sex, smk, cho, hdc, sbp, bp_med, diab):
     
