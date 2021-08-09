@@ -60,9 +60,12 @@ with open(agesex_fname) as f:
     smk_col = header['SMK3']
     for l in f:
         spl = l.rstrip().split("\t")
-        
-        antihyper = True if spl[0] in antihyper_users else antihyper = False
-        diab = True if spl[0] in diab_samples else diab = False
+        antihyper = False
+        diab = False
+        if spl[0] in antihyper_users:
+            antihyper = True
+        if spl[0] in diab_samples:
+            diab = True
                 
         pheno = pheno_dict.get(spl[0])
         if pheno:
