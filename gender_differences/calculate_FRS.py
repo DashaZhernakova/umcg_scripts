@@ -61,16 +61,16 @@ with open(agesex_fname) as f:
     smk_col = header['SMK3']
     for l in f:
         spl = l.rstrip().split("\t")
-        antihyper = False
-        diab = False
+        antihyper = 0
+        diab = 0
         if spl[0] in antihyper_users:
-            antihyper = True
+            antihyper = 1
         if spl[0] in diab_samples:
-            diab = True
+            diab = 1 
                 
         pheno = pheno_dict.get(spl[0])
-        if pheno:
-            frs = calculate_FRS(int(spl[age_col]), spl[sex_col], spl[smk_col], pheno[0], pheno[1], pheno[2], antihyper, diab)
+        if pheno and not spl[smk_col] == 'NA':
+            frs = calculate_FRS(int(spl[age_col]), int(spl[sex_col]), int(spl[smk_col]), pheno[0], pheno[1], pheno[2], antihyper, diab)
         else:
             frs = "NA"
         
