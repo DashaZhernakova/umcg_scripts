@@ -127,6 +127,13 @@ write_fitted <- ifelse("write_fitted" %in% names(config),  config$write_fitted, 
 plot_points <- ifelse("plot_points" %in% names(config),  config$plot_points, T)
 runCV <- ifelse("run_cross_validation" %in% names(config),  config$run_cross_validation, F)
 ymax_hist <- ifelse("ymax_hist" %in% names(config),  config$ymax_hist, 1)
+
+if ("pheno_to_log" %in% names(config)){
+   pheno_to_log <- unlist(strsplit(config$pheno_to_log, ","))
+} else {
+   pheno_to_log <- character(0)
+}
+cat("Phenotypes to log-transform: ", pheno_to_log, "\n")
 #
 # Plot initialization
 #
@@ -172,7 +179,7 @@ if (runCV){
   rownames(res_summary) <- colnames(traits_m)
   for (idx in indices){
     trait_name <- ifelse(is.null(pheno_table), colnames(traits_m)[idx], pheno_table[pheno_table[,1] == colnames(traits_m)[idx], 2])
-    cat(idx, " : ", trait_name, "\n")
+    cat(idx, " : ", colnames(traits_m)[idx], " : ", trait_name, "\n")
     merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = outlier_correction_method, log_tr = log_transform, scale_tr = scale_transform)
     cv_lst <- run_cross_validation(merged_tab, pheno_name, covariateslinear, covariatesnonlinear, min_age, max_age)
     #print (unlist(cv_lst))
@@ -195,11 +202,15 @@ for (idx in indices){
     if (nplotspp > 1) par(mfrow=c(5,4))
   }
   trait_name <- ifelse(is.null(pheno_table), colnames(traits_m)[idx], pheno_table[pheno_table[,1] == colnames(traits_m)[idx], 2])
-  
   cat(idx, " : ", trait_name, "\n")
+  
+  log_transform = FALSE
+  if (colnames(traits_m)[idx] %in% pheno_to_log) log_transform = TRUE
+  cat("\tLog tranform: ", log_transform, "\n")
+  
   merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = outlier_correction_method, log_tr = log_transform, scale_tr = scale_transform)
   if (split_by_covariate == ""){
-    res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, covariates_linear = covariateslinear, covariates_nonlinear = covariatesnonlinear, n_points = n_points, make_plots = make_plots, gam_family = gam_family, min_age = min_age, max_age = max_age, ymax_hist = ymax_hist, label = '', add_inter_p_to_plot = add_inter_p_to_plot, plot_title = plot_title, interp_cutoff = interp_cutoff, plot_points = plot_points, add_breakpoints = add_breakpoints,  t_threshold = ttest_cutoff, derivatives_cutoff = deriv_cutoff)
+    res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, covariates_linear = covariateslinear, covariates_nonlinear = covariatesnonlinear, n_points = n_points, make_plots = make_plots, gam_family = gam_family, min_age = min_age, max_age = max_age, ymax_hist = ymax_hist, label = '', add_inter_p_to_plot = add_inter_p_to_plot, plot_title = plot_title, interp_cutoff = interp_cutoff, plot_points = plot_points, add_breakpoints = add_breakpoints,  t_threshold = ttest_cutoff, derivatives_cutoff = deriv_cutoff, log_tr = log_transform)
     if (res_dif_lst[["inter_p"]] < interp_cutoff){
       cnt <- cnt + 1
       cat("\tSignificant interaction detected.\n")
@@ -220,7 +231,7 @@ for (idx in indices){
     if (write_fitted) fitted_lines[,trait_name] = res_dif_lst[["pdat"]]$pred
 
   } else {
-    run_for_split_by_covariate(merged_tab, trait_name, covariate_to_split = split_by_covariate , highlight_positive = highlight_positive_in_split, covariates_linear = covariateslinear, covariates_nonlinear = covariatesnonlinear, n_points = n_points, make_plots = make_plots, gam_family = gam_family, plot_points = plot_points)
+    run_for_split_by_covariate(merged_tab, trait_name, covariate_to_split = split_by_covariate , highlight_positive = highlight_positive_in_split, covariates_linear = covariateslinear, covariates_nonlinear = covariatesnonlinear, n_points = n_points, make_plots = make_plots, gam_family = gam_family, plot_points = plot_points, log_tr = log_transform, min_age = min_age, max_age = max_age)
   }
 }
 res_summary$inter_p_adj_BH <- p.adjust(res_summary$inter_p, method = "BH")

@@ -39,7 +39,7 @@ def main(args):
         for line in f_file:
             spl = line.rstrip("\r\n").split(sep)
             if spl[f_m] in add_dict:
-                sys.stderr.write ("Duplicate row names in the second file are not allowed: ", spl[f_m], "\nExiting!")
+                sys.stderr.write ("Duplicate row names in the second file are not allowed: " + spl[f_m] + "\nExiting!")
                 sys.exit(-1)
             add_dict[spl[f_m]] = [spl[int(i)] for i in f_cols]
 
@@ -57,7 +57,7 @@ def main(args):
     
     for line in i_file:
         spl = line.rstrip("\r\n").split(sep)
-        add_col_list = add_dict.get(spl[i_m], [args['-na']] * len(f_cols))
+        add_col_list = add_dict.get(spl[i_m], [args['na']] * len(f_cols))
         print (line.rstrip("\r\n") + sep + sep.join(add_col_list))
 
 
@@ -65,3 +65,4 @@ def main(args):
 if __name__ == "__main__":
     args = vars(parseArguments())
     main(args)
+

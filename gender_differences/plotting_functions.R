@@ -21,7 +21,7 @@ draw_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add
   }
   binaryPhenotype <- F
   if (all(ylims == c(0,1))) {
-    ylabel <- "Probability"
+    ylabel <- paste0(pheno_name, " frequency")
     binaryPhenotype <- T
   }
   
@@ -38,7 +38,11 @@ draw_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add
   merged_tab2 <- merged_tab[merged_tab$phenotype <= ylims[2] & merged_tab$phenotype >= ylims[1],]
   if (plot_title == ""){
     if (add_inter_p_to_plot) {
-      plot_title <- paste0(pheno_name, '\n', label, "\nGAM interaction p = ", format(gam.p, digits = 3))
+      if (gam.p == 0) {
+	plot_title <- paste0(pheno_name, '\n', label, "\nGAM interaction P < 2.23e-308")
+      } else {
+	plot_title <- paste0(pheno_name, '\n', label, "\nGAM interaction P = ", format(gam.p, digits = 3))
+      }
     } else {
       plot_title <- pheno_name
     }
@@ -129,7 +133,7 @@ draw_plot_multiline <- function(merged_tab, pheno_name, pdat_list, color_list, f
     if (nchar(pheno_name) > 60) cex_main <- 0.6
     
   }
-  if (all(ylims == c(0,1))) ylabel <- "Probability"
+  if (all(ylims == c(0,1))) ylabel <- paste0(pheno_name, " frequency")
   
   
   ## draw base plot

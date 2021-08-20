@@ -12,8 +12,8 @@ setwd(wd_path)
 traits_path <- args[1]
 pheno_path <- args[2]
 out_basepath <- args[3]
-#tologtr <- c("LEU", "LY", "LYP", "MO", "MOP", "GR", "GRP", "BA", "BAP", "EO", "EOP", "ER", "TR", "TGL", "HAL1", "HALB", "AST", "ALT", "AF", "GGT", "LCRP", "TSH", "UKRO", "UKR24")
-tologtr <- c()
+tologtr <- c("LEU", "LY", "MO", "MOP", "GR", "BA", "BAP", "EO", "EOP", "TGL", "HAL1", "HALB", "AST", "ALT", "AF", "GGT", "LCRP", "TSH", "UKRO", "UKR24", "LLDS_T1A", "total_scor_VAL")
+#tologtr <- c()
 
 traits0 <- read.delim(traits_path, header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)
 traits <- sapply(traits0, function(x) as.numeric(as.character(x)))
@@ -43,7 +43,8 @@ for (idx in indices){
   print(trait_id)
   if (trait_id %in% tologtr){
     merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = "IQR", log_tr = T)
-    trait_id <- paste0("log(", trait_id, "+1)")
+    #trait_id <- paste0("log(", trait_id, "+1)")
+    merged_tab[,1] <- exp(merged_tab[,1]) - 1
   } else {
     merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = "IQR", log_tr = F)
   }

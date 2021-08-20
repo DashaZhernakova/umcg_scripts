@@ -88,7 +88,7 @@ correct_for_covariates_before <- function(traits_m, pheno_m, covariates){
 }
 
 
-run_for_split_by_covariate <- function(merged_tab, pheno_name, covariate_to_split, highlight_positive = F, covariates_linear = c(), covariates_nonlinear = c(), n_points = 300, make_plots = T,  gam_family = gaussian(), min_age = 20, max_age = 80, plot_points = T){
+run_for_split_by_covariate <- function(merged_tab, pheno_name, covariate_to_split, highlight_positive = F, covariates_linear = c(), covariates_nonlinear = c(), n_points = 300, make_plots = T,  gam_family = gaussian(), min_age = 20, max_age = 80, plot_points = T, log_tr = F){
   pdat_list <- list()
   col_list <- list()
   colors <- list("indianred1", "orange1", "dodgerblue1", "cadetblue1")
@@ -101,7 +101,7 @@ run_for_split_by_covariate <- function(merged_tab, pheno_name, covariate_to_spli
   cnt2 <- 1
   for (dat in list(w0,w1,m0,m1)){
     if (nrow(dat) > 0){
-      pdat_list[[cnt]] <- fit_gam_age_only(dat, pheno_name, covariates_linear = c(), covariates_nonlinear = c(), n_points = 300, make_plots = T,  gam_family = gaussian(), min_age = 20, max_age = 80)
+      pdat_list[[cnt]] <- fit_gam_age_only(dat, pheno_name, covariates_linear = c(), covariates_nonlinear = c(), n_points = 300, make_plots = T,  gam_family = gaussian(), min_age = min_age, max_age = max_age, log_tr = log_tr)
       col_list[[cnt]] <- colors[[cnt2]]
       cnt <- cnt + 1
     }
@@ -110,6 +110,7 @@ run_for_split_by_covariate <- function(merged_tab, pheno_name, covariate_to_spli
   factor_to_highlight <- ""
   if (highlight_positive) factor_to_highlight <- covariate_to_split
   colnames(merged_tab)[1] <- "phenotype"
+  if (log_tr) merged_tab[,1] <- exp(merged_tab[,1]) - 1
   draw_plot_multiline(merged_tab, pheno_name, pdat_list, col_list, factor_name = factor_to_highlight, plot_points = plot_points)
 }
 
