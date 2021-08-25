@@ -113,8 +113,8 @@ run_for_split_by_covariate <- function(merged_tab, pheno_name, covariate_to_spli
   if (log_tr) merged_tab[,1] <- exp(merged_tab[,1]) - 1
   draw_plot_multiline(merged_tab, pheno_name, pdat_list, col_list, factor_name = factor_to_highlight, plot_points = plot_points)
 
-  before <- pdat_list[[1]] - pdat_list[[3]]
-  after <- pdat_list[[2]] - pdat_list[[4]]
+  before <- pdat_list[[1]]$pred - pdat_list[[3]]$pred
+  after <- pdat_list[[2]]$pred - pdat_list[[4]]$pred
   return(c(before, after))
 }
 

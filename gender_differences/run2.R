@@ -237,6 +237,7 @@ for (idx in indices){
   } else {
     res_diff <- run_for_split_by_covariate(merged_tab, trait_name, covariate_to_split = split_by_covariate , highlight_positive = highlight_positive_in_split, covariates_linear = covariateslinear, covariates_nonlinear = covariatesnonlinear, n_points = n_points, make_plots = make_plots, gam_family = gam_family, plot_points = plot_points, log_tr = log_transform, min_age = min_age, max_age = max_age)
     if (write_fitted) fitted_lines[,trait_name] = res_diff
+    cat(cor(res_diff[seq(1,300)], res_diff[seq(301,600)], method = "spearman"))
   }
 }
 res_summary$inter_p_adj_BH <- p.adjust(res_summary$inter_p, method = "BH")
