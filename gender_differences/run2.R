@@ -180,6 +180,10 @@ if (runCV){
   for (idx in indices){
     trait_name <- ifelse(is.null(pheno_table), colnames(traits_m)[idx], pheno_table[pheno_table[,1] == colnames(traits_m)[idx], 2])
     cat(idx, " : ", colnames(traits_m)[idx], " : ", trait_name, "\n")
+    log_transform = FALSE
+    if (colnames(traits_m)[idx] %in% pheno_to_log) log_transform = TRUE
+    cat("\tLog tranform: ", log_transform, "\n")
+    
     merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = outlier_correction_method, log_tr = log_transform, scale_tr = scale_transform)
     cv_lst <- run_cross_validation(merged_tab, pheno_name, covariateslinear, covariatesnonlinear, min_age, max_age)
     #print (unlist(cv_lst))
