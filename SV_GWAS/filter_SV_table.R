@@ -1,4 +1,6 @@
 library(UpSetR)
+library(tibble)
+library(dplyr)
 
 run_qc_per_sv <- function(d, cohort_name, outpath, cr = 0.1){
     qc <- as.data.frame(t(apply(d, 2, function(x) table(factor(x, levels = c(0,1,NA)), exclude = NULL))))
@@ -51,6 +53,7 @@ run_qc_per_sample <- function(d, cohort_name, outpath){
 setwd("/data/umcg-tifn/SV/SV_GWAS")
 infile <- "/data/umcg-tifn/SV/profile/20210923_full_v3.0_10706samples/SV/20210923_full_deletionStructuralVariation_10706samples.tsv"
 d <- read.delim(infile, header = T, sep = "\t", as.is = T, check.names = F, row.names = NULL)
+conv <- read.delim("/data/umcg-tifn/SV/SV_GWAS/data/sv_name_conversion_table.txt", header = T,  sep = "\t", as.is = T, check.names = F)
 cohorts <- read.delim("/data/umcg-tifn/SV/profile/20210923_full_v3.0_10706samples/SV/cleaned_file_list.tsv", header = T, sep = "\t", as.is = T, check.names = F)
 cs <- c("LLD1", "300-OB", "500FG", "DAG3")
 cohorts <- cohorts[cohorts$Cohort %in%  cs,]
@@ -62,19 +65,35 @@ for (c in cs){
     d_cohort <- d[d[,1] %in% cohorts[cohorts$Cohort == c, 1],]
     row.names(d_cohort) <- d_cohort[,1]
     d_cohort <- d_cohort[,2:ncol(d_cohort)]
-    cr = 0.1
-    if (c == "DAG3") cr = 0.05
-    d_flt <- run_qc_per_sv(d_cohort, c, paste0("data/QC/", c, ".dSV_filtering"), cr)
+    
+    #filter SVs
+    d_flt <- run_qc_per_sv(d_cohort, c, paste0("data/QC/", c, ".dSV_filtering"))
     d_flt <- run_qc_per_sample(d_flt, c, paste0("data/QC/", c, ".dSV_filtering"))
+
     sv_per_cohort[row.names(sv_per_cohort) %in% colnames(d_flt), c] <- 1
+
+    #change 0/1 into 1/2
+    d_flt[] <- lapply(as.data.frame(d_flt), function(x) sub(1,2,x))
+    d_flt[] <- lapply(as.data.frame(d_flt), function(x) sub(0,1,x))
+
+    # rename SVs
+    new_sv_ids <-(conv[match(colnames(d_flt), conv$sv_id, nomatch = 0),"new_sv_id"])
+    length(new_sv_ids) == ncol(d_flt)
+    colnames(d_flt) <- new_sv_ids
+
+    d_flt <- d_flt %>% 
+        rownames_to_column(var = "#IID")
+    #write filtered table
+    if (c == "LLD1") c = "LLD"
+    if (c == "300-OB") c = "300OB"
+    write.table(d_flt, file = paste0("data/", c, ".dSV.filtered.txt"), sep = "\t", quote = F, row.names = F) 
 }
 
-#TODO 
+# plot number of SVs and their overlap between cohorts
 sv_per_cohort <- as.data.frame(sv_per_cohort)
 sv_per_cohort[is.na(sv_per_cohort)] <- 0
-pdf("data/QC/dSV_overlap3.pdf")
+pdf("data/QC/dSV_overlap.pdf")
 upset(sv_per_cohort, order.by = "freq")
 dev.off()
 
-d[] <- lapply(as.data.frame(d), function(x) sub(1,2,x))
-d[] <- lapply(as.data.frame(d), function(x) sub(0,1,x))
+
