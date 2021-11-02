@@ -9,7 +9,7 @@ with open(annot_fname) as annot:
         sv_sp_dict[spl[0]] = spl[1]
 
 with open(sv_name_fname) as f:
-    print("sv_id\tsv_species\tnew_sv_id")
+    print("sv_id\tsv_species\tnew_sv_id\tnew_sv_species")
     cur_sp = ""
     idx = 0
     for l in f:
@@ -25,4 +25,4 @@ with open(sv_name_fname) as f:
         new_id = sp_short + ":" + str(idx)
         #replace :
         new_id = new_id.replace("-","_").replace("/", "_").replace(" ", "_")
-        print (sv + "\t" + sp + "\t" + new_id)
+        print (sv + "\t" + sp + "\t" + new_id + "\t" + sp_short)
