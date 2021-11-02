@@ -7,8 +7,8 @@ rename_fname = sys.argv[2]
 col_old = 0
 col_new = 1
 if len(sys.argv) > 3:
-    col_old = sys.argv[3]
-    col_new = sys.argv[4]
+    col_old = int(sys.argv[3])
+    col_new = int(sys.argv[4])
 
 if in_fname != "stdin":
     if in_fname.endswith(".gz"):
