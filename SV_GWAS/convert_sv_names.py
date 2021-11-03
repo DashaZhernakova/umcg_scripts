@@ -22,7 +22,6 @@ with open(sv_name_fname) as f:
         else:
             idx = 1
             cur_sp = sp_short
+        sp_short = sp_short.replace("-","_").replace("/", "_").replace(" ", "_")
         new_id = sp_short + ":" + str(idx)
-        #replace :
-        new_id = new_id.replace("-","_").replace("/", "_").replace(" ", "_")
         print (sv + "\t" + sp + "\t" + new_id + "\t" + sp_short)

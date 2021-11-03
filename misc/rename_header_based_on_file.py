@@ -25,13 +25,15 @@ with open (rename_fname) as f:
         spl = l.rstrip().split("\t")
         rename_dict[spl[col_old]] = spl[col_new]
 
-
+out_str = ""
 header = in_file.readline().rstrip().split("\t")
 for h in header:
+    h2 = h
     if len(h) > 0:
-        h2 = rename_dict[h]
-    else:
-        h2 = h
+        if h in rename_dict.keys():
+             h2 = rename_dict[h]
+        else:
+             sys.stderr.write("WARNING! No such value in the renaming file: " + h + ". The old column name will be used!\n")
     out_str += "\t" + h2
 print(out_str.replace("\t", "", 1))
 
