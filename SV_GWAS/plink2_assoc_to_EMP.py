@@ -29,12 +29,12 @@ line_num = 1
 
 for l in f:
     spl = l.strip().split()
-    p = float(spl[10])
+    p = float(spl[11])
     #if p > 0.05:
     #    continue
     #if line_num > max_lines:
     #    break
-    zscore = spl[9]
+    zscore = spl[10]
     empty_spl_cp = empty_out_spl[:]
     empty_spl_cp[0] = str(p)
     empty_spl_cp[1] = spl[2]
@@ -47,7 +47,7 @@ for l in f:
     empty_spl_cp[10] = zscore
     empty_spl_cp[11] = dataset
     empty_spl_cp[12] = zscore
-    empty_spl_cp[13] = spl[6]
+    empty_spl_cp[13] = spl[7]
 
     print ("\t".join(empty_spl_cp))
     line_num += 1
