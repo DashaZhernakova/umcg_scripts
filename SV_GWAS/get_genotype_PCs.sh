@@ -14,5 +14,5 @@ plink2 \
 --out ${in_f}.pruned
 
 plink2 --bfile ${in_f}.pruned --pca --out ${in_f}.pruned
-cut -f1-4  ${in_f}.pruned.eigenvec > ${in_f}.PC1-2.txt
+cut -f1-4  ${in_f}.pruned.eigenvec | sed 's:IID:#IID:g' > ${in_f}.PC1-2.txt
 rm ${in_f}.pruned.*
