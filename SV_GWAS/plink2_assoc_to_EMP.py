@@ -8,7 +8,7 @@ empty_out_spl=["1","x","1","1","x","1","1","trans","A/T","A","0","x","0","0","0"
 fname = sys.argv[1]
 pheno = sys.argv[2]
 dataset = sys.argv[3]
-if len(sys.argv > 4):
+if len(sys.argv) > 4:
     read_header = sys.argv[4]
 else:
     read_header = True

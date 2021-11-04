@@ -45,7 +45,7 @@ plink2 \
 # sort results and convert to EMP
 tail -n+2 ${res_dir}/${type}.${cohort}.${sv}.glm.logistic | \
 sort -k12,12g | \
-~/scripts/umcg_scripts/misc/plink2_assoc_to_EMP.py stdin ${sv} ${cohort} false | tail -n+2 \
+python3 ~/scripts/umcg_scripts/SV_GWAS/plink2_assoc_to_EMP.py stdin ${sv} ${cohort} false | tail -n+2 \
 > ${res_dir}/${type}.${cohort}.${sv}.eQTLs.txt
 
  
