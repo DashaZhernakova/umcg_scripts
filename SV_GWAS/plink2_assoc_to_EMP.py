@@ -29,6 +29,8 @@ line_num = 1
 
 for l in f:
     spl = l.strip().split()
+    if p == "NA":
+        continue
     p = float(spl[11])
     #if p > 0.05:
     #    continue
