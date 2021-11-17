@@ -59,12 +59,23 @@ cs <- c("LLD1", "300-OB", "500FG", "DAG3")
 cohorts <- cohorts[cohorts$Cohort %in%  cs,]
 sv_per_cohort <- matrix(nrow = ncol(d), ncol = length(cs))
 row.names(sv_per_cohort) <- colnames(d)
-colnames(sv_per_cohort) <- cs
+colnames(sv_per_cohort) <- c("LLD", "300OB", "500FG", "DAG3")
 
 for (c in cs){
     d_cohort <- d[d[,1] %in% cohorts[cohorts$Cohort == c, 1],]
     row.names(d_cohort) <- d_cohort[,1]
     d_cohort <- d_cohort[,2:ncol(d_cohort)]
+    
+    if (c == "LLD1") c = "LLD"
+    if (c == "300-OB") c = "300OB"
+    
+    # get samples with genotypes
+    geno <- read.delim(paste0("data/",c, ".covariates.txt") , header = T, sep = "\t", as.is = T, check.names = F, row.names = 1)
+    cat("Number of samples with dSVs: ", nrow(d_cohort), "\n")
+    cat("Number of samples with genotypes and covariates: ", nrow(geno), "\n")
+    sample_overlap <- row.names(d_cohort)[row.names(d_cohort) %in% row.names(geno)]
+    cat ("Number overlapping samples: ", length(sample_overlap), "\n")
+    d_cohort <- d_cohort[row.names(d_cohort) %in% sample_overlap,]
     
     #filter SVs
     d_flt <- run_qc_per_sv(d_cohort, c, paste0("data/QC/", c, ".dSV_filtering"))
@@ -84,16 +95,26 @@ for (c in cs){
     d_flt <- d_flt %>% 
         rownames_to_column(var = "#IID")
     #write filtered table
-    if (c == "LLD1") c = "LLD"
-    if (c == "300-OB") c = "300OB"
     write.table(d_flt, file = paste0("data/", c, ".dSV.filtered.txt"), sep = "\t", quote = F, row.names = F) 
 }
+
 
 # plot number of SVs and their overlap between cohorts
 sv_per_cohort <- as.data.frame(sv_per_cohort)
 sv_per_cohort[is.na(sv_per_cohort)] <- 0
-pdf("data/QC/dSV_overlap.pdf")
+pdf("data/QC/dSV_overlap_v3.pdf")
 upset(sv_per_cohort, order.by = "freq")
 dev.off()
+
+
+sv_per_cohort2 <- as.data.frame(sv_per_cohort[rowSums(sv_per_cohort, na.rm = T) > 1,])
+new_sv_ids2 <-(conv[match(row.names(sv_per_cohort2), conv$sv_id, nomatch = 0),"new_sv_id"])
+length(new_sv_ids2) == nrow(sv_per_cohort2)
+row.names(sv_per_cohort2) <- new_sv_ids2
+sv_per_cohort2$cohorts <- NA
+
+sv_per_cohort2$cohorts <- apply(sv_per_cohort2, 1, function(x) {paste(colnames(sv_per_cohort2)[which(x==1)], collapse = ",")})
+
+write.table(sv_per_cohort2, file = "data/dSV_per_cohort.txt", sep = "\t", quote = F, col.names = NA) 
 
 
