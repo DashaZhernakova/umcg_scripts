@@ -5,8 +5,10 @@ empty_out_spl=["1","x","1","1","x","1","1","trans","A/T","A","0","x","0","0","0"
 
 fname = sys.argv[1]
 pheno = sys.argv[2]
-dataset = sys.argv[3]
-max_lines = 100000
+dataset_names = sys.argv[3].split(",")
+dataset_samplesizes = sys.argv[4].split(",")
+
+max_lines = 1000000
 
 if fname.endswith(".gz"):
     f = gzip.open(fname)
@@ -26,6 +28,22 @@ for l in f:
     #    continue
     if line_num > max_lines:
         break
+    
+    datasets = ""
+    zscores = ""
+    for i, direction in enumerate(spl[6]):
+        if direction == "+":
+            datasets += ";" + dataset_names[i]
+            samplesizes += ";" + dataset_samplesizes[i]
+            zscores += ";1"
+        elif direction == "-":
+            datasets += ";" + dataset_names[i]
+            samplesizes += ";" + dataset_samplesizes[i]
+            zscores += ";-1"
+    zscores = zscores.replace(";","", 1)
+    datasets = datasets.replace(";","", 1)
+    samplesizes = samplesizes.replace(";","", 1)
+    
     zscore = spl[4]
     empty_spl_cp = empty_out_spl[:]
     empty_spl_cp[0] = str(p)
@@ -37,8 +55,8 @@ for l in f:
     empty_spl_cp[9] = spl[1].upper()
     empty_spl_cp[16] = pheno 
     empty_spl_cp[10] = zscore
-    empty_spl_cp[11] = dataset
-    empty_spl_cp[12] = zscore
+    empty_spl_cp[11] = datasets
+    empty_spl_cp[12] = zscores
     empty_spl_cp[13] = spl[3]
 
     print ("\t".join(empty_spl_cp))
