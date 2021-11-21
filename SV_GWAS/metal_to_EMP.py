@@ -33,6 +33,7 @@ for l in f:
     
     datasets = ""
     zscores = ""
+    samplesizes = ""
     for i, direction in enumerate(spl[6]):
         if direction == "+":
             datasets += ";" + dataset_names[i]
@@ -59,7 +60,7 @@ for l in f:
     empty_spl_cp[10] = zscore
     empty_spl_cp[11] = datasets
     empty_spl_cp[12] = zscores
-    empty_spl_cp[13] = spl[3]
+    empty_spl_cp[13] = samplesizes
 
     print ("\t".join(empty_spl_cp))
     line_num += 1
