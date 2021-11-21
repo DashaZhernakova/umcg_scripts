@@ -9,11 +9,13 @@ dataset_names = sys.argv[3].split(",")
 dataset_samplesizes = sys.argv[4].split(",")
 
 max_lines = 1000000
-
-if fname.endswith(".gz"):
-    f = gzip.open(fname)
+if fname == "stdin":
+    f = sys.stdin
 else:
-    f = open(fname)
+    if fname.endswith(".gz"):
+        f = gzip.open(fname)
+    else:
+        f = open(fname)
 
 f.readline()
 print("PValue\tSNPName\tSNPChr\tSNPChrPos\tProbeName\tProbeChr\tProbeCenterChrPos\tCisTrans\tSNPType\tAlleleAssessed\tOverallZScore\tDatasetsWhereSNPProbePairIsAvailableAndPassesQC\tDatasetsZScores\tDatasetsNrSamples\tIncludedDatasetsMeanProbeExpression\tIncludedDatasetsProbeExpressionVariance\tHGNCName\tIncludedDatasetsCorrelationCoefficient\tMeta-Beta (SE)\tBeta (SE)\tFoldChange\tFDR")
