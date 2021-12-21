@@ -28,7 +28,7 @@ run_qc_per_sv <- function(d, cohort_name, outpath, cr = 0.1){
     dev.off()
 
     
-    qc_05 <- qc[qc$num_called > 80 & qc$presence_rate > 0.05 & qc$presence_rate < 0.95 & qc$call_rate > cr,]
+    qc_05 <- qc[qc[,1] > 80 & qc[,2] > 80 & qc$presence_rate > 0.05 & qc$presence_rate < 0.95 & qc$call_rate > cr,]
     #qc_05 <- qc[qc$call_rate > 0.15 & qc$presence_rate > 0.05 & qc$presence_rate < 0.95 & qc[,"1"] > 60 & qc[,"0"] > 60, ]
 
     cat(cohort_name, ": number SV before QC:", nrow(qc), "number SV after filtering:", nrow(qc_05), "\n", sep = " ")

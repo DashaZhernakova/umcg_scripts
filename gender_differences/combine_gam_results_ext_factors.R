@@ -1,5 +1,6 @@
 library(dplyr)
 library(corrplot)
+setwd("/groups/umcg-lifelines/tmp01/users/umcg-dzhernakova/gender_difs/factors/results_v1")
 phenos <- c("AF", "ALT", "AST", "CA", "NAA", "FOS", "GLU", "DBP", "CHO", "HDC", "LDC","TGL")
 
 ptable <- data.frame()
@@ -44,8 +45,13 @@ write.table(pval_bins, file = "pval_table_bins.txt", quote = F, col.names = NA, 
 
 pval_bins <- sapply(pval_bins, function(x) as.numeric(as.character(x)))
 row.names(pval_bins) <-row.names(res)
-pdf("pval_bins.corrplot.pdf", height = 10, width = 10)
+pdf("pval_bins.corrplot.v2.pdf", height = 10, width = 10)
 corrplot(pval_bins)
 dev.off()
 
 #TODO: rename rows!
+row.names(pval_bins) <- gsub("LTE_SUM", "stress_1y", row.names(pval_bins))
+row.names(pval_bins) <- gsub("LDI_SUM", "stress_long", row.names(pval_bins))
+row.names(pval_bins) <- gsub("total_scor_VAL", "phys_activ_total", row.names(pval_bins))
+row.names(pval_bins) <- gsub("MVPA_scor_VAL", "phys_activ_intens", row.names(pval_bins))
+row.names(pval_bins) <- gsub("LLDS_T1A", "diet", row.names(pval_bins))
