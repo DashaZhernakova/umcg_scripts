@@ -7,6 +7,9 @@ fname = sys.argv[1]
 pheno = sys.argv[2]
 dataset_names = sys.argv[3].split(",")
 dataset_samplesizes = sys.argv[4].split(",")
+pval_threshold = 1
+if len(sys.argv) > 5:
+    pval_threshold = float(sys.argv[5])
 
 max_lines = 1000000
 if fname == "stdin":
@@ -26,8 +29,8 @@ for l in f:
     spl = l.strip().split()
     snp = spl[0]
     p = float(spl[5])
-    #if p > 0.05:
-    #    continue
+    if p > pval_threshold:
+        continue
     if line_num > max_lines:
         break
     
