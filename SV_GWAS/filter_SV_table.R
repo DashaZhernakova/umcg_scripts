@@ -1,6 +1,10 @@
+args <- commandArgs(trailingOnly = TRUE)
 library(UpSetR)
 library(tibble)
 library(dplyr)
+
+infile <- args[1]
+cohort_table <- args[2]
 
 run_qc_per_sv <- function(d, cohort_name, outpath, cr = 0.1){
     qc <- as.data.frame(t(apply(d, 2, function(x) table(factor(x, levels = c(0,1,NA)), exclude = NULL))))
@@ -50,11 +54,12 @@ run_qc_per_sample <- function(d, cohort_name, outpath){
     return(d)
 }
 
+
 setwd("/data/umcg-tifn/SV/SV_GWAS")
-infile <- "/data/umcg-tifn/SV/profile/20210923_full_v3.0_10706samples/SV/20210923_full_deletionStructuralVariation_10706samples.tsv"
+#infile <- "/data/umcg-tifn/SV/profile/20211212_full_v4.0_12388samples_final/SV/SV_full/20211212_full_deletionStructuralVariation_12388samples.tsv"
 d <- read.delim(infile, header = T, sep = "\t", as.is = T, check.names = F, row.names = NULL)
 conv <- read.delim("/data/umcg-tifn/SV/SV_GWAS/data/sv_name_conversion_table.txt", header = T,  sep = "\t", as.is = T, check.names = F)
-cohorts <- read.delim("/data/umcg-tifn/SV/profile/20210923_full_v3.0_10706samples/SV/cleaned_file_list.tsv", header = T, sep = "\t", as.is = T, check.names = F)
+cohorts <- read.delim(cohort_table, header = T, sep = "\t", as.is = T, check.names = F)
 cs <- c("LLD1", "300-OB", "500FG", "DAG3")
 cohorts <- cohorts[cohorts$Cohort %in%  cs,]
 sv_per_cohort <- matrix(nrow = ncol(d), ncol = length(cs))
