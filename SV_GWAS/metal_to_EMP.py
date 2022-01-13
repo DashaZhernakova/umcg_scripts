@@ -59,7 +59,7 @@ for l in f:
     empty_spl_cp[4] = pheno
     empty_spl_cp[8] = spl[1].upper() + "/" + spl[2].upper()
     empty_spl_cp[9] = spl[1].upper()
-    empty_spl_cp[16] = pheno 
+    empty_spl_cp[16] = pheno.replace("\:\d+$", "")
     empty_spl_cp[10] = zscore
     empty_spl_cp[11] = datasets
     empty_spl_cp[12] = zscores

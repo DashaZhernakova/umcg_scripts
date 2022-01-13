@@ -28,6 +28,76 @@ print(summary(m1))
 print(summary(m2))
 print(summary(m3))
 print(AIC(m0, m1, m2, m3))
+
+# 
+# Parametric coefficients:
+#   Estimate Std. Error z value Pr(>|z|)
+# (Intercept)                       -4.39189    0.11143 -39.414  < 2e-16 ***
+#   gender_F1M2                        0.00000    0.00000      NA       NA
+# SMK3                               0.39946    0.09742   4.101 4.12e-05 ***
+#   T2D                                0.35341    0.18477   1.913   0.0558 .
+# interaction(SMK3, gender_F1M2)1.1  0.00000    0.00000      NA       NA
+# interaction(SMK3, gender_F1M2)0.2 -0.17499    0.26707  -0.655   0.5123
+# interaction(SMK3, gender_F1M2)1.2 -0.22241    0.28821  -0.772   0.4403
+# interaction(T2D, gender_F1M2)1.1   0.00000    0.00000      NA       NA
+# interaction(T2D, gender_F1M2)0.2   0.13060    0.25869   0.505   0.6137
+# interaction(T2D, gender_F1M2)1.2   0.00000    0.00000      NA       NA
+# ---
+#   Signif. codes:  0 ---***--- 0.001 ---**--- 0.01 ---*--- 0.05 ---.--- 0.1 --- --- 1
+# 
+# Approximate significance of smooth terms:
+#   edf Ref.df  Chi.sq  p-value
+# s(age)                                   1.2046850      9 277.203  < 2e-16 ***
+#   s(BMI)                                   1.1539722      9   4.490 0.019149 *
+#   s(CHO)                                   1.8671186      9  11.733 0.000689 ***
+#   s(HDC)                                   0.8080999      9   3.749 0.017674 *
+#   s(SBP)                                   2.6085895      9  58.899  < 2e-16 ***
+#   s(LLDS_T1A)                              0.0013966      9   0.001 0.360370
+# s(total_scor_VAL)                        0.6757301      9   1.993 0.019129 *
+#   s(age):gender_F1M2                       0.0002252      9   0.000 0.252428
+# s(BMI):gender_F1M2                       0.0003890      9   0.000 1.000000
+# s(CHO):gender_F1M2                       0.0007567      9   0.000 0.388593
+# s(HDC):gender_F1M2                       0.0003850      9   0.000 0.645612
+# s(SBP):gender_F1M2                       0.0004743      9   0.000 0.649864
+# s(LLDS_T1A):gender_F1M2                  0.5297943      9   1.188 0.132145
+# s(total_scor_VAL):gender_F1M2            1.3305963      9   5.083 0.005212 **
+#   ti(BMI,age)                              0.0010709     16   0.000 0.654202
+# s(age):SMK3                              0.0003212      9   0.000 0.318236
+# s(age):T2D                               0.0001275      9   0.000 0.307392
+# ti(CHO,age)                              0.0009806     16   0.001 0.532281
+# ti(HDC,age)                              2.8949273     16   9.100 0.003832 **
+#   ti(SBP,age)                              1.2581371     16   3.778 0.041129 *
+#   ti(LLDS_T1A,age)                         0.0006983     16   0.000 0.590131
+# ti(total_scor_VAL,age)                   0.0009046     16   0.000 0.745605
+# s(age):interaction(SMK3, gender_F1M2)0.1 0.0005523      9   0.000 0.664255
+# s(age):interaction(SMK3, gender_F1M2)1.1 0.0005419      9   0.000 0.668238
+# s(age):interaction(SMK3, gender_F1M2)0.2 0.0002697      9   0.000 0.514987
+# s(age):interaction(SMK3, gender_F1M2)1.2 0.0006295      9   0.000 0.384618
+# s(age):interaction(T2D, gender_F1M2)0.1  0.0005010      9   0.000 0.858928
+# s(age):interaction(T2D, gender_F1M2)1.1  0.0001893      9   0.000 0.762190
+# s(age):interaction(T2D, gender_F1M2)0.2  1.7647189      9   6.233 0.014372 *
+#   s(age):interaction(T2D, gender_F1M2)1.2  0.0001622      9   0.000 0.316803
+# ti(BMI,age):gender_F1M2                  0.0009178     16   0.000 0.595443
+# ti(CHO,age):gender_F1M2                  0.0019982     16   0.002 0.412901
+# ti(HDC,age):gender_F1M2                  1.5405915     16   3.691 0.021934 *
+#   ti(SBP,age):gender_F1M2                  0.0009576     16   0.000 0.915181
+# ti(LLDS_T1A,age):gender_F1M2             0.0007453     16   0.000 0.789820
+# ti(total_scor_VAL,age):gender_F1M2       1.1121596     16   2.016 0.122607
+# ---
+#   Signif. codes:  0 ---***--- 0.001 ---**--- 0.01 ---*--- 0.05 ---.--- 0.1 --- --- 1
+# 
+# Rank: 423/427
+# R-sq.(adj) =  0.025   Deviance explained = 9.09%
+# -ML = 6983.5  Scale est. = 1         n = 69159
+# df      AIC
+# m0 18.44275 16643.48
+# m1 22.30745 13979.04
+# m2 25.45681 13971.71
+# m3 30.94226 13961.28
+
+
+
+
 summary(m0)
 # Family: binomial
 # Link function: logit

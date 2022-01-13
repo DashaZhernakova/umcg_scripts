@@ -2,7 +2,7 @@
 #SBATCH --job-name=SV___BACLIST__
 #SBATCH --output=logs/run_GWAS_SV___BACLIST__.out
 #SBATCH --error=logs/run_GWAS_SV___BACLIST__.err
-#SBATCH --time=30:00:00
+#SBATCH --time=50:00:00
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=20gb
 #SBATCH --nodes=1
@@ -12,12 +12,11 @@
 
 module load PLINK
 module load Metal
-set -e
 
 type=dSV
 d=/data/umcg-tifn/SV/SV_GWAS/
-cohorts_nodag3=("300OB" "500FG" "LLD")
-nperm=5
+nperm=10
+#sv="B.adolescentis:47"
 
 while read line
 do
@@ -26,8 +25,10 @@ do
     sp=`grep -w "$sv" ${d}/data/sv_name_conversion_table.txt | cut -f4 | uniq`
     all_nsamples=()
 
-    meta_out_filebase=${d}/results/${type}/meta/${sv}.meta_res
-    
+    meta_out_dir=${d}/results/${type}/meta/${sv}/
+    meta_out_filebase=${meta_out_dir}/${sv}.meta_res
+    mkdir -p ${d}/results/${type}/meta/${sv}/
+
     metal_script=/data/umcg-tifn/SV/SV_GWAS/scripts/metal_per_sv/${sv}.metal.txt
     cat /data/umcg-tifn/SV/SV_GWAS/scripts/metal_header.txt > $metal_script
     for p in `seq 1 $nperm`
@@ -42,7 +43,7 @@ do
     do
         echo -e "\n\nRunning the analysis for ${cohort}\n\n"
 
-        res_dir=${d}/results/${type}/${cohort}/
+        res_dir=${d}/results/${type}/${cohort}/${sv}/
         mkdir -p ${res_dir}/permutations/
 
         geno_file=${d}/genotypes/${cohort}/${cohort}_filtered
@@ -50,7 +51,13 @@ do
         pheno_file=${d}/data/${cohort}.${type}.filtered.txt
         covar_file=${d}/data/${cohort}.covariates.txt   
         
-        
+        covars="age,read_number,$sp,PC1,PC2"
+        if [ $cohort == "DAG3" ]
+        then
+            echo "DAG3! Use PCs 1-5"
+            covars="age,read_number,$sp,PC1,PC2,PC3,PC4,PC5"
+        fi
+
         #
         # run real GWAS analysis
         #
@@ -60,24 +67,20 @@ do
             --pheno ${pheno_file} \
             --pheno-name "${sv}" \
             --covar ${covar_file} \
-            --covar-name "age,read_number,$sp,PC1,PC2" \
+            --covar-name "${covars}" \
             --covar-variance-standardize \
-            --out ${res_dir}/${type}.${cohort}.${sv}
+            --out ${res_dir}/${type}.${cohort}.${sv} 
         
-        plink_returncode=$?
-        n=`head -2 ${res_dir}/${type}.${cohort}.${sv}.${sv}.glm.logistic | tail -1 | awk '{print $7}'`
+        echo "$sv real analysis plink return code: $?"
+        n=`head -2 ${res_dir}/${type}.${cohort}.${sv}.${sv}.glm.logistic | tail -1 | awk '{print $8}'`
         all_nsamples+=( $n )
         # format the assoc results for METAL: add A1 and A2
         awk '{OFS="\t"}; {if ($6 == $4) {oa=$5}; if ($6 == $5) {oa=$4}; if (NR == 1) {oa="A2"}; {print $1,$2,$3,$6, oa, $7,$8,$9,$10,$11,$12}}' \
         ${res_dir}/${type}.${cohort}.${sv}.${sv}.glm.logistic | gzip -c > ${res_dir}/${type}.${cohort}.${sv}.${sv}.glm.logistic.gz
         reformat_returncode=$?
         
-        if [ $plink_returncode -eq 0 ] && [ $reformat_returncode -eq 0 ]
-        then 
-            rm ${res_dir}/${type}.${cohort}.${sv}.${sv}.glm.logistic
-        else
-            echo "ERROR in GWAS or awk reformatting. plink_returncode=$plink_returncode ; reformat_returncode=$reformat_returncode . Output file: ${res_dir}/${type}.${cohort}.${sv}.${sv}.glm.logistic "
-        fi
+        rm ${res_dir}/${type}.${cohort}.${sv}.${sv}.glm.logistic
+        
         echo -e "PROCESS\t${res_dir}/${type}.${cohort}.${sv}.${sv}.glm.logistic.gz\n" >> $metal_script
         
         
@@ -95,22 +98,18 @@ do
                 --pheno ${pheno_file} \
                 --pheno-name "${sv}" \
                 --covar ${covar_file} \
-                --covar-name "age,read_number,$sp,PC1,PC2" \
+                --covar-name "${covars}" \
                 --covar-variance-standardize \
                 --out ${res_dir}/permutations/${type}.${cohort}.${sv}.perm${i}
-            plink_returncode=$?
+                
 
+            echo "$sv permutation $i plink return code: $?"
             # format the assoc results for METAL: add A1 and A2
             awk '{OFS="\t"}; {if ($6 == $4) {oa=$5}; if ($6 == $5) {oa=$4}; if (NR == 1) {oa="A2"}; {print $1,$2,$3,$6, oa, $7,$8,$9,$10,$11,$12}}'  \
             ${res_dir}/permutations/${type}.${cohort}.${sv}.perm${i}.${sv}.glm.logistic | gzip -c > ${res_dir}/permutations/${type}.${cohort}.${sv}.perm${i}.${sv}.glm.logistic.gz
             reformat_returncode=$?
             
-            if [ $plink_returncode -eq 0 ] && [ $reformat_returncode -eq 0 ]
-            then 
-                rm ${res_dir}/permutations/${type}.${cohort}.${sv}.perm${i}.${sv}.glm.logistic 
-            else
-                echo "ERROR in GWAS or awk reformatting. plink_returncode=$plink_returncode ; reformat_returncode=$reformat_returncode . Output file: ${res_dir}/permutations/${type}.${cohort}.${sv}.perm${i}.${sv}.glm.logistic  "
-            fi  
+            rm ${res_dir}/permutations/${type}.${cohort}.${sv}.perm${i}.${sv}.glm.logistic 
             
             echo -e "PROCESS\t${res_dir}/permutations/${type}.${cohort}.${sv}.perm${i}.${sv}.glm.logistic.gz" >> /data/umcg-tifn/SV/SV_GWAS/scripts/metal_per_sv/${sv}.metal.perm${i}.txt
         done
@@ -121,29 +120,40 @@ do
     #
     echo -e "OUTFILE\t${meta_out_filebase} .tbl\nANALYZE\nQUIT" >> $metal_script
     metal $metal_script
+    echo "${sv}, real analysis metal return code: $?"
 
     for i in `seq 1 $nperm`
     do
-        #echo -e "OUTFILE\t${meta_out_filebase}.perm${i} .tbl\nANALYZE\nQUIT" >>  /data/umcg-tifn/SV/SV_GWAS/scripts/metal_per_sv/${sv}.metal.perm${i}.txt
+        echo -e "OUTFILE\t${meta_out_filebase}.perm${i} .tbl\nANALYZE\nQUIT" >>  /data/umcg-tifn/SV/SV_GWAS/scripts/metal_per_sv/${sv}.metal.perm${i}.txt
         metal /data/umcg-tifn/SV/SV_GWAS/scripts/metal_per_sv/${sv}.metal.perm${i}.txt
+        echo "${sv}, permutation $i metal return code: $?"
     done
     
+    # remove per cohort results
+    for cohort in ${cohorts_with_sv[@]}
+    do 
+        rm ${d}/results/${type}/${cohort}/${sv}/${type}.${cohort}.${sv}.${sv}.glm.logistic.gz
+        rm ${d}/results/${type}/${cohort}/${sv}/permutations/${type}.${cohort}.${sv}.perm*.${sv}.glm.logistic.gz
+    done
+
+    cohorts_joined=`printf -v var '%s,' "${cohorts_with_sv[@]}"; echo "${var%,}"`
+    samplesize_joined=`printf -v var '%s,' "${all_nsamples[@]}"; echo "${var%,}"`
+
+
+    # sort results and convert to EMP per sv!
+    tail -n+2 ${meta_out_filebase}1.tbl | \
+    sort -k6g | \
+    python3 ~/scripts/umcg_scripts/SV_GWAS/metal_to_EMP.py stdin ${sv} $cohorts_joined $samplesize_joined 0.05 | tail -n+2 \
+    > ${meta_out_filebase}.eQTLs.txt
+    
+    for p in `seq 1 $nperm`
+    do
+        tail -n+2 ${meta_out_filebase}.perm${p}1.tbl | \
+        sort -k6g | \
+        python3 ~/scripts/umcg_scripts/SV_GWAS/metal_to_EMP.py stdin ${sv} $cohorts_joined $samplesize_joined 0.05 | tail -n+2 \
+        > ${meta_out_filebase}.eQTLs.perm${p}.txt
+        rm ${meta_out_filebase}.perm${p}1.tbl
+    done
+    rm ${meta_out_filebase}1.tbl
+
 done < __BACLIST__
-
-B.longum:17
-E.rectale:66
-B.wexlerae:70
-D.longicatena:150
-D.formicigenerans:364
-
-cohorts_joined=`printf -v var '%s,' "${cohorts_with_sv[@]}"; echo "${var%,}"`
-samplesize_joined=`printf -v var '%s,' "${all_nsamples[@]}"; echo "${var%,}"`
-
-
-#PermutedEQTLsPermutationRound10.txt.gz
-# sort results and convert to EMP
-tail -n+2 ${meta_out_filebase}1.tbl | \
-sort -k6g | \
-python3 ~/scripts/umcg_scripts/SV_GWAS/metal_to_EMP.py stdin ${sv} $cohorts_joined $samplesize_joined | tail -n+2 \
-> ${d}/results/${type}/meta/${sv}.meta_res.eQTLs.txt
-#rm ${res_dir}/${type}.${cohort}.${sv}.glm.logistic

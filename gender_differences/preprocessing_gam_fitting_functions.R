@@ -114,6 +114,9 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, covariates_linear = c(
     
     
   } else { # Correct for covariates
+    covariates_linear <- covariates_linear[covariates_linear != pheno_name]
+    covariates_nonlinear <- covariates_nonlinear[covariates_nonlinear != pheno_name]
+    
     terms_linear_covar <- ""
     terms_nonlinear_covar <- ""
     if (length(covariates_linear) > 0) terms_linear_covar <- paste0("+", paste(covariates_linear, collapse = "+"))
