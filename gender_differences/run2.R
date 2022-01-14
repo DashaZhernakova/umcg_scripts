@@ -66,7 +66,7 @@ covariateslinear <- unlist(strsplit(config$covariateslinear, ","))
 covariatesnonlinear <- unlist(strsplit(config$covariatesnonlinear, ","))
 
 if (length(covariateslinear) > 0) print(paste0("covariates to add as linear terms in the gam model:", paste(covariateslinear, collapse = ", ")))
-if (length(covariatesnonlinear) > 0) print(paste0("covariates to add as spline non-linear terms in the gam model:", paste(covariateslinear, collapse = ", ")))
+if (length(covariatesnonlinear) > 0) print(paste0("covariates to add as spline non-linear terms in the gam model:", paste(covariatesnonlinear, collapse = ", ")))
 
 
 phenos2use <- unlist(strsplit(config$phenos2use, ","))
@@ -214,6 +214,9 @@ for (idx in indices){
   
   merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = outlier_correction_method, log_tr = log_transform, scale_tr = scale_transform)
   if (split_by_covariate == ""){
+    covariates_linear <- covariates_linear[covariates_linear != colnames(traits_m)[idx]]
+    covariates_nonlinear <- covariates_nonlinear[covariates_nonlinear != colnames(traits_m)[idx]]
+    
     res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, covariates_linear = covariateslinear, covariates_nonlinear = covariatesnonlinear, n_points = n_points, make_plots = make_plots, gam_family = gam_family, min_age = min_age, max_age = max_age, ymax_hist = ymax_hist, label = '', add_inter_p_to_plot = add_inter_p_to_plot, plot_title = plot_title, interp_cutoff = interp_cutoff, plot_points = plot_points, add_breakpoints = add_breakpoints,  t_threshold = ttest_cutoff, derivatives_cutoff = deriv_cutoff, log_tr = log_transform)
     if (res_dif_lst[["inter_p"]] < interp_cutoff){
       cnt <- cnt + 1
