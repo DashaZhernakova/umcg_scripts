@@ -170,7 +170,7 @@ draw_plot_multiline <- function(merged_tab, pheno_name, pdat_list, color_list, f
   for (i in 1:length(pdat_list)) {
     dd <- pdat_list[[i]]
     lines(pred ~ age, data = dd, col = color_list[[i]], lwd = 2)
-    polygon(c(rev(dd$age), dd$age), c(rev(dd$lwr), dd$upr), col = col2transparent(color_list[[i]], 65), border = NA)
+    polygon(c(rev(dd$age), dd$age), c(rev(dd$lwr), dd$upr), col = col2transparent(color_list[[i]], 50), border = NA)
   }
 }
 
