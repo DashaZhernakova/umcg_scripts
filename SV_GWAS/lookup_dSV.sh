@@ -82,3 +82,4 @@ zscores_joined=`printf -v var '%s,' "${all_zscores[@]}"; echo "${var%,}"`
 pvals_joined=`printf -v var '%s,' "${all_pvals[@]}"; echo "${var%,}"`
 
 echo -e "$zscores_joined $pvals_joined $het_pval"
+
