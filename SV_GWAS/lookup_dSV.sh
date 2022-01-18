@@ -8,6 +8,7 @@ d=/data/umcg-tifn/SV/SV_GWAS/
 
 sv=$1
 snp=$2
+echo "sv=$sv, snp=$snp"
 sp=`grep -w "$sv" ${d}/data/sv_name_conversion_table.txt | cut -f4 | uniq`
 all_zscores=()
 all_pvals=()
