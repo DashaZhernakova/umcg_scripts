@@ -13,7 +13,7 @@ col_val = int(sys.argv[3])
 
 col_val2 = None
 if (len(sys.argv) > 4):
-    col_val2 = int(sys.argv[3])
+    col_val2 = int(sys.argv[4])
     dict2 = defaultdict(set)
 
 map_dict = defaultdict(set)
