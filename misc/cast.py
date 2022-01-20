@@ -8,8 +8,8 @@ if sys.argv[1] != "-":
 else:
     f = sys.stdin
 
-col_key = sys.argv[2]
-col_val = sys.argv[3]
+col_key = int(sys.argv[2])
+col_val = int(sys.argv[3])
 
 map_dict = defaultdict(set)
 for line in f:
