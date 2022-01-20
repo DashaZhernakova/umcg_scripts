@@ -55,19 +55,24 @@ do
         --covar-variance-standardize \
         --out ${res_dir}/${type}.${cohort}.${sv}.${snp} \
         --snp ${snp}
+    plink_returncode=$?
+    if [ ! $plink_returncode -eq 0 ]
+    then
+        all_zscores+=( "NA" )
+        all_pvals+=( "NA" )
+    else
+        z=`head -2 ${res_dir}/${type}.${cohort}.${sv}.${snp}.${sv}.glm.logistic | tail -1 | awk '{print $11}'`
+        all_zscores+=( $z )
+        pval=`head -2 ${res_dir}/${type}.${cohort}.${sv}.${snp}.${sv}.glm.logistic | tail -1 | awk '{print $12}'`
+        all_pvals+=( $pval )
+        # format the assoc results for METAL: add A1 and A2
+        awk '{OFS="\t"}; {if ($6 == $4) {oa=$5}; if ($6 == $5) {oa=$4}; if (NR == 1) {oa="A2"}; {print $1,$2,$3,$6, oa, $7,$8,$9,$10,$11,$12}}' \
+        ${res_dir}/${type}.${cohort}.${sv}.${snp}.${sv}.glm.logistic | gzip -c > ${res_dir}/${type}.${cohort}.${sv}.${snp}.${sv}.glm.logistic.gz
+        
+        rm ${res_dir}/${type}.${cohort}.${sv}.${snp}.${sv}.glm.logistic
 
-
-    z=`head -2 ${res_dir}/${type}.${cohort}.${sv}.${snp}.${sv}.glm.logistic | tail -1 | awk '{print $11}'`
-    all_zscores+=( $z )
-    pval=`head -2 ${res_dir}/${type}.${cohort}.${sv}.${snp}.${sv}.glm.logistic | tail -1 | awk '{print $12}'`
-    all_pvals+=( $pval )
-    # format the assoc results for METAL: add A1 and A2
-    awk '{OFS="\t"}; {if ($6 == $4) {oa=$5}; if ($6 == $5) {oa=$4}; if (NR == 1) {oa="A2"}; {print $1,$2,$3,$6, oa, $7,$8,$9,$10,$11,$12}}' \
-    ${res_dir}/${type}.${cohort}.${sv}.${snp}.${sv}.glm.logistic | gzip -c > ${res_dir}/${type}.${cohort}.${sv}.${snp}.${sv}.glm.logistic.gz
-    
-    rm ${res_dir}/${type}.${cohort}.${sv}.${snp}.${sv}.glm.logistic
-
-    echo -e "PROCESS\t${res_dir}/${type}.${cohort}.${sv}.${snp}.${sv}.glm.logistic.gz\n" >> $metal_script
+        echo -e "PROCESS\t${res_dir}/${type}.${cohort}.${sv}.${snp}.${sv}.glm.logistic.gz\n" >> $metal_script
+    fi
 done
 #
 # Run meta-analysis

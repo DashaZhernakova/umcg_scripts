@@ -2,7 +2,7 @@
 #SBATCH --job-name=fdr
 #SBATCH --output=fdr.out
 #SBATCH --error=fdr.err
-#SBATCH --time=10:00:00
+#SBATCH --time=60:00:00
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=85gb
 #SBATCH --nodes=1
@@ -19,20 +19,21 @@ echo -e "PValue\tSNPName\tSNPChr\tSNPChrPos\tProbeName\tProbeChr\tProbeCenterChr
 > ${TMPDIR}/eQTLs.txt
 
 #
-sort -m -k1,1g -T $TMPDIR /data/umcg-tifn/SV/SV_GWAS/results/dSV/meta/*/*.meta_res.eQTLs.txt \
+sort -m -k1,1g -T $TMPDIR -S 70G --buffer-size=1000 /data/umcg-tifn/SV/SV_GWAS/results/dSV/meta/*/*.meta_res.eQTLs.txt \
 >> ${TMPDIR}/eQTLs.txt
 
 head -1000001 ${TMPDIR}/eQTLs.txt | gzip -c > ${meta_comb_dir}/eQTLs.txt.gz
 
 
 #meta_comb_dir=/data/umcg-tifn/SV/SV_GWAS/results/dSV/meta_combined/
-
-for p in `seq 1 $nperm`
+echo "permutations"
+for p in `seq 3 $nperm`
 do
+    echo "Perm ${p}"
     echo -e "PValue\tSNPName\tSNPChr\tSNPChrPos\tProbeName\tProbeChr\tProbeCenterChrPos\tCisTrans\tSNPType\tAlleleAssessed\tOverallZScore\tDatasetsWhereSNPProbePairIsAvailableAndPassesQC\tDatasetsZScores\tDatasetsNrSamples\tIncludedDatasetsMeanProbeExpression\tIncludedDatasetsProbeExpressionVariance\tHGNCName\tIncludedDatasetsCorrelationCoefficient\tMeta-Beta (SE)\tBeta (SE)\tFoldChange\tFDR" \
     > ${TMPDIR}/PermutedEQTLsPermutationRound${p}.txt
 
-    sort -m -k1,1g -T $TMPDIR /data/umcg-tifn/SV/SV_GWAS/results/dSV/meta/*/*.meta_res.eQTLs.perm${p}.txt \
+    sort -m -k1,1g -T $TMPDIR -S 70G --buffer-size=1000 /data/umcg-tifn/SV/SV_GWAS/results/dSV/meta/*/*.meta_res.eQTLs.perm${p}.txt \
     >> ${TMPDIR}/PermutedEQTLsPermutationRound${p}.txt
 
     head -1000001 ${TMPDIR}/PermutedEQTLsPermutationRound${p}.txt | gzip -c > ${meta_comb_dir}/PermutedEQTLsPermutationRound${p}.txt.gz
