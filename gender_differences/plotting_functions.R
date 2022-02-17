@@ -19,6 +19,7 @@ draw_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add
     if (nchar(pheno_name) > 60) cex_main <- 0.6
     
   }
+  pheno_name <- gsub(" \\(.*", "", pheno_name)
   binaryPhenotype <- F
   if (all(ylims == c(0,1))) {
     ylabel <- paste0(pheno_name, " frequency")
@@ -134,7 +135,7 @@ draw_plot_multiline <- function(merged_tab, pheno_name, pdat_list, color_list, f
     
   }
   if (all(ylims == c(0,1))) ylabel <- paste0(pheno_name, " frequency")
-  
+  pheno_name <- gsub(" \\(.*", "", pheno_name)
   
   ## draw base plot
   palette(c(col2transparent("#ff9999", 120),col2transparent("#99ccff", 120)))
@@ -222,7 +223,7 @@ draw_plot0 <- function(merged_tab, pheno_name, pdat){
     if (nchar(pheno_name) > 60) cex_main <- 0.6
     
   }
-  
+  pheno_name <- gsub(" \\(.*", "", pheno_name)
   
   ## draw base plot
   palette(c(col2transparent("indianred1", 40),col2transparent("dodgerblue1", 40)))
@@ -470,7 +471,7 @@ draw_smooth_scatter <- function(merged_tab, pheno_name, pdat, gam.p, min_age, ma
     if (nchar(pheno_name) > 60) cex_main <- 0.6
     
   }
-  
+  pheno_name <- gsub(" \\(.*", "", pheno_name)
   
   ## draw base plot
   par(mar = c(6, 6, 6, 3), # Dist' from plot to side of page
