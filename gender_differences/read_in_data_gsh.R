@@ -1,8 +1,8 @@
 library(rprojroot)
 library(tidyverse)
 
-config_path <- "./config.yml"
-script_folder <- "../../scripts/umcg_scripts/gender_differences/"
+config_path <- "/groups/umcg-lifelines/tmp01/projects/ov20_0051/umcg-dzhernakova/gender_difs/v4/config.yml"
+script_folder <- "/groups/umcg-lifelines/tmp01/users/umcg-dzhernakova/scripts/umcg_scripts/gender_differences/"
 
 cat("script folder:", script_folder, "\n")
 source(paste0(script_folder, "/preprocessing_gam_fitting_functions.R"))
@@ -104,3 +104,12 @@ write_fitted <- ifelse("write_fitted" %in% names(config),  config$write_fitted, 
 plot_points <- ifelse("plot_points" %in% names(config),  config$plot_points, T)
 runCV <- ifelse("run_cross_validation" %in% names(config),  config$run_cross_validation, F)
 ymax_hist <- ifelse("ymax_hist" %in% names(config),  config$ymax_hist, 1)
+
+
+
+if ("pheno_to_log" %in% names(config)){
+  pheno_to_log <- unlist(strsplit(config$pheno_to_log, ","))
+} else {
+  pheno_to_log <- character(0)
+}
+cat("Phenotypes to log-transform: ", pheno_to_log, "\n")

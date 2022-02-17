@@ -1,5 +1,5 @@
 library(mgcv)
-
+library(dplyr)
 setwd("/groups/umcg-lifelines/tmp01/users/umcg-dzhernakova/gender_difs/prediction_model")
 
 traits_path <- "../v4/data/LL_phenotypes_merged_all.log_some.v5.txt"
@@ -13,8 +13,14 @@ all(row.names(traits_m) == row.names(pheno_m))
 num_traits <- ncol(traits_m)
 d <- cbind(pheno_m, traits_m)
 
-m0 <- gam(new_cvd~gender_F1M2 + s(age) + s(BMI) + SMK3 + T2D + s(CHO) + s(HDC) + s(SBP), data = d, method = "ML", family = binomial(link = "logit"), select = T)
-summary(m0)
+d <- mutate(d, gender_F1M2 = ordered(gender_F1M2, levels = c('1', '2')))
+d <- mutate(d, SMK3 = ordered(SMK3, levels = c('0', '1')))
+
+w <- d[d$gender_F1M2 == "1",]
+m <- d[d$gender_F1M2 == "2",]
+
+#m0 <- gam(new_cvd~gender_F1M2 + s(age) + s(BMI) + SMK3 + T2D + s(CHO) + s(HDC) + s(SBP), data = d, method = "ML", family = binomial(link = "logit"), select = T)
+#summary(m0)
 m1 <- gam(new_cvd~gender_F1M2 + s(age) + s(BMI) + SMK3 + T2D + s(CHO) + s(HDC) + s(SBP) + s(LLDS_T1A) + s(total_scor_VAL), data = d, method = "ML", family = binomial(link = "logit"), select = T)
 summary(m1)
 m2 <- gam(new_cvd~gender_F1M2 + s(age) + s(BMI) + SMK3 + T2D+ s(CHO) + s(HDC) + s(SBP)  + s(LLDS_T1A) + s(total_scor_VAL) + s(age, by = gender_F1M2) + 
@@ -27,7 +33,17 @@ m3 <- gam(new_cvd~gender_F1M2 + s(age) + s(BMI) + SMK3 + T2D + s(CHO) + s(HDC) +
 print(summary(m1))
 print(summary(m2))
 print(summary(m3))
-print(AIC(m0, m1, m2, m3))
+print(AIC(m1, m2, m3))
+
+
+m1w <- gam(new_cvd~ s(age) + s(BMI) + SMK3 + T2D + s(CHO) + s(HDC) + s(SBP) + s(LLDS_T1A) + s(total_scor_VAL), data = w, method = "ML", family = binomial(link = "logit"), select = T)
+m2w <- gam(new_cvd~s(age) + s(BMI) + SMK3 + T2D+ s(CHO) + s(HDC) + s(SBP)  + s(LLDS_T1A) + s(total_scor_VAL) +  
+            ti(BMI, age) + ti(CHO, age) + ti(HDC, age) + ti(SBP, age) + ti(LLDS_T1A, age) + ti(total_scor_VAL, age), data = w, method = "ML", family = binomial(link = "logit"), select=T)
+
+m1m <- gam(new_cvd~ s(age) + s(BMI) + SMK3 + T2D + s(CHO) + s(HDC) + s(SBP) + s(LLDS_T1A) + s(total_scor_VAL), data = m, method = "ML", family = binomial(link = "logit"), select = T)
+m2m <- gam(new_cvd~s(age) + s(BMI) + SMK3 + T2D+ s(CHO) + s(HDC) + s(SBP)  + s(LLDS_T1A) + s(total_scor_VAL) +  
+             ti(BMI, age) + ti(CHO, age) + ti(HDC, age) + ti(SBP, age) + ti(LLDS_T1A, age) + ti(total_scor_VAL, age), data = m, method = "ML", family = binomial(link = "logit"), select=T)
+
 
 # 
 # Parametric coefficients:
@@ -309,3 +325,44 @@ m_smk_full <- gam(new_cvd~gender_F1M2 + s(age) + SMK3 + s(age, by = interaction(
 summary(m_smk_full)
 AIC(m_smk, m_smk_full)
 
+
+
+##### No model selection
+m1 <- gam(new_cvd~gender_F1M2 + s(age) + s(BMI) + SMK3 + T2D + s(CHO) + s(HDC) + s(SBP) + s(LLDS_T1A) + s(total_scor_VAL), data = d, method = "ML", family = binomial(link = "logit"), select = F)
+m2 <- gam(new_cvd~gender_F1M2 + s(age) + s(BMI) + SMK3 + T2D+ s(CHO) + s(HDC) + s(SBP)  + s(LLDS_T1A) + s(total_scor_VAL) + s(age, by = gender_F1M2) + 
+            ti(BMI, age, by = gender_F1M2) + ti(CHO, age, by =gender_F1M2) + ti(HDC, age, by = gender_F1M2) + ti(SBP, age, by =gender_F1M2) + ti(LLDS_T1A, age, by = gender_F1M2) + ti(total_scor_VAL, age, by =gender_F1M2), data = d, method = "ML", family = binomial(link = "logit"), select=F)
+
+m3 <- gam(new_cvd~gender_F1M2 + s(age) + s(BMI) + SMK3 + T2D + s(CHO) + s(HDC) + s(SBP)  + s(LLDS_T1A) + s(total_scor_VAL) + 
+            s(age, by = gender_F1M2) + s(BMI, by = gender_F1M2) + interaction(SMK3, gender_F1M2) + interaction(T2D, gender_F1M2) + s(CHO, by = gender_F1M2) + s(HDC, by = gender_F1M2) + s(SBP, by = gender_F1M2)  + s(LLDS_T1A, by = gender_F1M2) + s(total_scor_VAL, by = gender_F1M2) +
+            ti(BMI, age) + s(age, by = SMK3) + s(age, by = T2D) + ti(CHO, age) + ti(HDC, age) + ti(SBP, age) + ti(LLDS_T1A, age) + ti(total_scor_VAL, age) + 
+            s(age, by = interaction(SMK3, gender_F1M2)) + s(age, by = interaction(T2D, gender_F1M2)) + ti(BMI, age, by = gender_F1M2) + ti(CHO, age, by =gender_F1M2) + ti(HDC, age, by = gender_F1M2) + ti(SBP, age, by =gender_F1M2) + ti(LLDS_T1A, age, by = gender_F1M2) + ti(total_scor_VAL, age, by =gender_F1M2), data = d, method = "ML", family = binomial(link = "logit"), select=F)
+print(summary(m1))
+print(summary(m2))
+print(summary(m3))
+print(AIC(m1, m2, m3))
+anova(m1,m2,m3, test="Chisq")
+#m1 m3 0.01294
+
+m1w <- gam(new_cvd~ s(age) + s(BMI) + SMK3 + T2D + s(CHO) + s(HDC) + s(SBP) + s(LLDS_T1A) + s(total_scor_VAL), data = w, method = "ML", family = binomial(link = "logit"), select = T)
+m2w <- gam(new_cvd~s(age) + s(BMI) + SMK3 + T2D+ s(CHO) + s(HDC) + s(SBP)  + s(LLDS_T1A) + s(total_scor_VAL) +  
+             ti(BMI, age) + ti(CHO, age) + ti(HDC, age) + ti(SBP, age) + ti(LLDS_T1A, age) + ti(total_scor_VAL, age), data = w, method = "ML", family = binomial(link = "logit"), select=T)
+
+print(summary(m1w))
+print(summary(m2w))
+print(AIC(m1w, m2w))
+anova(m1w,m2w, test="Chisq")
+#  Resid. Df Resid. Dev     Df Deviance Pr(>Chi)
+#1     39571     6740.3
+#2     39565     6727.3 5.4826   13.031  0.03142 *
+  
+
+m1m <- gam(new_cvd~ s(age) + s(BMI) + SMK3 + T2D + s(CHO) + s(HDC) + s(SBP) + s(LLDS_T1A) + s(total_scor_VAL), data = m, method = "ML", family = binomial(link = "logit"), select = T)
+m2m <- gam(new_cvd~s(age) + s(BMI) + SMK3 + T2D+ s(CHO) + s(HDC) + s(SBP)  + s(LLDS_T1A) + s(total_scor_VAL) +  
+             ti(BMI, age) + ti(CHO, age) + ti(HDC, age) + ti(SBP, age) + ti(LLDS_T1A, age) + ti(total_scor_VAL, age), data = m, method = "ML", family = binomial(link = "logit"), select=T)
+
+
+print(summary(m1m))
+print(summary(m2m))
+print(AIC(m1m, m2m))
+anova(m1m,m2m, test="Chisq")
+# p=0.1112

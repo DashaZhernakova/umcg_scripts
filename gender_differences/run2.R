@@ -223,13 +223,21 @@ for (idx in indices){
       cat("\tSignificant interaction detected.\n")
     }
     
-    sex_dif_lm <- calculate_sex_diff_lm(merged_tab, covariates = c(covariateslinear, covariatesnonlinear), min_age, max_age)
     res_summary[trait_name,'inter_p'] = res_dif_lst[["inter_p"]]
     res_summary[trait_name,'g_beta'] = res_dif_lst[["g_beta"]]
     res_summary[trait_name,'g_pv'] = res_dif_lst[["g_pv"]]
+    res_summary[trait_name,'cohen_f2'] = res_dif_lst[["cohen_f2"]]
+    
+    sex_dif_lm <- calculate_sex_diff_lm(merged_tab, covariates = c(covariateslinear, covariatesnonlinear), min_age, max_age)
     res_summary[trait_name,'g_lm_pv'] = sex_dif_lm[[1]]
     res_summary[trait_name,'g_lm_f2'] = sex_dif_lm[[2]]
-    res_summary[trait_name,'cohen_f2'] = res_dif_lst[["cohen_f2"]]
+    
+    age_sex_only <- fit_gam_age_gender_only(merged_tab, trait_name, covariates_linear = covariateslinear2, covariates_nonlinear = covariatesnonlinear2, n_points = n_points, gam_family = gam_family, min_age = min_age, max_age = max_age, log_tr = log_transform)
+    res_summary[trait_name,'sex_gam_pv'] = age_sex_only[1]
+    res_summary[trait_name,'sex_gam_f2'] = age_sex_only[2]
+    res_summary[trait_name,'age_gam_pv'] = age_sex_only[3]
+    res_summary[trait_name,'age_gam_f2'] = age_sex_only[4]
+
     
     if (!is.null(res_dif_lst[['breakpoints']])){
       res_summary[trait_name, "breakpoints_men"] = ifelse(length(res_dif_lst[['breakpoints']][[2]]) > 0, res_dif_lst[['breakpoints']][[2]], "NA")
@@ -245,6 +253,10 @@ for (idx in indices){
 }
 res_summary$inter_p_adj_BH <- p.adjust(res_summary$inter_p, method = "BH")
 res_summary$g_lm_pv_adj_BH <- p.adjust(res_summary$g_lm_pv, method = "BH")
+res_summary$age_gam_pv_adj_BH <- p.adjust(res_summary$age_gam_pv, method = "BH")
+res_summary$sex_gam_pv_adj_BH <- p.adjust(res_summary$sex_gam_pv, method = "BH")
+
+
 res_summary$inter_p_adj_bonferroni <- p.adjust(res_summary$inter_p, method = "bonferroni")
 res_summary$g_lm_pv_adj_bonferroni <- p.adjust(res_summary$g_lm_pv, method = "bonferroni")
 write.table(res_summary, file = paste0(out_table_path, "_summary.txt"), sep = "\t", quote = F, col.names = NA)

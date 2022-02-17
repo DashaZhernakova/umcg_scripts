@@ -39,7 +39,7 @@ don <- d %>%
 axisdf <- don %>% group_by(CHR) %>% summarize(center=( max(BPcum) + min(BPcum) ) / 2 )
 
 # Make the plot
-pdf("dSV_manhattan.pdf",  height =8, width = 20, useDingbats = F)
+pdf("vSV_manhattan_noannot.pdf",  height =8, width = 20, useDingbats = F)
 ggplot(don, aes(x=BPcum, y=-log10(P))) +
   
   # Show all points
@@ -55,7 +55,7 @@ ggplot(don, aes(x=BPcum, y=-log10(P))) +
   #geom_point(data=subset(don, is_highlight=="yes"), color="orange", size=2) +
   
   # Add label using ggrepel to avoid overlapping
-  geom_label_repel( data=subset(don, is_annotate=="yes"), aes(label=bac), size=2) +
+  #geom_label_repel( data=subset(don, is_annotate=="yes"), aes(label=bac), size=2) +
   
   # Custom the theme:
   theme_bw() +

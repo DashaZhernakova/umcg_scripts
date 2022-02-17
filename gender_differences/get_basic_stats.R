@@ -5,14 +5,14 @@ library(gridExtra)
 args <- commandArgs(trailingOnly = TRUE)
 
 source("/groups/umcg-lifelines/tmp01/users/umcg-dzhernakova/scripts/umcg_scripts/gender_differences/preprocessing_gam_fitting_functions.R")
-wd_path <- "/groups/umcg-lifelines/tmp01/users/umcg-dzhernakova/gender_difs/"
-setwd(wd_path)
+#wd_path <- "/groups/umcg-lifelines/tmp01/users/umcg-dzhernakova/gender_difs/"
+#setwd(wd_path)
 
 # Phenotypes
 traits_path <- args[1]
 pheno_path <- args[2]
 out_basepath <- args[3]
-tologtr <- c("LEU", "LY", "MO", "MOP", "GR", "BA", "BAP", "EO", "EOP", "TGL", "HAL1", "HALB", "AST", "ALT", "AF", "GGT", "LCRP", "TSH", "UKRO", "UKR24", "LLDS_T1A", "total_scor_VAL")
+tologtr <- c("LEU", "LY", "MO", "MOP", "GR", "BA", "BAP", "EO", "EOP", "TGL", "HAL1", "HALB", "AST", "ALT", "AF", "GGT", "LCRP", "TSH", "UKRO", "UKR24", "LLDS_T1A", "total_scor_VAL",  "phys_activity_intensive", "stress_1y", "stress_chronic")
 #tologtr <- c()
 
 traits0 <- read.delim(traits_path, header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)

@@ -45,6 +45,7 @@ rm_na_outliers <- function(traits_m, pheno_m, idx, method = "zscore", scale_tr =
     if (method == "zscore"){ 
       # Zscore < 3
       tab_nooutliers <- rbind(w[abs(w[,1] - mean(w[,1]))/sd(w[,1]) < 3,], m[abs(m[,1] - mean(m[,1]))/sd(m[,1]) < 3,])
+      
     } else if (method == "IQR"){
       # less than 1.5 IQR from the 1st and 3rd quantiles
       mq1 <- quantile(m[,1], probs = 0.25)
@@ -74,6 +75,9 @@ rm_na_outliers <- function(traits_m, pheno_m, idx, method = "zscore", scale_tr =
   #  tab_nooutliers[,c] <- as.factor(tab_nooutliers[,c])
   #  }
   #}
+  num_outliers <- (nrow(merged_tab) - nrow(tab_nooutliers))
+  perc_outliers <- format(100*num_outliers/nrow(merged_tab), digits = 3)
+  cat("\tRemoved", num_outliers, "(", perc_outliers, "%)","outliers\n")
   return(tab_nooutliers)
 }
 
@@ -451,4 +455,42 @@ fit_gam_age_only <- function(merged_tab, pheno_name, covariates_linear = c(), co
   return (pdat)
 }
 
+
+# Fit a GAM with age : gender interaction and (optional) correction for covariates (linear or spline)
+fit_gam_age_gender_only <- function(merged_tab, pheno_name, covariates_linear = c(), covariates_nonlinear = c(), n_points = 300, make_plots = T,  gam_family = gaussian(), min_age = 20, max_age = 80, log_tr = F){
+  colnames(merged_tab)[1] <- "phenotype"
+  merged_tab <- merged_tab[(merged_tab$age < max_age) & (merged_tab$age >= min_age),]
+  if (length(unique(merged_tab[,1])) < 3 ){
+    cat("Outcome is binary, changing family to binomial with logit\n")
+    family=binomial(link = 'logit')
+  }
+  merged_tab$gender_F1M2 <- as.factor(merged_tab$gender_F1M2)
+  
+  if (length(covariates_linear) == 0 & length(covariates_nonlinear) == 0){
+    gam.fit.both <- gam(phenotype ~ gender_F1M2 + s(age), data = merged_tab, method = "REML", family = gam_family)
+    gam.fit.age <- gam(phenotype ~ s(age), data = merged_tab, method = "REML", family = gam_family)
+    gam.fit.sex<- gam(phenotype ~ gender_F1M2 , data = merged_tab, method = "REML", family = gam_family)  
+  } else { # Correct for covariates
+    terms_linear_covar <- ""
+    terms_nonlinear_covar <- ""
+    if (length(covariates_linear) > 0) terms_linear_covar <- paste0("+", paste(covariates_linear, collapse = "+"))
+    if (length(covariates_nonlinear) > 0) terms_nonlinear_covar <- paste0("+ s(", paste(covariates_nonlinear, collapse = ")+ s("), ")")
+    
+    gam.fit.both <- gam(as.formula(paste("phenotype ~ ", terms_linear_covar, terms_nonlinear_covar,
+                                    "+ gender_F1M2 + s(age)", sep = " ")), 
+                   data = merged_tab, method = "REML")
+    gam.fit.age <- gam(as.formula(paste("phenotype ~ ", terms_linear_covar, terms_nonlinear_covar,
+                                         " + s(age)", sep = " ")), 
+                        data = merged_tab, method = "REML")
+    gam.fit.sex <- gam(as.formula(paste("phenotype ~ ", terms_linear_covar, terms_nonlinear_covar,
+                                         "+ gender_F1M2", sep = " ")), 
+                        data = merged_tab, method = "REML")
+  }
+  p_age <- summary(gam.fit.both)$s.table["s(age)",4]
+  f2_age <- calculate_cohens_f2(gam.fit.both, gam.fit.sex)
+  
+  p_sex <- summary(gam.fit.both)$p.table["gender_F1M22",4]
+  f2_sex <- calculate_cohens_f2(gam.fit.both, gam.fit.age)
+  return (c(p_age, f2_age, p_sex, f2_sex))
+}
 
