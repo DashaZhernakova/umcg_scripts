@@ -1,9 +1,15 @@
 library(RColorBrewer)
 library('dplyr')
+library(ggplot2)
 
 col2transparent <- function(col, transparency){
   colRgb <- col2rgb(col)
   dodgerblueTransparent <- rgb(colRgb[1,1], colRgb[2,1], colRgb[3,1], transparency, names = NULL, maxColorValue = 255)
+}
+
+colorRampAlpha <- function(..., n, alpha) {
+  colors <- colorRampPalette(...)(n)
+  paste(colors, sprintf("%x", ceiling(255*alpha)), sep="")
 }
 
 draw_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add_inter_p_to_plot = T, plot_title = NULL, plot_points = T, breakpoints = NULL, factor_name = "", alpha_points = 40, breakpoints_intervals = NULL, ymax_hist = 1, label = "", ylims_usr = NULL){
