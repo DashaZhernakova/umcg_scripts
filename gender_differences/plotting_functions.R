@@ -458,7 +458,7 @@ draw_disease_prevalence <- function(merged_tab){
 }
 
 
-draw_smooth_scatter <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add_inter_p_to_plot = T, plot_title = NULL){
+draw_smooth_scatter <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add_inter_p_to_plot = T, plot_title = NULL, label = ""){
   cex_main = 1
   
   ylims <- with(merged_tab, range(phenotype))

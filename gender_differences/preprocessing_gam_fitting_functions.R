@@ -173,7 +173,9 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, covariates_linear = c(
  
   
   if (make_plots & gam.p < interp_cutoff){
-     draw_plot(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add_inter_p_to_plot, plot_title, plot_points, breakpoints, breakpoints_intervals, ymax_hist, label = paste0("Cohen's f^2 = ", formatC(gam.cohen_f2, digits = 4, format = "f")), ylims = ylims)
+     #draw_plot(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add_inter_p_to_plot, plot_title, plot_points, breakpoints, breakpoints_intervals, ymax_hist, label = paste0("Cohen's f^2 = ", formatC(gam.cohen_f2, digits = 4, format = "f")), ylims = ylims)
+    draw_smooth_scatter(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add_inter_p_to_plot = add_inter_p_to_plot, plot_title = plot_title, label = paste0("Cohen's f^2 = ", formatC(gam.cohen_f2, digits = 4, format = "f")))
+    
   }
   
   return (list("pdat" = pdat, "dif" = res_dif$diff, "inter_p" = gam.p,"g_beta" = gam.g_beta, "g_pv" = gam.g_pv, "breakpoints_intervals" = breakpoints_intervals, "cohen_f2" = gam.cohen_f2))
