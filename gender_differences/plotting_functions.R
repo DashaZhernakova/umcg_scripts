@@ -16,15 +16,17 @@ draw_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add
   cex_main = 1
   
   ylims <- with(merged_tab, range(phenotype))
-  ylabel <- pheno_name
-  if (nchar(pheno_name) > 40){
-    spl <- unlist(strsplit(pheno_name, "\\|"))
-    ylabel <- spl[length(spl)]
-    cex_main <- 0.8
-    if (nchar(pheno_name) > 50) cex_main <- 0.7
-    if (nchar(pheno_name) > 60) cex_main <- 0.6
+
+  #if (nchar(pheno_name) > 40){
+    #spl <- unlist(strsplit(pheno_name, "\\|"))
+    #ylabel <- spl[length(spl)]
+    #cex_main <- 0.8
+    #if (nchar(pheno_name) > 50) cex_main <- 0.7
+    #if (nchar(pheno_name) > 60) cex_main <- 0.6
     
-  }
+  #}
+  pheno_name <- paste(strwrap(pheno_name, width = 40), collapse = "\n")
+  ylabel <- pheno_name
   pheno_name <- gsub(" \\(.*", "", pheno_name)
   binaryPhenotype <- F
   if (all(ylims == c(0,1))) {
@@ -99,7 +101,7 @@ draw_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add
   for (l in seq_along(levs)) {
     dd <- pdat[pdat$gender_F1M2 == levs[l],]
     lines(pred ~ age, data = dd, col = cols[[l]], lwd = 2)
-    polygon(c(rev(dd$age), dd$age), c(rev(dd$lwr), dd$upr), col = col2transparent(cols[[l]], 70), border = NA)
+    polygon(c(rev(dd$age), dd$age), c(rev(dd$lwr), dd$upr), col = col2transparent(cols[[l]], 100), border = NA)
   }
   
   

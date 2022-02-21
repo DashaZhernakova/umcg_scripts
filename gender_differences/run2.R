@@ -97,7 +97,7 @@ if (length(covariates_before) > 0){
 
 pheno_table <- NULL
 if ("phenotype_table" %in% names(config)){
-  pheno_table <- read.delim(config$phenotype_table, sep = "\t", as.is = T, check.names = F)
+  pheno_table <- read.delim(paste0(config$basedir_path, "/", config$phenotype_table), sep = "\t", as.is = T, check.names = F)
   
 }
 
@@ -127,6 +127,7 @@ write_fitted <- ifelse("write_fitted" %in% names(config),  config$write_fitted, 
 plot_points <- ifelse("plot_points" %in% names(config),  config$plot_points, T)
 runCV <- ifelse("run_cross_validation" %in% names(config),  config$run_cross_validation, F)
 ymax_hist <- ifelse("ymax_hist" %in% names(config),  config$ymax_hist, 1)
+section_starts <- ifelse("sections" %in% names(config),  config$sections, character(0))
 
 if ("pheno_to_log" %in% names(config)){
    pheno_to_log <- unlist(strsplit(config$pheno_to_log, ","))

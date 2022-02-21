@@ -84,24 +84,30 @@ for (pheno in phenos){
     for (min_age in seq(20,65,15)){
       #cat(min_age, sex, "\n")
       max_age = min_age + 15
-      samplesizes <- c(samplesizes, nrow(merged_tab[merged_tab$gender_F1M2 == "1" & merged_tab$age > min_age & merged_tab$age < max_age,]))
-      samplesizes <- c(samplesizes, nrow(merged_tab[merged_tab$gender_F1M2 == "2" & merged_tab$age > min_age & merged_tab$age < max_age,]))
+      w_n <- nrow(merged_tab[merged_tab$gender_F1M2 == "1" & merged_tab$age > min_age & merged_tab$age < max_age,])
+      m_n <- nrow(merged_tab[merged_tab$gender_F1M2 == "2" & merged_tab$age > min_age & merged_tab$age < max_age,])
+      samplesizes <- c(samplesizes, w_n, m_n)
+      cat(min_age, w_n, m_n, "\n", sep = " ")
     }
+    nsamples <- min(samplesizes)
     
     for (min_age in seq(20,65,15)){
         #cat(min_age, sex, "\n")
         max_age = min_age + 15
         w <- merged_tab[merged_tab$gender_F1M2 == "1" & merged_tab$age > min_age & merged_tab$age < max_age,]
         m <- merged_tab[merged_tab$gender_F1M2 == "2" & merged_tab$age > min_age & merged_tab$age < max_age,]
+        
         # make equal samplesizes for p-value comparison 
-        n_w <- nrow(w)
-        n_m <- nrow(m)
-        if (n_w < n_m){
-            m <- m[sample(n_m, n_w),]
-        } else if (n_m < n_w){
-            w <- w[sample(n_w, n_m),]
-        }
-
+        # n_w <- nrow(w)
+        # n_m <- nrow(m)
+        # if (n_w < n_m){
+        #     m <- m[sample(n_m, n_w),]
+        # } else if (n_m < n_w){
+        #     w <- w[sample(n_w, n_m),]
+        # }
+        w <- w[sample(nrow(w), nsamples), ]
+        m <- m[sample(nrow(m), nsamples), ]
+        
         # women
         gam_fit <- gam(base_formula, data = w, method = "REML", select=T)
         s <- summary(gam_fit)
@@ -139,7 +145,7 @@ write.table(res, file = paste0(out_path, "/stratified_gam_main_sameN.txt"), sep 
 
 
 library(corrplot)
-pdf(paste0(out_path, "/lifestyle_factors_stratified_corrplot2_sameN.pdf"), width = 20, height = 5, useDingbats=FALSE)
+pdf(paste0(out_path, "/lifestyle_factors_stratified_corrplot2_sameN2.pdf"), width = 20, height = 5, useDingbats=FALSE)
 cuts <- apply(res, 2, function(x) {3-as.numeric(cut(x, c(-Inf,0.001, 0.05,1), labels=0:2))})
 
 row.names(cuts) <- row.names(res)
