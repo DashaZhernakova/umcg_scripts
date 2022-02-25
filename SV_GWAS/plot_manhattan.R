@@ -39,7 +39,7 @@ don <- d %>%
 axisdf <- don %>% group_by(CHR) %>% summarize(center=( max(BPcum) + min(BPcum) ) / 2 )
 
 # Make the plot
-pdf("vSV_manhattan_noannot.pdf",  height =8, width = 20, useDingbats = F)
+pdf("dSV_manhattan_noannot.v2.pdf",  height =8, width = 20, useDingbats = F)
 ggplot(don, aes(x=BPcum, y=-log10(P))) +
   
   # Show all points
@@ -49,7 +49,7 @@ ggplot(don, aes(x=BPcum, y=-log10(P))) +
   
   # custom X axis:
   scale_x_continuous( label = axisdf$CHR, breaks= axisdf$center ) +
-  scale_y_continuous(expand = c(0, 0) ) +     # remove space between plot area and x axis
+  scale_y_continuous(expand = c(0, 0) , limits = c(0,45)) +     # remove space between plot area and x axis
   
   # Add highlighted points
   #geom_point(data=subset(don, is_highlight=="yes"), color="orange", size=2) +

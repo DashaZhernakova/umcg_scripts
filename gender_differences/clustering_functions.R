@@ -11,7 +11,7 @@ source("C:/Users/Dasha/work/UMCG/umcg_scripts/gender_differences/preprocessing_g
 # bin age, fit linear models per age bin per sex, return estimates
 get_lm_estimates <- function(merged_tab, age_breaks = c(20, 40, 60, 80)){
   colnames(merged_tab)[1] <- "phenotype"
-  estimates <- rep(NA, (length(age_breaks)-1) * 3)
+  estimates <- rep(NA, (length(age_breaks)-1) * 2)
   for (i in 1:(length(age_breaks) - 1)){
     st_age <- age_breaks[i]
     end_age <- age_breaks[i+1]
@@ -44,6 +44,33 @@ get_lm_estimates_v2 <- function(merged_tab, age_breaks = c(20, 40, 60, 80)){
     
   }
   c(estimates_m, estimates_w)
+}
+
+get_lm_estimates_v3 <- function(merged_tab, age_breaks = c(20, 40, 60, 80)){
+  colnames(merged_tab)[1] <- "phenotype"
+  estimates <- rep(NA,  (length(age_breaks)-1) * 4)
+  
+  cnt <- 1
+  for (i in 1:(length(age_breaks) - 1)){
+    st_age <- age_breaks[i]
+    end_age <- age_breaks[i+1]
+    w <- merged_tab[merged_tab$age >= st_age & merged_tab$age < end_age & merged_tab$gender_F1M2 == 1,]
+    m <- merged_tab[merged_tab$age >= st_age & merged_tab$age < end_age & merged_tab$gender_F1M2 == 2,]
+    
+    lm_w <- lm(phenotype ~ age, data = w)
+    lm_m <- lm(phenotype ~ age, data = m)
+    
+    estimates[cnt] <- summary(lm_w)$coefficients[2,1]
+    estimates[cnt + 1] <- summary(lm_m)$coefficients[2,1]
+    estimates[cnt + 2] <- summary(lm_w)$coefficients[1,1]
+    estimates[cnt + 3] <- summary(lm_m)$coefficients[1,1]
+    cnt <- cnt + 4
+  }
+  
+  lm_sex <- lm(phenotype~gender_F1M2, data = merged_tab)
+  estimates[length(estimates)] <- summary(lm_sex)$coefficients[2,1]
+  
+  return(estimates)
 }
 
 # Get the degree of the best fitted polynomial (for the difference trend)

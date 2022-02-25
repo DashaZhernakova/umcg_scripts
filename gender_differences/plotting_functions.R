@@ -468,7 +468,7 @@ draw_disease_prevalence <- function(merged_tab){
 
 draw_smooth_scatter <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add_inter_p_to_plot = T, plot_title = NULL, label = ""){
   cex_main = 1
-  
+  cat("Plotting a density smooth plot")
   ylims <- with(merged_tab, range(phenotype))
   ylabel <- pheno_name
   if (nchar(pheno_name) > 40){
@@ -501,11 +501,11 @@ draw_smooth_scatter <- function(merged_tab, pheno_name, pdat, gam.p, min_age, ma
     }
   }
   
-  plot(phenotype ~ age, data = merged_tab2,  col = gender_F1M2,  pch = 16, 
-       main = plot_title, 
-       cex = 0.6, xlab = "age", ylab = ylabel, cex.main = cex_main, frame.plot = F, axes = T, 
-       ylim =c(min(pretty(merged_tab2$phenotype)), max(pretty(merged_tab2$phenotype))),
-       xlim = c(min(min_age,merged_tab2$age), max(max_age, merged_tab2$age)))
+  #plot(phenotype ~ age, data = merged_tab2,  col = gender_F1M2,  pch = 16, 
+  #     main = plot_title, 
+  #     cex = 0.6, xlab = "age", ylab = ylabel, cex.main = cex_main, frame.plot = F, axes = T, 
+  #     ylim =c(min(pretty(merged_tab2$phenotype)), max(pretty(merged_tab2$phenotype))),
+  #     xlim = c(min(min_age,merged_tab2$age), max(max_age, merged_tab2$age)))
   
   w_palette <- brewer.pal(n = 9, name = "Reds")
   m_palette <- brewer.pal(n = 9, name = "Blues")
@@ -528,7 +528,7 @@ draw_smooth_scatter <- function(merged_tab, pheno_name, pdat, gam.p, min_age, ma
   
   dd <- pdat[pdat$gender_F1M2 == 1,]
   lines(pred ~ age, data = dd, col = w_palette[8], lwd = 2)
-  polygon(c(rev(dd$age), dd$age), c(rev(dd$lwr), dd$upr), col = col2transparent(w_palette[8], 50), border = NA)
+  polygon(c(rev(dd$age), dd$age), c(rev(dd$lwr), dd$upr), col = col2transparent(w_palette[8], 100), border = NA)
   
   #
   # Men
@@ -543,9 +543,9 @@ draw_smooth_scatter <- function(merged_tab, pheno_name, pdat, gam.p, min_age, ma
   points(phenotype ~ age, data = m[order(m$dens),], col = col,  pch = 16, 
          cex = 0.6)
   
-  dd <- pdat[pdat$gender_F1M2 == 1,]
+  dd <- pdat[pdat$gender_F1M2 == 2,]
   lines(pred ~ age, data = dd, col = m_palette[8], lwd = 2)
-  polygon(c(rev(dd$age), dd$age), c(rev(dd$lwr), dd$upr), col = col2transparent(w_palette[8], 50), border = NA)
+  polygon(c(rev(dd$age), dd$age), c(rev(dd$lwr), dd$upr), col = col2transparent(m_palette[8], 100), border = NA)
   
   
   abline(h = pretty(merged_tab2$phenotype), col = "grey90")

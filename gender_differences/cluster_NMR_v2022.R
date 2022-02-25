@@ -145,13 +145,13 @@ out_table_path <- paste0(out_basepath, "tables/", config$output_fname)
 
 
 age_breaks = c(20, 40, 60, 80)
-lm_estimates <- data.frame(matrix(nrow = num_traits, ncol = 2*(length(age_breaks) -1)))
+lm_estimates <- data.frame(matrix(nrow = num_traits, ncol =  4*(length(age_breaks) -1)))
 #colnames(lm_estimates) <- c("20-40w", "20-40m", "40-60w", "40-60m", "60-80w", "60-80m")
 cnt = 1
 cat("\nStarting the analyses\n")
 for (idx in indices){
   
-  trait_name <- ifelse(is.null(pheno_table), colnames(traits_m)[idx], pheno_table[pheno_table[,1] == colnames(traits_m)[idx], 2])
+  trait_name <- colnames(traits_m)[idx]
   cat(idx, " : ", trait_name, "\n")
   
   log_transform = FALSE
@@ -159,23 +159,23 @@ for (idx in indices){
   cat("\tLog tranform: ", log_transform, "\n")
   
   merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = outlier_correction_method, log_tr = log_transform, scale_tr = scale_transform)
-  lm_estimates[idx,] <- get_lm_estimates(merged_tab)
+  lm_estimates[idx,] <- get_lm_estimates_v3(merged_tab)
   rownames(lm_estimates)[idx] <- trait_name
 }
 # 
-# nmr_corr <- cor(traits_m)
-# corr <- cor(t(lm_estimates))
-# test = hclust(dist(corr))
-# ORDER = rownames(corr)[test$order]
-# nmr_corr[ORDER,ORDER] ->  nmr_corr
-# corr[ORDER,ORDER] ->  corr
-# New_matrix = nmr_corr
-# New_matrix[lower.tri(nmr_corr)] <- as.matrix(corr)[lower.tri(as.matrix(corr))]
+ nmr_corr <- cor(traits_m, use="complete.obs")
+ corr <- cor(t(lm_estimates))
+ test = hclust(dist(corr))
+ ORDER = rownames(corr)[test$order]
+ nmr_corr[ORDER,ORDER] ->  nmr_corr
+ corr[ORDER,ORDER] ->  corr
+ New_matrix = nmr_corr
+ New_matrix[lower.tri(nmr_corr)] <- as.matrix(corr)[lower.tri(as.matrix(corr))]
 # 
-# pdf("C:/Users/Dasha/work/UMCG/data/gender_differences/omics/results/results/plots/NMR_corrplot_test.pdf", height = 20, width = 20)
-# corrplot(New_matrix, diag=FALSE, tl.col="black") -> Plot_m
-# corrMatOrder(corr = Plot_m[test$order], order = names(corr)[test$order]  )
-# dev.off()
+ pdf("C:/Users/Dasha/work/UMCG/data/gender_differences/omics/results/results/plots/NMR_corrplot_test2.pdf", height = 40, width = 40)
+ corrplot(New_matrix, diag=FALSE, tl.col="black", tl.cex = 0.5, method = 'color') -> Plot_m
+ corrMatOrder(corr = Plot_m[test$order], order = names(corr)[test$order]  )
+ dev.off()
 # 
 # pdf("C:/Users/Dasha/work/UMCG/data/gender_differences/omics/results/results/plots/NMR_clustering.pdf", width = 15, height = 21)
 # par(mfrow=c(5,4)) 
