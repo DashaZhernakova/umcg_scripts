@@ -200,9 +200,12 @@ fitted_lines <- data.frame(matrix(nrow = n_points*2, ncol = length(indices)))
 colnames(fitted_lines) <- colnames(traits_m)[indices]
 
 cnt = 1
+cnt_sign <- 1
+plots <- list()
+
 cat("\nStarting the analyses\n")
 for (idx in indices){
-  if (config$plot_extention == "pdf" && cnt > nplotspp && make_plots){
+  if (config$plot_extention == "pdf" && cnt > nplotspp && make_plots && plot_density == F){
     cnt = 1
     if (nplotspp > 1) par(mfrow=c(5,4))
   }
@@ -218,9 +221,12 @@ for (idx in indices){
     covariateslinear2 <- covariateslinear[covariateslinear != colnames(traits_m)[idx]]
     covariatesnonlinear2 <- covariatesnonlinear[covariatesnonlinear != colnames(traits_m)[idx]]
     
-    res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, covariates_linear = covariateslinear2, covariates_nonlinear = covariatesnonlinear2, n_points = n_points, make_plots = make_plots, gam_family = gam_family, min_age = min_age, max_age = max_age, ymax_hist = ymax_hist, label = '', add_inter_p_to_plot = add_inter_p_to_plot, plot_title = plot_title, interp_cutoff = interp_cutoff, plot_points = plot_points, add_breakpoints = add_breakpoints,  t_threshold = ttest_cutoff, derivatives_cutoff = deriv_cutoff, log_tr = log_transform)
+    res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, covariates_linear = covariateslinear2, covariates_nonlinear = covariatesnonlinear2, n_points = n_points, make_plots = make_plots, gam_family = gam_family, min_age = min_age, max_age = max_age, ymax_hist = ymax_hist, label = '', add_inter_p_to_plot = add_inter_p_to_plot, plot_title = plot_title, interp_cutoff = interp_cutoff, plot_points = plot_points, add_breakpoints = add_breakpoints,  t_threshold = ttest_cutoff, derivatives_cutoff = deriv_cutoff, log_tr = log_transform, plot_density = plot_density)
+    
     if (res_dif_lst[["inter_p"]] < interp_cutoff){
+      if (plot_density) plots[[cnt_sign]] <- res_dif_lst$p
       cnt <- cnt + 1
+      cnt_sign <- cnt_sign + 1
       cat("\tSignificant interaction detected.\n")
     }
     
@@ -240,10 +246,6 @@ for (idx in indices){
     res_summary[trait_name,'age_gam_f2'] = age_sex_only[4]
 
     
-    if (!is.null(res_dif_lst[['breakpoints']])){
-      res_summary[trait_name, "breakpoints_men"] = ifelse(length(res_dif_lst[['breakpoints']][[2]]) > 0, res_dif_lst[['breakpoints']][[2]], "NA")
-      res_summary[trait_name, "breakpoints_women"] = ifelse(length(res_dif_lst[['breakpoints']][[1]]) > 0, res_dif_lst[['breakpoints']][[1]], "NA")
-    }
     if (write_fitted) fitted_lines[,trait_name] = res_dif_lst[["pdat"]]$pred
 
   } else {

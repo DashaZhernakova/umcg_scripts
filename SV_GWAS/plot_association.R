@@ -43,6 +43,8 @@ format_abo_bloodgroup <- function(abo){
     abo[abo$Bloodtype == "O", "ABO_O"] <- "O"
     abo$ABO_O <- as.factor(abo$ABO_O )
     abo$Bloodtype <- as.factor(abo$Bloodtype )
+    abo$ABO_A <- "O/B/AB"
+    abo[abo$Bloodtype == "A", "ABO_A"] <- "A"
     return(abo)
 }
 
@@ -69,10 +71,10 @@ format_abo_bloodgroup <- function(abo){
     ids <- intersect(row.names(pheno), row.names(covar))
     
     if (c != "DAG3"){
-        #m <- cbind(pheno[ids,sv], covar[ids, c(gsub(":[0-9]+","", sv), "PC1", "PC2", "age", "read_number")], sex[ids,5], geno[ids,], fut2_geno[ids, "secr"], abo[ids, c("ABO_O", "Bloodtype")])
-        #colnames(m) <- c("sv", "abundance", "PC1", "PC2", "age", "read_number", "sex", "geno_factor", "genotype", "FUT2_status", "ABO_O", "ABO_blood_group")
-        m <- cbind(pheno[ids,sv], covar[ids, c(gsub(":[0-9]+","", sv), "PC1", "PC2", "age", "read_number")], sex[ids,5], geno[ids,], fut2_geno[ids, "secr"])
-        colnames(m) <- c("sv", "abundance", "PC1", "PC2", "age", "read_number", "sex", "geno_factor", "genotype", "FUT2_status")
+        m <- cbind(pheno[ids,sv], covar[ids, c(gsub(":[0-9]+","", sv), "PC1", "PC2", "age", "read_number")], sex[ids,5], geno[ids,], fut2_geno[ids, "secr"], abo[ids, ])
+        colnames(m) <- c("sv", "abundance", "PC1", "PC2", "age", "read_number", "sex", "geno_factor", "genotype", "FUT2_status", colnames(abo))
+        #m <- cbind(pheno[ids,sv], covar[ids, c(gsub(":[0-9]+","", sv), "PC1", "PC2", "age", "read_number")], sex[ids,5], geno[ids,], fut2_geno[ids, "secr"])
+        #colnames(m) <- c("sv", "abundance", "PC1", "PC2", "age", "read_number", "sex", "geno_factor", "genotype", "FUT2_status")
 
 
         # SV vs genotype
@@ -88,8 +90,8 @@ format_abo_bloodgroup <- function(abo){
         # SV vs ABO vs FUT2 
         full_formula_ABOFUT2 <- as.formula("sv ~ ABO_FUT2 + abundance + PC1 + PC2 + age + read_number + sex")
     } else {
-        m <- cbind(pheno[ids,sv], covar[ids, c(gsub(":[0-9]+","", sv), "PC1", "PC2", "PC3", "PC4", "PC5", "age", "read_number")], sex[ids,5], geno[ids,], fut2_geno[ids, "secr"], abo[ids, c("ABO_O", "Bloodtype")])
-        colnames(m) <- c("sv", "abundance", "PC1", "PC2",  "PC3", "PC4", "PC5", "age", "read_number", "sex", "geno_factor", "genotype", "FUT2_status", "ABO_O", "ABO_blood_group")
+        m <- cbind(pheno[ids,sv], covar[ids, c(gsub(":[0-9]+","", sv), "PC1", "PC2", "PC3", "PC4", "PC5", "age", "read_number")], sex[ids,5], geno[ids,], fut2_geno[ids, "secr"], abo[ids, ])
+        colnames(m) <- c("sv", "abundance", "PC1", "PC2",  "PC3", "PC4", "PC5", "age", "read_number", "sex", "geno_factor", "genotype", "FUT2_status", colnames(abo))
         
         
         # SV vs genotype
@@ -111,6 +113,9 @@ format_abo_bloodgroup <- function(abo){
     m$ABO_FUT2 <- factor(m$ABO_FUT2, levels = c("secretor.A", "secretor.B", "secretor.AB", "secretor.O", "non-secretor.A", "non-secretor.B", "non-secretor.AB", "non-secretor.O"))
     m$ABO_O_FUT2 <- interaction(m$FUT2_status, m$ABO_O)
     m$ABO_O_FUT2 <- factor(m$ABO_O_FUT2, levels = c("secretor.O", "secretor.A/B", "non-secretor.O", "non-secretor.A/B"))
+    m$ABO_A_FUT2 <- interaction(m$FUT2_status, m$ABO_A)
+    m$ABO_A_FUT2 <- factor(m$ABO_A_FUT2, levels = c("secretor.A", "secretor.O/B/AB", "non-secretor.A", "non-secretor.O/B/AB"))
+    
     m$SNP_FUT2 <- interaction(m$FUT2_status, m$geno_factor)
     m$SNP_FUT2 <- factor(m$SNP_FUT2, levels = c(paste0("secretor", ".", levels(m$geno_factor)), paste0("non-secretor", ".", levels(m$geno_factor))))
     

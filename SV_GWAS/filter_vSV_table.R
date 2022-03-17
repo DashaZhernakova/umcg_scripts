@@ -117,3 +117,14 @@ sv_per_cohort2$cohorts <- apply(sv_per_cohort2, 1, function(x) {paste(colnames(s
 write.table(sv_per_cohort2, file = "data/vSV_per_cohort.txt", sep = "\t", quote = F, col.names = NA) 
 
 
+# SV in any number of cohorts
+sv_per_cohort <- sv_per_cohort[2:nrow(sv_per_cohort),]
+new_sv_ids3 <-(conv[match(row.names(sv_per_cohort), conv$sv_id, nomatch = 0),"new_sv_id"])
+length(new_sv_ids3) == nrow(sv_per_cohort)
+row.names(sv_per_cohort) <- new_sv_ids3
+sv_per_cohort <- as.data.frame(sv_per_cohort)
+sv_per_cohort$cohorts <- NA
+sv_per_cohort$cohorts <- apply(sv_per_cohort, 1, function(x) {paste(colnames(sv_per_cohort)[which(x==1)], collapse = ",")})
+sv_per_cohort <- sv_per_cohort[sv_per_cohort$cohorts != "",]
+
+write.table(sv_per_cohort, file = "data/vSV_per_cohort_all_cohorts.txt", sep = "\t", quote = F, col.names = NA) 

@@ -1,9 +1,11 @@
 library(corrplot)
-phenos <- c("AF", "ALT", "AST","CA", "FOS", "NAA", "GLU",  "DBP", "CHO", "HDC", "LDC", "TGL","GR")
-path <- "/groups/umcg-lifelines/tmp01/users/umcg-dzhernakova/gender_difs/factors/results/"
+phenos <- c("AF", "ALT", "AST","CA", "FOS", "NAA",  "DBP", "CHO", "HDC", "LDC", "TGL", "HALB","GR", "ER", "HT", "BALB")
+#path <- "/groups/umcg-lifelines/tmp01/users/umcg-dzhernakova/gender_difs/factors/results/"
+setwd("C:/Users/Dasha/work/UMCG/data/gender_differences/omics/all_LL/lifestyle_factors/")
+path <- "tables/"
 
 bootstrap_res <- data.frame()
-n_boot <- 10
+n_boot <- 50
 
 cnt = 1
 for (p in phenos){
@@ -40,14 +42,18 @@ dev.off()
 
 ############
 bsum <- data.frame()
-n_boot <- 10
+n_boot <- 50
 #phenos <- c("AF", "ALT", "AST","CA", "FOS", "NAA", "GLU",  "DBP", "CHO", "HDC",  "TGL")
-
+n_boot_per_pheno <- matrix(data = 0, nrow = length(phenos), ncol = 1)
+row.names(n_boot_per_pheno) <- phenos
 for (b in 1:n_boot){
   cnt = 1
   for (p in phenos){
+    tryCatch({
     p_table <- read.delim(paste0(path, p, "_bootstrap_", b, ".p.table.txt"), header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)
     s_table <- read.delim(paste0(path, p, "_bootstrap_",b , ".s.table.txt"), header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)
+    
+    n_boot_per_pheno[p,1] <- n_boot_per_pheno[p,1] + 1
     
     rows <- c(row.names(p_table), row.names(s_table))
     res_line <- c(p_table[,4], s_table[,4])
@@ -62,6 +68,8 @@ for (b in 1:n_boot){
     res[match(rows,row.names(res), nomatch = 0),p] <- res_line[match(row.names(res), rows, nomatch = 0)]
     
     cnt <- cnt +1
+    
+  },error=function(e) {print(paste0("ERROR! ", p, "_bootstrap_", b, ".p.table.txt"))})
   }
   cuts <- apply(res, 2, function(x) {ifelse(x < 0.05, 1, 0)})
   cuts[is.na(cuts)] <- 0
@@ -82,4 +90,32 @@ cols <- c("Intercept", "sex", "smoking", "smoking:sex1.1", "smoking:sex0.2", "sm
 colnames(bsum2) <- cols
 pdf("lifestyle_factors_bootstrap_0.05_filtered_corrplot.pdf")
 corrplot(bsum2,is.corr = F, tl.col = "black", tl.cex = 0.8)
+dev.off()
+
+
+
+bfrac <- apply(bsum, 1, function(x) x/n_boot_per_pheno)
+row.names(bfrac) <- phenos
+pdf("lifestyle_factors_bootstrap50_corrplot2.pdf")
+#corrplot(bfrac,is.corr = F, tl.col = "black", tl.cex = 0.7, col.lim = c(0,1), 
+#         col=colorRampPalette(c("#FFFFFF","#08519C"))(50))
+corrplot(bsum,is.corr = F, tl.col = "black", tl.cex = 0.7, col.lim = c(0,50), 
+         col=colorRampPalette(c("#FFFFFF","#08519C"))(50))
+         
+dev.off()
+
+factors <- c("diet", "alcohol", "phys_activity_total"  ,"stress_chronic", "sleep_duration")
+pdf("lifestyle_factors_bootstrap50_corrplot_split.pdf")
+par(mfrow=c(6,1))
+subs <- bsum[c("gender_F1M22", "s(age)", "s(age):gender_F1M21", "s(age):gender_F1M22"),]
+corrplot(subs,is.corr = F, tl.col = "black", tl.cex = 0.7, col.lim = c(0,50), 
+         col=colorRampPalette(c("#FFFFFF","#08519C"))(50))
+for (f in factors){
+  print(f)
+  ord <- c(paste0("s(", f, ")"), paste0("ti(", f, ",age)"), paste0("s(", f, "):gender_F1M21"), paste0("s(", f, "):gender_F1M22"), paste0("ti(", f, ",age):gender_F1M21"), paste0("ti(", f, ",age):gender_F1M22"))
+  subs <- bsum[grep(f,row.names(bsum)),]
+  corrplot(subs[ord,],is.corr = F, tl.col = "black", tl.cex = 0.7, col.lim = c(0,50), 
+           col=colorRampPalette(c("#FFFFFF","#08519C"))(50))
+  
+}
 dev.off()

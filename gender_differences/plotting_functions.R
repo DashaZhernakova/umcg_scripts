@@ -551,3 +551,186 @@ draw_smooth_scatter <- function(merged_tab, pheno_name, pdat, gam.p, min_age, ma
   abline(h = pretty(merged_tab2$phenotype), col = "grey90")
   abline(v = pretty(merged_tab2$age), col = "grey90")
 }
+
+
+#ggplot
+draw_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add_inter_p_to_plot = T, plot_title = NULL, plot_points = T, breakpoints = NULL, factor_name = "", alpha_points = 40, breakpoints_intervals = NULL, ymax_hist = 1, label = "", ylims_usr = NULL){
+  cex_main = 1
+  
+  ylims <- with(merged_tab, range(phenotype))
+  
+  
+  pheno_name <- paste(strwrap(pheno_name, width = 40), collapse = "\n")
+  ylabel <- pheno_name
+  pheno_name <- gsub(" \\(.*", "", pheno_name)
+  
+  
+  
+  ## draw base plot
+  #palette(c(col2transparent("indianred1", alpha_points),col2transparent("dodgerblue1", alpha_points)))
+  palette(c(col2transparent("#ff9999", 120),col2transparent("#99ccff", 120)))
+  par(mar = c(6, 6, 6, 3), # Dist' from plot to side of page
+      mgp = c(2, 0.4, 0), # Dist' plot to label
+      las = 1, # Rotate y-axis text
+      tck = -.01, # Reduce tick length
+      xaxs = "i", yaxs = "i") # Remove plot padding
+  
+  merged_tab2 <- merged_tab[merged_tab$phenotype <= ylims[2] & merged_tab$phenotype >= ylims[1],]
+  if (plot_title == ""){
+    if (add_inter_p_to_plot) {
+      if (gam.p == 0) {
+        plot_title <- paste0(pheno_name, '\n', label, "\nGAM interaction P < 2.23e-308")
+      } else {
+        plot_title <- paste0(pheno_name, '\n', label, "\nGAM interaction P = ", format(gam.p, digits = 3))
+      }
+    } else {
+      plot_title <- pheno_name
+    }
+  }
+  
+  ggplot(merged_tab2, aes(x=age, y = phenotype, fill = gender_F1M2)) + 
+    geom_point(shape=21, stroke=0, alpha = 120, color = "transparent") + 
+    scale_fill_manual(values = c("#ff9999", "#99ccff")) + theme_minimal() + 
+    theme(legend.position="none", plot.title = element_text(hjust = 0.5, size = 10)) + 
+    xlab("age") + 
+    ylab(ylabel) + 
+    ylim(c(min(pretty(merged_tab2$phenotype)), max(pretty(merged_tab2$phenotype)))) + 
+    xlim(c(min(min_age,merged_tab2$age), max(max_age, merged_tab2$age))) + 
+    ggtitle(plot_title) + 
+    geom_line(data = pdat, aes(x = age, y = pred, color = gender_F1M2)) + 
+    scale_color_manual(values = c("indianred1", "dodgerblue1"))
+  
+  
+  levs <- levels(merged_tab$gender_F1M2)
+  cols = c("indianred1", "dodgerblue1")
+  
+  ## add the fitted lines
+  for (l in seq_along(levs)) {
+    dd <- pdat[pdat$gender_F1M2 == levs[l],]
+    lines(pred ~ age, data = dd, col = cols[[l]], lwd = 2)
+    polygon(c(rev(dd$age), dd$age), c(rev(dd$lwr), dd$upr), col = col2transparent(cols[[l]], 100), border = NA)
+  }
+  
+  
+  if(length(breakpoints) > 0){
+    br_w <- breakpoints[[1]]
+    br_m <- breakpoints[[2]]
+    for (br in br_w){
+      abline(v = as.numeric(br), col = cols[1], lty = 2)
+    }
+    for (br in br_m){
+      abline(v = as.numeric(br), col = cols[2], lty = 2)
+    }
+  }
+  ymin <- min(pretty(merged_tab2$phenotype), min(merged_tab2$phenotype) - 1)
+  ymax <- max(pretty(merged_tab2$phenotype), max(merged_tab2$phenotype) + 2)
+  if(!is.null(breakpoints_intervals)){
+    br_w <- breakpoints_intervals[[1]]
+    br_m <- breakpoints_intervals[[2]]
+    for (br in br_m){
+      rect(br[1], ymin, br[2], ymax, col = 2, border = 2, density = -1)
+    }
+    for (br in br_w){
+      rect(br[1], ymin, br[2], ymax, col = 1, border = 1, density = -1)
+    }
+  }
+}
+
+
+draw_contour_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add_inter_p_to_plot = T, plot_title = NULL,  ymax_hist = 1, label = "", ylims_usr = NULL){
+  cat("making a contour plot!\n")
+  ylims <- with(merged_tab, range(phenotype))
+  pheno_name <- paste(strwrap(pheno_name, width = 40), collapse = "\n")
+  ylabel <- pheno_name
+  pheno_name <- gsub(" \\(.*", "", pheno_name)
+  binaryPhenotype <- F
+  if (all(ylims == c(0,1))) {
+    ylabel <- paste0(pheno_name, " frequency")
+    binaryPhenotype <- T
+  }
+  
+  merged_tab2 <- merged_tab[merged_tab$phenotype <= ylims[2] & merged_tab$phenotype >= ylims[1],]
+  if (plot_title == ""){
+    if (add_inter_p_to_plot) {
+      if (gam.p == 0) {
+        plot_title <- paste0(pheno_name, '\n', label, "\nGAM interaction P < 2.23e-308")
+      } else {
+        plot_title <- paste0(pheno_name, '\n', label, "\nGAM interaction P = ", format(gam.p, digits = 3))
+      }
+    } else {
+      plot_title <- pheno_name
+    }
+  }
+  if (! binaryPhenotype){
+      p <- ggplot(merged_tab2) + 
+        stat_density2d(geom="density2d", aes(x = age, y = phenotype, color = gender_F1M2,alpha=..level..),  contour=TRUE)+ 
+        geom_line(data = pdat, aes(x = age, y = pred, color = gender_F1M2), size = 0.8) + 
+        geom_ribbon(data = pdat, aes(x = age, ymin = lwr, ymax = upr, fill = gender_F1M2)) + 
+        theme_minimal() +
+        scale_fill_manual(values = alpha(c("#ff9999", "#99ccff"),  0.4)) + 
+        theme(legend.position="none", plot.title = element_text(hjust = 0.5, size = 15), axis.text = element_text(size = 12), axis.title = element_text(size = 12)) + 
+        xlab("age") + 
+        ylab(ylabel) + 
+        ggtitle(plot_title) + 
+        scale_color_manual(values = c("indianred1", "dodgerblue1"))
+  } else {
+    h.br.step <- 3
+    h.br <- seq(min_age, max_age, h.br.step)
+    
+    independ.w<- merged_tab2[merged_tab2$gender_F1M2 == 1, "age"]
+    depend.w <- merged_tab2[merged_tab2$gender_F1M2 == 1, 1]
+    independ.m <- merged_tab2[merged_tab2$gender_F1M2 == 2, "age"]
+    depend.m <- merged_tab2[merged_tab2$gender_F1M2 == 2, 1]
+    
+    #
+    # get counts in each bin
+    #
+    #men
+    h.m.y0 <- hist(independ.m[depend.m == 0],
+                   breaks = h.br,
+                   plot = FALSE
+    )$counts
+    h.m.y1 <- hist(independ.m[depend.m == 1],
+                   breaks = h.br,
+                   plot = FALSE
+    )$counts
+    # women
+    h.w.y0 <- hist(independ.w[depend.w == 0],
+                   breaks = h.br,
+                   plot = FALSE
+    )$counts
+    h.w.y1 <- hist(independ.w[depend.w == 1],
+                   breaks = h.br,
+                   plot = FALSE
+    )$counts
+    
+    h.m <- h.m.y1 / (h.m.y1 + h.m.y0)
+    h.w <- h.w.y1 / (h.w.y1 + h.w.y0)
+    
+    n_bins <- length(h.br)-1
+    res_hist <- data.frame(matrix(nrow = 2*n_bins))
+    res_hist$start <- rep(h.br[-length(h.br)], 2)
+    res_hist$end <- rep(h.br[-1], 2)
+    res_hist$gender_F1M2 <- c(rep("1", n_bins) , rep("2", n_bins))
+    res_hist$val <- c(h.w, h.m)
+    res_hist$bottom <- rep(0, 2*n_bins)
+    
+    
+    p <- ggplot() + 
+      geom_rect(data = res_hist, aes(ymin = bottom, ymax = val, xmin = start, xmax = end, fill = gender_F1M2, color =  gender_F1M2))+
+      geom_line(data = pdat, aes(x = age, y = pred, color = gender_F1M2), size = 0.8) + 
+      geom_ribbon(data = pdat, aes(x = age, ymin = lwr, ymax = upr, fill = gender_F1M2)) + 
+      theme_minimal() +
+      scale_fill_manual(values = alpha(c("#ff9999", "#99ccff"),  0.4)) + 
+      theme(legend.position="none", plot.title = element_text(hjust = 0.5, size = 15), axis.text = element_text(size = 12), axis.title = element_text(size = 12)) + 
+      xlab("age") + 
+      ylab(ylabel) + 
+      ylim(0,1) +
+      ggtitle(plot_title) + 
+      scale_color_manual(values = c("indianred1", "dodgerblue1"))
+    
+  }
+  
+  return(p)
+}
+

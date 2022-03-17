@@ -328,3 +328,38 @@ plot_intersection_rect <- function(res_dif, bins, delta){
     }
   }
 }
+
+
+get_gam_summary <- function(merged_tab, pheno_name, covariates_linear = c(), covariates_nonlinear = c(), n_points = 300,  gam_family = gaussian(), min_age = 20, max_age = 80){  
+  colnames(merged_tab)[1] <- "phenotype"
+  merged_tab <- merged_tab[(merged_tab$age < max_age) & (merged_tab$age >= min_age),]
+  
+  merged_tab <- mutate(merged_tab, ord_gender_F1M2 = ordered(gender_F1M2, levels = c('1', '2')))
+  merged_tab$gender_F1M2 <- as.factor(merged_tab$gender_F1M2)
+  
+  if (length(unique(merged_tab[,1])) < 3 ){
+    cat("Outcome is binary, changing family to binomial with logit\n")
+    family=binomial(link = 'logit')
+  }
+  res_dif = NULL
+  if (length(covariates_linear) == 0 & length(covariates_nonlinear) == 0){
+    
+    gam.fit <- gam(phenotype ~ gender_F1M2 + s(age) + s(age, by = gender_F1M2), data = merged_tab, method = "REML", family = gam_family)
+    gam.fit.ordered_sex <- gam(phenotype ~ ord_gender_F1M2 + s(age) + s(age, by = ord_gender_F1M2), 
+                               data = merged_tab, method = 'REML', family = gam_family)
+    
+  } else { # Correct for covariates
+    terms_linear_covar <- ""
+    terms_nonlinear_covar <- ""
+    if (length(covariates_linear) > 0) terms_linear_covar <- paste0("+", paste(covariates_linear, collapse = "+"))
+    if (length(covariates_nonlinear) > 0) terms_nonlinear_covar <- paste0("+ s(", paste(covariates_nonlinear, collapse = ")+ s("), ")")
+    
+    gam.fit <- gam(as.formula(paste("phenotype ~ gender_F1M2 ", terms_linear_covar, terms_nonlinear_covar,
+                                    "+ s(age) + s(age, by = gender_F1M2)", sep = " ")), 
+                   data = merged_tab, method = "REML")
+    gam.fit.ordered_sex <- gam(as.formula(paste("phenotype ~ ord_gender_F1M2 ", terms_linear_covar, terms_nonlinear_covar,
+                                                "+ s(age) + s(age, by = ord_gender_F1M2)", sep = " ")), 
+                               data = merged_tab, method = "REML")
+  }
+  return(gam.fit$coefficients)
+}
