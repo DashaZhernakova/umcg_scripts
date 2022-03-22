@@ -146,7 +146,7 @@ out_table_path <- paste0(out_basepath, "tables/", config$output_fname)
 
 age_breaks = c(20, 40, 60, 80)
 
-lm_estimates <- data.frame(matrix(nrow = num_traits, ncol =  2*(length(age_breaks) -1)))
+#lm_estimates <- data.frame(matrix(nrow = num_traits, ncol =  2*(length(age_breaks) -1)))
 lm_estimates <- data.frame(matrix(nrow = num_traits, ncol =  40))
 
 #colnames(lm_estimates) <- c("20-40w", "20-40m", "40-60w", "40-60m", "60-80w", "60-80m")
@@ -166,6 +166,7 @@ for (idx in indices){
   lm_estimates[idx,] <- get_gam_summary(merged_tab, trait_name, covariateslinear, covariatesnonlinear )
   rownames(lm_estimates)[idx] <- trait_name
 }
+write.table(lm_estimates, paste0(out_table_path, "/NMR_gam_coefficients.txt"), sep = "\t", quote = F, col.names = NA)
 # 
  nmr_corr <- cor(traits_m, use="complete.obs")
  corr <- cor(t(lm_estimates))
@@ -204,7 +205,7 @@ for (idx in indices){
 fitted_matrix <- read.delim("results/tables/nmr_corrected_bmi_smk1_statins_all_fitted.txt", header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)
 signif <- read.delim("results/tables/nmr_corrected_bmi_smk1_statins_bonferroni_summary.txt", header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)
 signif_inters <- row.names(signif[signif$inter_p_adj_bonferroni < 0.05,])
-num_k = 6
+num_k = 9
 km <- kmeans(lm_estimates, num_k, nstart = 50)
 cl <- km$cluster
 
@@ -215,16 +216,24 @@ ss <- silhouette(km$cluster, dist(cor(t(lm_estimates))))
 mean_sil_score <- aggregate(ss[,3]~ss[,1], FUN=mean)
 
 pdf(paste0("results/plots/nmr_clustering_kmeans_", num_k, ".2.v2022.pdf"), width = 20, height = 20)
-par(mfrow=c(4,3))
+par(mfrow=c(5,4))
 cnt <- 1
 for (i in 1:max(cl)){
   lipids <- row.names(clusters[clusters$cl == i,])
   print(length(lipids))
   print(i)
   
-  draw_multiple_fitted_lines(fitted_matrix[,lipids], signif_inters, plot_title = paste0("cluster ", cnt, "\nN = ", length(lipids), "\nss = ", mean_sil_score[i,2]))
+  draw_multiple_fitted_lines(fitted_matrix[,lipids], signif_inters, plot_title = paste0("cluster ", cnt, "\nN = ", length(lipids)))
   cnt <- cnt + 1
 }
 dev.off()
 
 
+for (i in c(1,3,2,5,6,4)){
+  lipids <- row.names(clusters[clusters$cl == i,])
+  print(length(lipids))
+  print(i)
+  
+  draw_multiple_fitted_lines(fitted_matrix[,lipids], signif_inters, plot_title = paste0("cluster ", cnt, "\nN = ", length(lipids)))
+  cnt <- cnt + 1
+}

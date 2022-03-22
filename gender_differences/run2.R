@@ -128,6 +128,7 @@ plot_points <- ifelse("plot_points" %in% names(config),  config$plot_points, T)
 runCV <- ifelse("run_cross_validation" %in% names(config),  config$run_cross_validation, F)
 ymax_hist <- ifelse("ymax_hist" %in% names(config),  config$ymax_hist, 1)
 section_starts <- ifelse("sections" %in% names(config),  config$sections, character(0))
+plot_density <- ifelse("plot_density" %in% names(config), config$plot_density, FALSE)
 
 if ("pheno_to_log" %in% names(config)){
    pheno_to_log <- unlist(strsplit(config$pheno_to_log, ","))
@@ -224,7 +225,7 @@ for (idx in indices){
     res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, covariates_linear = covariateslinear2, covariates_nonlinear = covariatesnonlinear2, n_points = n_points, make_plots = make_plots, gam_family = gam_family, min_age = min_age, max_age = max_age, ymax_hist = ymax_hist, label = '', add_inter_p_to_plot = add_inter_p_to_plot, plot_title = plot_title, interp_cutoff = interp_cutoff, plot_points = plot_points, add_breakpoints = add_breakpoints,  t_threshold = ttest_cutoff, derivatives_cutoff = deriv_cutoff, log_tr = log_transform, plot_density = plot_density)
     
     if (res_dif_lst[["inter_p"]] < interp_cutoff){
-      if (plot_density) plots[[cnt_sign]] <- res_dif_lst$p
+      if (plot_density && ! is.null(res_dif_lst$p)) plots[[cnt_sign]] <- res_dif_lst$p
       cnt <- cnt + 1
       cnt_sign <- cnt_sign + 1
       cat("\tSignificant interaction detected.\n")
@@ -264,7 +265,17 @@ res_summary$inter_p_adj_bonferroni <- p.adjust(res_summary$inter_p, method = "bo
 res_summary$g_lm_pv_adj_bonferroni <- p.adjust(res_summary$g_lm_pv, method = "bonferroni")
 write.table(res_summary, file = paste0(out_table_path, "_summary.txt"), sep = "\t", quote = F, col.names = NA)
 if (write_fitted) write.table(fitted_lines, file = paste0(out_table_path, "_fitted.txt"), sep = "\t", quote = F, col.names = NA)
+if (plot_density){
+  library(patchwork)
+  pdf(paste0(plot_path, ".pdf"), width = 15, height = 21)
+  wrap_plots(plots[1:20], nrow = 5, ncol = 4)
+  wrap_plots(plots[21:40], nrow = 5, ncol = 4)
+  wrap_plots(plots[41:length(plots)], nrow = 5, ncol = 4)
+  dev.off()
+}
 if (make_plots){
   dev.off()
 }
 
+#grid::textGrob("Blood cell counts", gp=gpar(fontsize=20)) / (plots[[1]] + plots[[2]] + plots[[3]] + plots[[4]]) / (plots[[5]] + plots[[6]] + plots[[7]] + plots[[8]]) / ( plots[[9]] + plot_spacer()+plot_spacer()+ plot_spacer())
+#grid::textGrob("Metabolic traits", gp=gpar(fontsize=20)) / (plots[[10]] + plots[[11]] + plots[[12]] + plots[[13]]) / (plots[[14]] + plots[[15]] + plots[[16]] + plots[[17]] ) / (plots[[18]]+ plot_layout(nrow = 3, ncol = 4, byrow = T) +

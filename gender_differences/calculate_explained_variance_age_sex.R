@@ -24,8 +24,8 @@ for (idx in indices){
   covariateslinear2 <- covariateslinear[covariateslinear != colnames(traits_m)[idx]]
   covariatesnonlinear2 <- covariatesnonlinear[covariatesnonlinear != colnames(traits_m)[idx]]
   
-  exp_var <- calc_explained_variance_from_gam(merged_tab, trait_name, covariates_linear = covariateslinear2, covariates_nonlinear = covariatesnonlinear2, n_points = n_points, gam_family = gam_family, min_age = min_age, max_age = max_age, log_tr = log_transform)
-  exp_var_dif <- c(exp_var[1], exp_var[2:4] - exp_var[1:3])
+  exp_var_dif <- calc_explained_variance_CV(merged_tab, trait_name, covariates_linear = covariateslinear2, covariates_nonlinear = covariatesnonlinear2)
+  #exp_var_dif <- c(exp_var[1], exp_var[2:4] - exp_var[1:3])
   exp_var_dif[exp_var_dif < 0] <- 0
   res_rsq_table[cnt,] <- exp_var_dif
   res_rsq_table_perc[cnt,] <- exp_var_dif/sum(exp_var_dif)
@@ -41,8 +41,8 @@ t <- (res_rsq_table/max_h)
 t$rest <- 1-rowSums(t)
 barcolor = c("#BDBDBD", "#66C2A5", "#FC8D62", "#8DA0CB",  "#FFFFFF")
 #hc=reorder(hclust(dist(t)),-as.matrix(t)%*%seq(ncol(t))^2)
-#d <- read.delim("C:/Users/Dasha/work/UMCG/data/gender_differences/omics/results/data/LLD_bloodlipids_nmr.txt", header = T, sep = "\t", as.is = T, check.names = F, row.names = 1)
-d <- read.delim("C:/Users/Dasha/work/UMCG/data/gender_differences/omics/results/data/CVD3_olinkNormal_1447_LLDsamples_ProtNames.txt", header = T, sep = "\t", as.is = T, check.names = F, row.names = 1)
+d <- read.delim("C:/Users/Dasha/work/UMCG/data/gender_differences/omics/results/data/LLD_bloodlipids_nmr.txt", header = T, sep = "\t", as.is = T, check.names = F, row.names = 1)
+#d <- read.delim("C:/Users/Dasha/work/UMCG/data/gender_differences/omics/results/data/CVD3_olinkNormal_1447_LLDsamples_ProtNames.txt", header = T, sep = "\t", as.is = T, check.names = F, row.names = 1)
 cormat <- cor(d, method = "spearman", use="pairwise.complete.obs")
 
 hc <- hclust(as.dist(1-cormat))
@@ -55,8 +55,8 @@ cut=cutree(hc,8)
 dend <- as.dendrogram(hc)
 
 circos.clear()
-#pdf(paste0(out_basepath, "plots/circos_barplot_olink.abs.hclust_orig2.pdf"),width = 20, height = 20)
-png(paste0(out_basepath, "plots/circos_barplot_olink.abs.hclust_orig2.png"),width = 2000, height = 2000, res = 300)
+pdf(paste0(out_basepath, "plots/circos_barplot_olink.abs.hclust_orig_cv.pdf"),width = 20, height = 20)
+#png(paste0(out_basepath, "plots/circos_barplot_olink.abs.hclust_orig_cv.png"),width = 2000, height = 2000, res = 300)
 
 circos.par(cell.padding=c(0,0,0,0))
 circos.initialize("a",xlim=c(0,nrow(t)))

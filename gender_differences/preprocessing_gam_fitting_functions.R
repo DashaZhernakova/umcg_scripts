@@ -171,11 +171,10 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, covariates_linear = c(
       #breakpoints2 <- get_breakpoints_derivatives(merged_tab, correctForCellCounts)
   }
  
-  
+  p <- NULL 
   if (make_plots & gam.p < interp_cutoff & plot_density == F){
      draw_plot(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add_inter_p_to_plot, plot_title, plot_points, breakpoints, breakpoints_intervals, ymax_hist, label = paste0("Cohen's f^2 = ", formatC(gam.cohen_f2, digits = 4, format = "f")), ylims = ylims)
      #draw_smooth_scatter(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add_inter_p_to_plot = add_inter_p_to_plot, plot_title = plot_title, label = paste0("Cohen's f^2 = ", formatC(gam.cohen_f2, digits = 4, format = "f")))
-     p <- NULL  
   } else if (make_plots & gam.p < interp_cutoff & plot_density){
     p <- draw_contour_plot(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add_inter_p_to_plot, plot_title,  ymax_hist, label = paste0("Cohen's f^2 = ", formatC(gam.cohen_f2, digits = 4, format = "f")), ylims = ylims)
   }
@@ -498,7 +497,7 @@ fit_gam_age_gender_only <- function(merged_tab, pheno_name, covariates_linear = 
   return (c(p_age, f2_age, p_sex, f2_sex))
 }
 
-calc_explained_variance_from_gam <- function(merged_tab, pheno_name, covariates_linear = c(), covariates_nonlinear = c(), n_points = 300, make_plots = T,  gam_family = gaussian(), min_age = 20, max_age = 80, log_tr = F){
+calc_explained_variance_from_gam_old <- function(merged_tab, pheno_name, covariates_linear = c(), covariates_nonlinear = c(), n_points = 300, make_plots = T,  gam_family = gaussian(), min_age = 20, max_age = 80, log_tr = F){
   colnames(merged_tab)[1] <- "phenotype"
   merged_tab <- merged_tab[(merged_tab$age < max_age) & (merged_tab$age >= min_age),]
   if (length(unique(merged_tab[,1])) < 3 ){
@@ -544,6 +543,92 @@ calc_explained_variance_from_gam <- function(merged_tab, pheno_name, covariates_
     gam.fit.sexageinter <- gam(as.formula(paste("phenotype ~ ", terms_linear_covar, terms_nonlinear_covar,
                                            "+ gender_F1M2 + s(age) + s(age, by = gender_F1M2)", sep = " ")), 
                           data = merged_tab, method = "REML")
+    p <- predict(gam.fit.sexageinter, test_data)
+    cor_sexageinter <- cor(test_data[,1], p)^2
+  }
+  #return (c(summary(gam.fit.null)$r.sq, summary(gam.fit.sex)$r.sq, summary(gam.fit.sexage)$r.sq, summary(gam.fit.sexageinter)$r.sq))
+  return(c(cor_null, cor_sex, cor_sexage, cor_sexageinter))
+}
+
+calc_explained_variance_CV <- function(merged_tab, pheno_name, covariates_linear = c(), covariates_nonlinear = c(), gam_family = gaussian(), min_age = 20, max_age = 80){
+  colnames(merged_tab)[1] <- "phenotype"
+  merged_tab <- merged_tab[(merged_tab$age < max_age) & (merged_tab$age >= min_age),]
+  if (length(unique(merged_tab[,1])) < 3 ){
+    cat("Outcome is binary, changing family to binomial with logit\n")
+    family=binomial(link = 'logit')
+  }
+  merged_tab$gender_F1M2 <- as.factor(merged_tab$gender_F1M2)
+  
+  res_table <- data.frame(matrix(nrow = k*rep_n, ncol = 4))
+  n = nrow(merged_tab)
+  k = 5
+  rep_n <- 10
+  cnt <- 1
+  for (j in 1:rep_n){
+    shuffled <- merged_tab[sample(n),]
+    folds <- cut(seq(1,n),breaks=k,labels=FALSE)
+    
+    for(i in 1:k){
+      testInd <- which(folds==i,arr.ind=TRUE)
+      test_data <- shuffled[testInd, ]
+      train_data <- shuffled[-testInd, ]
+      
+      res_table[cnt,] <- calc_explained_variance_from_gam(train_data, test_data, pheno_name, covariates_linear, covariates_nonlinear, gam_family)
+      cnt <- cnt + 1
+    }
+  }
+  mean_res <- colMeans(res_table)
+  exp_var_dif <- c(mean_res[1], mean_res[2:4] - mean_res[1:3])
+  
+  return(exp_var_dif)
+}
+
+calc_explained_variance_from_gam <- function(train_data, test_data, pheno_name, covariates_linear = c(), covariates_nonlinear = c(), gam_family = gaussian()){
+  
+  if (length(covariates_linear) == 0 & length(covariates_nonlinear) == 0){
+    gam.fit.null<- gam(phenotype ~ 1 , data = train_data, method = "REML", family = gam_family)
+    p <- predict(gam.fit.null, test_data)
+    cor_null <- cor(test_data[,1], p)^2
+    
+    gam.fit.sex<- gam(phenotype ~ gender_F1M2 , data = train_data, method = "REML", family = gam_family)  
+    p <- predict(gam.fit.sex, test_data)
+    cor_sex <- cor(test_data[,1], p)^2
+    
+    gam.fit.sexage <- gam(phenotype ~ gender_F1M2 + s(age), data = train_data, method = "REML", family = gam_family)
+    p <- predict(gam.fit.sexage, test_data)
+    cor_sexage <- cor(test_data[,1], p)^2
+    
+    
+    gam.fit.sexageinter <- gam(phenotype ~ gender_F1M2 + s(age) + s(age, by = gender_F1M2), data = train_data, method = "REML", family = gam_family)
+    p <- predict(gam.fit.sexageinter, test_data)
+    cor_sexageinter <- cor(test_data[,1], p)^2
+    
+  } else { # Correct for covariates
+    terms_linear_covar <- ""
+    terms_nonlinear_covar <- ""
+    if (length(covariates_linear) > 0) terms_linear_covar <- paste0("+", paste(covariates_linear, collapse = "+"))
+    if (length(covariates_nonlinear) > 0) terms_nonlinear_covar <- paste0("+ s(", paste(covariates_nonlinear, collapse = ")+ s("), ")")
+    
+    gam.fit.null <- gam(as.formula(paste("phenotype ~ ", terms_linear_covar, terms_nonlinear_covar,sep = " ")), 
+                        data = train_data, method = "REML")
+    p <- predict(gam.fit.null, test_data)
+    cor_null <- cor(test_data[,1], p)^2
+    
+    gam.fit.sex <- gam(as.formula(paste("phenotype ~ ", terms_linear_covar, terms_nonlinear_covar,
+                                        "+ gender_F1M2", sep = " ")), 
+                       data = train_data, method = "REML")
+    p <- predict(gam.fit.sex, test_data)
+    cor_sex <- cor(test_data[,1], p)^2
+    
+    gam.fit.sexage <- gam(as.formula(paste("phenotype ~ ", terms_linear_covar, terms_nonlinear_covar,
+                                           "+ gender_F1M2 + s(age)", sep = " ")), 
+                          data = train_data, method = "REML")
+    p <- predict(gam.fit.sexage, test_data)
+    cor_sexage <- cor(test_data[,1], p)^2
+    
+    gam.fit.sexageinter <- gam(as.formula(paste("phenotype ~ ", terms_linear_covar, terms_nonlinear_covar,
+                                                "+ gender_F1M2 + s(age) + s(age, by = gender_F1M2)", sep = " ")), 
+                               data = train_data, method = "REML")
     p <- predict(gam.fit.sexageinter, test_data)
     cor_sexageinter <- cor(test_data[,1], p)^2
   }

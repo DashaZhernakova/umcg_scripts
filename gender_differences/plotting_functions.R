@@ -668,7 +668,7 @@ draw_contour_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_
         geom_ribbon(data = pdat, aes(x = age, ymin = lwr, ymax = upr, fill = gender_F1M2)) + 
         theme_minimal() +
         scale_fill_manual(values = alpha(c("#ff9999", "#99ccff"),  0.4)) + 
-        theme(legend.position="none", plot.title = element_text(hjust = 0.5, size = 15), axis.text = element_text(size = 12), axis.title = element_text(size = 12)) + 
+        theme(legend.position="none", plot.title = element_text(hjust = 0.5, size = 12), axis.text = element_text(size = 12), axis.title = element_text(size = 12)) + 
         xlab("age") + 
         ylab(ylabel) + 
         ggtitle(plot_title) + 
@@ -722,7 +722,7 @@ draw_contour_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_
       geom_ribbon(data = pdat, aes(x = age, ymin = lwr, ymax = upr, fill = gender_F1M2)) + 
       theme_minimal() +
       scale_fill_manual(values = alpha(c("#ff9999", "#99ccff"),  0.4)) + 
-      theme(legend.position="none", plot.title = element_text(hjust = 0.5, size = 15), axis.text = element_text(size = 12), axis.title = element_text(size = 12)) + 
+      theme(legend.position="none", plot.title = element_text(hjust = 0.5, size = 12), axis.text = element_text(size = 12), axis.title = element_text(size = 12)) + 
       xlab("age") + 
       ylab(ylabel) + 
       ylim(0,1) +
