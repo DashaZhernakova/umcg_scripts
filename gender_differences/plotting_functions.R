@@ -13,8 +13,8 @@ colorRampAlpha <- function(..., n, alpha) {
 }
 
 draw_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add_inter_p_to_plot = T, plot_title = NULL, plot_points = T, breakpoints = NULL, factor_name = "", alpha_points = 40, breakpoints_intervals = NULL, ymax_hist = 1, label = "", ylims_usr = NULL){
-  cex_main = 1
   
+  cex_main = 1
   ylims <- with(merged_tab, range(phenotype))
 
   #if (nchar(pheno_name) > 40){

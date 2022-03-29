@@ -64,7 +64,7 @@ format_abo_bloodgroup <- function(abo){
     sex <- read.table(paste0("/data/umcg-tifn/SV/SV_GWAS/genotypes/", c, "/", c , "_filtered.fam"), header = F,  as.is = T, check.names = F)
     row.names(sex) <- sex[,2]
     
-    abo <- read.delim(paste0("/data/umcg-tifn/SV/SV_GWAS/data/pheno/", c, "_Bloodtypes"), header = T, sep = "\t", as.is = T, check.names = F, row.names = 1)
+    abo <- read.delim(paste0("/data/umcg-tifn/SV/SV_GWAS/data/pheno/", c, ".abo_blood_group.txt"), header = T, sep = "\t", as.is = T, check.names = F, row.names = 1)
     abo <- format_abo_bloodgroup(abo)
     
     

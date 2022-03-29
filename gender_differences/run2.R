@@ -277,5 +277,8 @@ if (make_plots){
   dev.off()
 }
 
-#grid::textGrob("Blood cell counts", gp=gpar(fontsize=20)) / (plots[[1]] + plots[[2]] + plots[[3]] + plots[[4]]) / (plots[[5]] + plots[[6]] + plots[[7]] + plots[[8]]) / ( plots[[9]] + plot_spacer()+plot_spacer()+ plot_spacer())
-#grid::textGrob("Metabolic traits", gp=gpar(fontsize=20)) / (plots[[10]] + plots[[11]] + plots[[12]] + plots[[13]]) / (plots[[14]] + plots[[15]] + plots[[16]] + plots[[17]] ) / (plots[[18]]+ plot_layout(nrow = 3, ncol = 4, byrow = T) +
+grid::textGrob("Haematological traits", gp=gpar(fontsize=20)) / (plots[[1]] + plots[[2]] + plots[[3]] + plots[[4]]) / (plots[[5]] + plots[[6]] + plots[[7]] + plots[[8]]) / ( plots[[9]] + plot_spacer() + plot_spacer()+ plot_spacer()) /
+grid::textGrob("Metabolic and cardiovascular traits", gp=gpar(fontsize=20)) / (plots[[10]] + plots[[11]] + plots[[12]] + plots[[13]]) / (plots[[14]] + plots[[15]] + plots[[16]] + plots[[17]] ) / (plots[[18]] + plot_spacer() + plot_spacer()+ plot_spacer())
+
+plot_spacer() /  (plots[[1]] + plots[[2]] + plots[[3]] + plots[[4]]) / (plots[[5]] + plots[[6]] + plots[[7]] + plots[[8]]) / ( plots[[9]] + plot_spacer() + plot_spacer()+ plot_spacer()) / plot_spacer() /  (plots[[10]] + plots[[11]] + plots[[12]] + plots[[13]]) / (plots[[14]] + plots[[15]] + plots[[16]] + plots[[17]] ) / (plots[[18]] + plot_spacer() + plot_spacer()+ plot_spacer())
+plot_spacer() /  (plots[[19]] + plots[[20]] + plots[[21]] + plot_spacer()) / plot_spacer() /  (plots[[23]] + plots[[24]] + plots[[25]] + plots[[26]])
