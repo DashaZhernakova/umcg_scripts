@@ -39,26 +39,18 @@ rm_na_outliers <- function(traits_m, pheno_m, idx, method = "zscore", scale_tr =
   
   # remove outliers ( skip this if outcome is a factor )
   if (! pheno_is_factor){
-    w <- merged_tab[merged_tab$gender_F1M2 == 1,]
-    m <- merged_tab[merged_tab$gender_F1M2 == 2,]
-   
+    
     if (method == "zscore"){ 
       # Zscore < 3
-      tab_nooutliers <- rbind(w[abs(w[,1] - mean(w[,1]))/sd(w[,1]) < 3,], m[abs(m[,1] - mean(m[,1]))/sd(m[,1]) < 3,])
-      
+      #tab_nooutliers <- rbind(w[abs(w[,1] - mean(w[,1]))/sd(w[,1]) < 3,], m[abs(m[,1] - mean(m[,1]))/sd(m[,1]) < 3,])
+      tab_nooutliers <- merged_tab[abs(merged_tab[,1] - mean(merged_tab[,1])) / sd(merged_tab[,1]) < 3,]
     } else if (method == "IQR"){
       # less than 1.5 IQR from the 1st and 3rd quantiles
-      mq1 <- quantile(m[,1], probs = 0.25)
-      mq3 <- quantile(m[,1], probs = 0.75)
-      miqr <- mq3 - mq1
-      m_clean <- m[m[,1] < mq3 + 1.5*miqr & m[,1] > mq1 - 1.5*miqr,]
+      q1 <- quantile(merged_tab[,1], probs = 0.25)
+      q3 <- quantile(merged_tab[,1], probs = 0.75)
+      iqr <- q3 - q1
+      tab_nooutliers <- merged_tab[(merged_tab[,1] < (q3 + 3*iqr)) & (merged_tab[,1] > (q1 - 3*iqr)),]
       
-      wq1 <- quantile(w[,1], probs = 0.25)
-      wq3 <- quantile(w[,1], probs = 0.75)
-      wiqr <- wq3 - wq1
-      w_clean <- w[w[,1] < wq3 + 1.5*wiqr & w[,1] > wq1 - 1.5*wiqr,]
-      
-      tab_nooutliers <- rbind(w_clean, m_clean)
     } else {
       message ("Wrong method! No outlier removal!")
       tab_nooutliers <- merged_tab
