@@ -114,28 +114,6 @@ cat("Phenotypes to log-transform: ", pheno_to_log, "\n")
 out_basepath <- paste0(config$basedir_path, "/results/")
 plot_path <- paste0(out_basepath, "plots/", config$output_fname)
 
-if (make_plots && config$plot_extention == "pdf"){
-  if (nplotspp > 1){
-    pdf(paste0(plot_path, ".pdf"), width = 15, height = 21)
-    cat("Saving plots to ", plot_path, ".pdf", "\n")
-    par(mfrow=c(5,4)) 
-  } else {
-    pdf(paste0(plot_path, ".pdf"), width = 4, height = 5)
-    cat("Saving plots to ", plot_path, ".pdf", "\n")
-  }
-} else if (make_plots && config$plot_extention == "png"){
-  if (nplotspp > 1) {
-    nrows <- ceiling(sqrt(num_traits))
-    size <- 3*nrows
-    png(paste0(plot_path, ".png"), width = size, height = size, units = 'in', res = 400)
-    cat("Saving plots to ", plot_path, ".png", "\n")
-    par(mfrow=c(nrows,nrows))
-  } else {
-    png(paste0(plot_path, ".png"), width = 5, height = 4, units = 'in', res = 400)
-    cat("Saving plots to ", plot_path, ".png", "\n")
-  }
-}
-
 
 #
 # Run the analyses
@@ -146,10 +124,9 @@ out_table_path <- paste0(out_basepath, "tables/", config$output_fname)
 
 age_breaks = c(20, 40, 60, 80)
 
-#lm_estimates <- data.frame(matrix(nrow = num_traits, ncol =  2*(length(age_breaks) -1)))
-lm_estimates <- data.frame(matrix(nrow = num_traits, ncol =  40))
+lm_estimates <- data.frame(matrix(nrow = num_traits, ncol =  2*(length(age_breaks) -1)))
+#lm_estimates <- data.frame(matrix(nrow = num_traits, ncol =  40))
 
-#colnames(lm_estimates) <- c("20-40w", "20-40m", "40-60w", "40-60m", "60-80w", "60-80m")
 cnt = 1
 cat("\nStarting the analyses\n")
 for (idx in indices){
@@ -161,12 +138,12 @@ for (idx in indices){
   if (colnames(traits_m)[idx] %in% pheno_to_log) log_transform = TRUE
   cat("\tLog tranform: ", log_transform, "\n")
   
-  merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = outlier_correction_method, log_tr = log_transform, scale_tr = scale_transform)
-  #lm_estimates[idx,] <- get_lm_estimates_v3(merged_tab, age_breaks = age_breaks)
-  lm_estimates[idx,] <- get_gam_summary(merged_tab, trait_name, covariateslinear, covariatesnonlinear )
+  merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = "No", log_tr = log_transform, scale_tr = scale_transform)
+  lm_estimates[idx,] <- get_lm_estimates_v3(merged_tab, age_breaks = age_breaks)
+  #lm_estimates[idx,] <- get_gam_summary(merged_tab, trait_name, covariateslinear, covariatesnonlinear )
   rownames(lm_estimates)[idx] <- trait_name
 }
-write.table(lm_estimates, paste0(out_table_path, "/NMR_gam_coefficients.txt"), sep = "\t", quote = F, col.names = NA)
+write.table(lm_estimates, paste0(out_table_path, ".gam_coefficients.txt"), sep = "\t", quote = F, col.names = NA)
 # 
  nmr_corr <- cor(traits_m, use="complete.obs")
  corr <- cor(t(lm_estimates))
@@ -215,7 +192,7 @@ clusters$signif_inter <- row.names(clusters) %in% signif_inters
 ss <- silhouette(km$cluster, dist(cor(t(lm_estimates))))
 mean_sil_score <- aggregate(ss[,3]~ss[,1], FUN=mean)
 
-pdf(paste0("results/plots/nmr_clustering_kmeans_", num_k, ".2.v2022.pdf"), width = 20, height = 20)
+pdf(paste0("results/plots/nmr_clustering_hclust_", num_k, ".2.v2022.pdf"), width = 20, height = 20)
 par(mfrow=c(5,4))
 cnt <- 1
 for (i in 1:max(cl)){

@@ -173,7 +173,7 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, covariates_linear = c(
  
   p <- NULL 
   if (make_plots & gam.p < interp_cutoff & plot_density == F){
-     draw_plot(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add_inter_p_to_plot, plot_title, plot_points, breakpoints, breakpoints_intervals, ymax_hist, label = paste0("Cohen's f^2 = ", formatC(gam.cohen_f2, digits = 4, format = "f")), ylims = ylims)
+     draw_plot(merged_tab, pheno_name, pdat, gam.p, min_age = min_age, max_age = max_age, add_inter_p_to_plot = add_inter_p_to_plot, plot_title = plot_title, plot_points = plot_points,  ymax_hist = ymax_hist, label = paste0("Cohen's f^2 = ", formatC(gam.cohen_f2, digits = 4, format = "f")), ylims = ylims)
      #draw_smooth_scatter(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add_inter_p_to_plot = add_inter_p_to_plot, plot_title = plot_title, label = paste0("Cohen's f^2 = ", formatC(gam.cohen_f2, digits = 4, format = "f")))
   } else if (make_plots & gam.p < interp_cutoff & plot_density){
     p <- draw_contour_plot(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add_inter_p_to_plot, plot_title,  ymax_hist, label = paste0("Cohen's f^2 = ", formatC(gam.cohen_f2, digits = 4, format = "f")), ylims = ylims)

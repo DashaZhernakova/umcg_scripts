@@ -32,16 +32,20 @@ for (idx in indices){
   cnt <- cnt + 1
 }
 write.table(res_rsq_table, file = paste0(out_basepath, "/tables/explained_variance_olink.txt"), sep = "\t", quote = F, row.names = F)
-
+res_rsq_table <- read.delim(paste0(out_basepath, "/tables/explained_variance_olink.txt"), sep = "\t",  as.is = T, header = 1)
+row.names(res_rsq_table) <- colnames(traits_m)
 # from https://stackoverflow.com/questions/67504090/add-percentage-labels-inside-bars-in-circos-barplot-in-circlize
 library(circlize)
+ 
 
+# NMR
 max_h <- max(rowSums(res_rsq_table))
 t <- (res_rsq_table/max_h)
 t$rest <- 1-rowSums(t)
 barcolor = c("#BDBDBD", "#66C2A5", "#FC8D62", "#8DA0CB",  "#FFFFFF")
+labelcolor <- c(brewer.pal(n = 12, name = "Set3"), brewer.pal(n = 12, name = "Paired"))
 #hc=reorder(hclust(dist(t)),-as.matrix(t)%*%seq(ncol(t))^2)
-d <- read.delim("C:/Users/Dasha/work/UMCG/data/gender_differences/omics/results/data/LLD_bloodlipids_nmr.txt", header = T, sep = "\t", as.is = T, check.names = F, row.names = 1)
+d <- read.delim("C:/Users/Dasha/work/UMCG/data/gender_differences/omics/results/results/tables/nmr_corrected_bmi_smk1_statins_bonferroni.gam_coefficients.txt", header = T, sep = "\t", as.is = T, check.names = F, row.names = 1)
 #d <- read.delim("C:/Users/Dasha/work/UMCG/data/gender_differences/omics/results/data/CVD3_olinkNormal_1447_LLDsamples_ProtNames.txt", header = T, sep = "\t", as.is = T, check.names = F, row.names = 1)
 cormat <- cor(d, method = "spearman", use="pairwise.complete.obs")
 
@@ -51,11 +55,12 @@ t["axis",] <- rep(0, ncol(t))
 
 labels=c(hc$labels[hc$order], "axis")
 ord <- c(hc$order, nrow(t))
-cut=cutree(hc,8)
-dend <- as.dendrogram(hc)
-
+cut=cutree(hc, h = 0.8)
+#dend <- as.dendrogram(hc)
+dend=color_branches(as.dendrogram(hc),k=length(unique(cut)),
+                    col=labelcolor[unique(cut[labels])])
 circos.clear()
-pdf(paste0(out_basepath, "plots/circos_barplot_olink.abs.hclust_orig_cv.pdf"),width = 20, height = 20)
+pdf(paste0(out_basepath, "plots/circos_barplot_olink.abs.hclust_gam_cv.pdf"),width = 20, height = 20)
 #png(paste0(out_basepath, "plots/circos_barplot_olink.abs.hclust_orig_cv.png"),width = 2000, height = 2000, res = 300)
 
 circos.par(cell.padding=c(0,0,0,0))

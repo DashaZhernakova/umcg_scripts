@@ -1,5 +1,5 @@
 library(corrplot)
-phenos <- c("AF", "ALT", "AST","CA", "FOS", "NAA",  "DBP", "CHO", "HDC", "LDC", "TGL", "HALB","GR", "ER", "HT", "BALB")
+phenos <- c("AF", "ALT", "AST","CA", "FOS", "NAA",  "DBP", "CHO",  "LDC", "TGL", "HALB","GR", "ER", "HT", "BALB")
 #path <- "/groups/umcg-lifelines/tmp01/users/umcg-dzhernakova/gender_difs/factors/results/"
 setwd("C:/Users/Dasha/work/UMCG/data/gender_differences/omics/all_LL/lifestyle_factors/")
 path <- "tables/"
@@ -9,8 +9,8 @@ n_boot <- 50
 
 cnt = 1
 for (p in phenos){
-  p_table <- read.delim(paste0(path, p, ".p.table.txt"), header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)
-  s_table <- read.delim(paste0(path, p, ".s.table.txt"), header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)
+  p_table <- read.delim(paste0(path, "base_model.",p, ".p.table.txt"), header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)
+  s_table <- read.delim(paste0(path, "base_model.", p, ".s.table.txt"), header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)
 
   rows <- c(row.names(p_table), row.names(s_table))
   res_line <- c(p_table[,4], s_table[,4])
@@ -84,8 +84,10 @@ pdf("lifestyle_factors_bootstrap_corrplot.pdf")
 corrplot(bsum,is.corr = F, tl.col = "black")
 dev.off()
 
-bsum2 <- t(bsum)
-bsum2[bsum2 > 1 & bsum2 < 9] <- NA
+bsum2 <- bsum
+bsum2[bsum2 <= 10] <- 0
+bsum2[bsum2 > 10 & bsum2 < 40] <- 1
+bsum2[bsum2 >= 40] <- 2
 cols <- c("Intercept", "sex", "smoking", "smoking:sex1.1", "smoking:sex0.2", "smoking:sex1.2", "med", "med:sex1.1", "med:sex0.2", "med:sex1.2", "age", "age:sex", "stress_1y", "stress_chronic", "phys_activity_total", "phys_activity_intensive", "diet", "alcohol", "stress_1y:age:sex", "stress_chronic:age:sex", "phys_activity_total:age:sex", "phys_activity_intensive:age:sex", "diet:age:sex", "alcohol:age:sex", "stress_1y:age", "stress_chronic:age", "phys_activity_total:age", "phys_activity_intensive:age", "diet:age", "alcohol:age", "stress_1y:sex", "stress_chronic:sex", "phys_activity_total:sex", "phys_activity_intensive:sex", "diet:sex", "alcohol:sex", "age:smoking", "age:smoking:sex0.1", "age:smoking:sex1.1", "age:smoking:sex0.2", "age:smoking:sex1.2", "age:med", "age:med:sex0.1", "age:med:sex1.1", "age:med:sex0.2", "age:med:sex1.2")
 colnames(bsum2) <- cols
 pdf("lifestyle_factors_bootstrap_0.05_filtered_corrplot.pdf")
@@ -105,7 +107,7 @@ corrplot(bsum,is.corr = F, tl.col = "black", tl.cex = 0.7, col.lim = c(0,50),
 dev.off()
 
 factors <- c("diet", "alcohol", "phys_activity_total"  ,"stress_chronic", "sleep_duration")
-pdf("lifestyle_factors_bootstrap50_corrplot_split.pdf")
+pdf("lifestyle_factors_bootstrap50_corrplot_split.discr.pdf", useDingbats = F)
 par(mfrow=c(6,1))
 subs <- bsum[c("gender_F1M22", "s(age)", "s(age):gender_F1M21", "s(age):gender_F1M22"),]
 corrplot(subs,is.corr = F, tl.col = "black", tl.cex = 0.7, col.lim = c(0,50), 
@@ -116,6 +118,28 @@ for (f in factors){
   subs <- bsum[grep(f,row.names(bsum)),]
   corrplot(subs[ord,],is.corr = F, tl.col = "black", tl.cex = 0.7, col.lim = c(0,50), 
            col=colorRampPalette(c("#FFFFFF","#08519C"))(50))
+  
+}
+dev.off()
+
+
+
+bsum2 <- bsum
+bsum2[bsum2 <= 10] <- 0
+bsum2[bsum2 > 10 & bsum2 < 40] <- 1
+bsum2[bsum2 >= 40] <- 2
+factors <- c("diet", "alcohol", "phys_activity_total"  ,"stress_chronic", "sleep_duration")
+pdf("lifestyle_factors_bootstrap50_corrplot_split.discr.pdf", useDingbats = F)
+par(mfrow=c(6,1))
+subs <- bsum2[c("gender_F1M22", "s(age)", "s(age):gender_F1M21", "s(age):gender_F1M22"),]
+corrplot(subs,is.corr = F, tl.col = "black", tl.cex = 0.7, col.lim = c(0,2), 
+         col=colorRampPalette(c("#FFFFFF","#08519C"))(3))
+for (f in factors){
+  print(f)
+  ord <- c(paste0("s(", f, ")"), paste0("ti(", f, ",age)"), paste0("s(", f, "):gender_F1M21"), paste0("s(", f, "):gender_F1M22"), paste0("ti(", f, ",age):gender_F1M21"), paste0("ti(", f, ",age):gender_F1M22"))
+  subs <- bsum2[grep(f,row.names(bsum2)),]
+  corrplot(subs[ord,],is.corr = F, tl.col = "black", tl.cex = 0.7, col.lim = c(0,2), 
+           col=colorRampPalette(c("#FFFFFF","#08519C"))(3))
   
 }
 dev.off()
