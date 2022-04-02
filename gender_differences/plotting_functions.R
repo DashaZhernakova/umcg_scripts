@@ -48,14 +48,15 @@ draw_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add
   if (plot_title == ""){
     if (add_inter_p_to_plot) {
       if (gam.p == 0) {
-	plot_title <- paste0(pheno_name, '\n', label, "\nGAM interaction P < 2.23e-308")
+	      plot_title <- paste0(pheno_name, '\n', label, "\nGAM interaction P < 2.23e-308")
       } else {
-	plot_title <- paste0(pheno_name, '\n', label, "\nGAM interaction P = ", format(gam.p, digits = 3))
+	      plot_title <- paste0(pheno_name, '\n', label, "\nGAM interaction P = ", format(gam.p, digits = 3))
       }
     } else {
       plot_title <- pheno_name
     }
   }
+  
   if (! binaryPhenotype){
     if (plot_points){
       plot(phenotype ~ age, data = merged_tab2,  col = gender_F1M2,  pch = 16, 
@@ -97,29 +98,6 @@ draw_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add
     polygon(c(rev(dd$age), dd$age), c(rev(dd$lwr), dd$upr), col = col2transparent(cols[[l]], 100), border = NA)
   }
   
-  
-  if(length(breakpoints) > 0){
-    br_w <- breakpoints[[1]]
-    br_m <- breakpoints[[2]]
-    for (br in br_w){
-      abline(v = as.numeric(br), col = cols[1], lty = 2)
-    }
-    for (br in br_m){
-      abline(v = as.numeric(br), col = cols[2], lty = 2)
-    }
-  }
-  ymin <- min(pretty(merged_tab2$phenotype), min(merged_tab2$phenotype) - 1)
-  ymax <- max(pretty(merged_tab2$phenotype), max(merged_tab2$phenotype) + 2)
-  if(!is.null(breakpoints_intervals)){
-    br_w <- breakpoints_intervals[[1]]
-    br_m <- breakpoints_intervals[[2]]
-    for (br in br_m){
-      rect(br[1], ymin, br[2], ymax, col = 2, border = 2, density = -1)
-    }
-    for (br in br_w){
-      rect(br[1], ymin, br[2], ymax, col = 1, border = 1, density = -1)
-    }
-  }
 }
 
 # plot more than two fitted lines 
@@ -211,55 +189,6 @@ draw_multiple_fitted_lines <- function(fitted_matrix, sign_inters = colnames(fit
   }
 }
 
-
-draw_plot0 <- function(merged_tab, pheno_name, pdat){
-  cex_main = 1
-  ylims <- with(merged_tab, range(phenotype))
-  ylabel <- pheno_name
-  if (nchar(pheno_name) > 40){
-    spl <- unlist(strsplit(pheno_name, "\\|"))
-    ylabel <- spl[length(spl)]
-    cex_main <- 0.8
-    if (nchar(pheno_name) > 50) cex_main <- 0.7
-    if (nchar(pheno_name) > 60) cex_main <- 0.6
-    
-  }
-  pheno_name <- gsub(" \\(.*", "", pheno_name)
-  
-  ## draw base plot
-  palette(c(col2transparent("indianred1", 40),col2transparent("dodgerblue1", 40)))
-  plot(phenotype ~ age, data = merged_tab,  col = gender_F1M2,  pch = 16, 
-       main = paste0(pheno_name, ' ', label, "\nGAM interaction p = ", format(gam.p, digits = 3)), 
-       cex = 0.6, xlab = "age", ylab = ylabel, cex.main = cex_main)
-  
-  levs <- levels(merged_tab$gender_F1M2)
-  cols = c("indianred1", "dodgerblue1")
-  
-  ## add the fitted lines
-  for (l in seq_along(levs)) {
-    dd <- pdat[pdat$gender_F1M2 == levs[l],]
-    lines(pred ~ age, data = dd, col = cols[[l]], lwd = 2)
-    polygon(c(rev(dd$age), dd$age), c(rev(dd$lwr), dd$upr), col = col2transparent(cols[[l]], 50), border = NA)
-  }
-  
-  breakpoints <- NULL
-  if (add_breakpoints){
-    breakpoints <- get_breakpoints(merged_tab)
-    br_w <- breakpoints[[1]]
-    br_m <- breakpoints[[2]]
-    for (br in br_w){
-      abline(v = as.numeric(br), col = cols[1], lty = 2)
-    }
-    for (br in br_m){
-      abline(v = as.numeric(br), col = cols[2], lty = 2)
-    }
-  }
-  
-  #if (! is.null(res_dif = NULL)){
-  #  #Plot the difference
-  #  plot(res_dif$age, res_dif$diff, type = 'l')
-  #}
-}
 
 #
 ### Adapted from https://rdrr.io/cran/popbio/src/R/logi.hist.plot.R
@@ -543,90 +472,6 @@ draw_smooth_scatter <- function(merged_tab, pheno_name, pdat, gam.p, min_age, ma
   
   abline(h = pretty(merged_tab2$phenotype), col = "grey90")
   abline(v = pretty(merged_tab2$age), col = "grey90")
-}
-
-
-#ggplot
-draw_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add_inter_p_to_plot = T, plot_title = NULL, plot_points = T, breakpoints = NULL, factor_name = "", alpha_points = 40, breakpoints_intervals = NULL, ymax_hist = 1, label = "", ylims_usr = NULL){
-  cex_main = 1
-  
-  ylims <- with(merged_tab, range(phenotype))
-  
-  
-  pheno_name <- paste(strwrap(pheno_name, width = 40), collapse = "\n")
-  ylabel <- pheno_name
-  pheno_name <- gsub(" \\(.*", "", pheno_name)
-  
-  
-  
-  ## draw base plot
-  #palette(c(col2transparent("indianred1", alpha_points),col2transparent("dodgerblue1", alpha_points)))
-  palette(c(col2transparent("#ff9999", 120),col2transparent("#99ccff", 120)))
-  par(mar = c(6, 6, 6, 3), # Dist' from plot to side of page
-      mgp = c(2, 0.4, 0), # Dist' plot to label
-      las = 1, # Rotate y-axis text
-      tck = -.01, # Reduce tick length
-      xaxs = "i", yaxs = "i") # Remove plot padding
-  
-  merged_tab2 <- merged_tab[merged_tab$phenotype <= ylims[2] & merged_tab$phenotype >= ylims[1],]
-  if (plot_title == ""){
-    if (add_inter_p_to_plot) {
-      if (gam.p == 0) {
-        plot_title <- paste0(pheno_name, '\n', label, "\nGAM interaction P < 2.23e-308")
-      } else {
-        plot_title <- paste0(pheno_name, '\n', label, "\nGAM interaction P = ", format(gam.p, digits = 3))
-      }
-    } else {
-      plot_title <- pheno_name
-    }
-  }
-  
-  ggplot(merged_tab2, aes(x=age, y = phenotype, fill = gender_F1M2)) + 
-    geom_point(shape=21, stroke=0, alpha = 120, color = "transparent") + 
-    scale_fill_manual(values = c("#ff9999", "#99ccff")) + theme_minimal() + 
-    theme(legend.position="none", plot.title = element_text(hjust = 0.5, size = 10)) + 
-    xlab("age") + 
-    ylab(ylabel) + 
-    ylim(c(min(pretty(merged_tab2$phenotype)), max(pretty(merged_tab2$phenotype)))) + 
-    xlim(c(min(min_age,merged_tab2$age), max(max_age, merged_tab2$age))) + 
-    ggtitle(plot_title) + 
-    geom_line(data = pdat, aes(x = age, y = pred, color = gender_F1M2)) + 
-    scale_color_manual(values = c("indianred1", "dodgerblue1"))
-  
-  
-  levs <- levels(merged_tab$gender_F1M2)
-  cols = c("indianred1", "dodgerblue1")
-  
-  ## add the fitted lines
-  for (l in seq_along(levs)) {
-    dd <- pdat[pdat$gender_F1M2 == levs[l],]
-    lines(pred ~ age, data = dd, col = cols[[l]], lwd = 2)
-    polygon(c(rev(dd$age), dd$age), c(rev(dd$lwr), dd$upr), col = col2transparent(cols[[l]], 100), border = NA)
-  }
-  
-  
-  if(length(breakpoints) > 0){
-    br_w <- breakpoints[[1]]
-    br_m <- breakpoints[[2]]
-    for (br in br_w){
-      abline(v = as.numeric(br), col = cols[1], lty = 2)
-    }
-    for (br in br_m){
-      abline(v = as.numeric(br), col = cols[2], lty = 2)
-    }
-  }
-  ymin <- min(pretty(merged_tab2$phenotype), min(merged_tab2$phenotype) - 1)
-  ymax <- max(pretty(merged_tab2$phenotype), max(merged_tab2$phenotype) + 2)
-  if(!is.null(breakpoints_intervals)){
-    br_w <- breakpoints_intervals[[1]]
-    br_m <- breakpoints_intervals[[2]]
-    for (br in br_m){
-      rect(br[1], ymin, br[2], ymax, col = 2, border = 2, density = -1)
-    }
-    for (br in br_w){
-      rect(br[1], ymin, br[2], ymax, col = 1, border = 1, density = -1)
-    }
-  }
 }
 
 

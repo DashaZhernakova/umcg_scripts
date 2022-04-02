@@ -156,13 +156,6 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, covariates_linear = c(
   #if (gam.p > interp_cutoff){
   #  return (list("dif" = NULL, "inter_p" = gam.p,"g_beta" = gam.g_beta, "g_pv" = gam.g_pv, "cohen_f2" = gam.cohen_f2))
   #}
-  breakpoints_intervals <- NULL
-  breakpoints <- NULL
-  if (add_breakpoints){
-      breakpoints_intervals <- get_breakpoints(merged_tab, correctForCellCounts, t_threshold = t_threshold, derivatives_cutoff = derivatives_cutoff)
-      #breakpoints2 <- get_breakpoints_derivatives(merged_tab, correctForCellCounts)
-  }
- 
   p <- NULL 
   if (make_plots & gam.p < interp_cutoff & plot_density == F){
      draw_plot(merged_tab, pheno_name, pdat, gam.p, min_age = min_age, max_age = max_age, add_inter_p_to_plot = add_inter_p_to_plot, plot_title = plot_title, plot_points = plot_points,  ymax_hist = ymax_hist, label = paste0("Cohen's f^2 = ", formatC(gam.cohen_f2, digits = 4, format = "f")), ylims = ylims)
@@ -171,7 +164,7 @@ plot_scatter_and_gam2 <- function(merged_tab, pheno_name, covariates_linear = c(
     p <- draw_contour_plot(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add_inter_p_to_plot, plot_title,  ymax_hist, label = paste0("Cohen's f^2 = ", formatC(gam.cohen_f2, digits = 4, format = "f")), ylims = ylims)
   }
   
-  return (list("pdat" = pdat, "dif" = res_dif$diff, "inter_p" = gam.p,"g_beta" = gam.g_beta, "g_pv" = gam.g_pv, "breakpoints_intervals" = breakpoints_intervals, "cohen_f2" = gam.cohen_f2, "p" = p))
+  return (list("pdat" = pdat, "dif" = res_dif$diff, "inter_p" = gam.p,"g_beta" = gam.g_beta, "g_pv" = gam.g_pv, "cohen_f2" = gam.cohen_f2, "p" = p))
 } 
 
 # Calculate a simple difference between every fitted value pair in men and women
@@ -551,10 +544,11 @@ calc_explained_variance_CV <- function(merged_tab, pheno_name, covariates_linear
   }
   merged_tab$gender_F1M2 <- as.factor(merged_tab$gender_F1M2)
   
-  res_table <- data.frame(matrix(nrow = k*rep_n, ncol = 4))
   n = nrow(merged_tab)
   k = 5
   rep_n <- 10
+  res_table <- data.frame(matrix(nrow = k*rep_n, ncol = 4))
+  
   cnt <- 1
   for (j in 1:rep_n){
     shuffled <- merged_tab[sample(n),]

@@ -19,7 +19,7 @@ for (idx in indices){
   if (colnames(traits_m)[idx] %in% pheno_to_log) log_transform = TRUE
   cat("\tLog tranform: ", log_transform, "\n")
   
-  merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = "NA", log_tr = log_transform, scale_tr = scale_transform)
+  merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = "IQR", log_tr = log_transform, scale_tr = scale_transform)
 
   covariateslinear2 <- covariateslinear[covariateslinear != colnames(traits_m)[idx]]
   covariatesnonlinear2 <- covariatesnonlinear[covariatesnonlinear != colnames(traits_m)[idx]]
