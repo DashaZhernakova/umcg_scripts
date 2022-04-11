@@ -157,3 +157,30 @@ run_cross_validation <- function(merged_tab, pheno_name, covariates_linear = c()
   
   return(list(cv_gam_full$cvscale, cv_gam_nointer$cvscale, cv_lm_full$cvscale, cv_lm_nointer$cvscale))
 }
+
+
+
+remove_related_covariates <- function(traits_m, covariateslinear, covariatesnonlinear){
+
+  covariateslinear2 <- covariateslinear[covariateslinear != colnames(traits_m)[idx]]
+  covariatesnonlinear2 <- covariatesnonlinear[covariatesnonlinear != colnames(traits_m)[idx]]
+  lipids <- c("HDC", "LDC", "CHO", "RCHO", "TGL", "HAL1", "HALB")
+  if (colnames(traits_m)[idx] %in% lipids){
+    covariatesnonlinear2 <- covariatesnonlinear2[! covariatesnonlinear2 %in% lipids]
+  }
+  pressure <- c("SBP", "DBP", "MAP")
+  if (colnames(traits_m)[idx] %in% pressure){
+    covariatesnonlinear2 <- covariatesnonlinear2[! covariatesnonlinear2 %in% pressure]
+  }
+  bmi <- c("BMI", "GEWICHT", "HEUPOMV", "TAILLE", "WTH")
+  if (colnames(traits_m)[idx] %in% bmi){
+    covariatesnonlinear2 <- covariatesnonlinear2[! covariatesnonlinear2 %in% bmi]
+  }
+  
+  glu <- c("GLU", "HB1C")
+  if (colnames(traits_m)[idx] %in% glu){
+    covariatesnonlinear2 <- covariatesnonlinear2[! covariatesnonlinear2 %in% glu]
+  }
+  
+  return(list(linear = covariateslinear2, nonlinear = covariatesnonlinear2))
+}

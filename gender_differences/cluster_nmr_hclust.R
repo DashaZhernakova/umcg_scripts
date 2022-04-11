@@ -30,15 +30,16 @@ hc <- hkmeans(d,num_k,  hc.method = "average")
 cl <- hc$cluster
 clusters <- as.data.frame(cl)
 clusters$signif_inter <- row.names(clusters) %in% signif_inters
-
+clusters$ids <- pheno_table[match(row.names(clusters), pheno_table[,1], nomatch = 0),2]
 ss <- silhouette(cl, as.dist(1-cormat))
 mean_sil_score <- aggregate(ss[,3]~ss[,1], FUN=mean)
 
-pdf(paste0("results/plots/nmr_clustering_hclust_", num_k, ".4.v2022.pdf"), width = 20, height = 20)
+pdf(paste0("results/plots/nmr_clustering_hclust_", num_k, ".5.v2022.pdf"), width = 20, height = 20)
 par(mfrow=c(5,4))
 cnt <- 1
 for (i in 1:max(cl)){
-  lipids <- row.names(clusters[clusters$cl == i,])
+  #lipids <- row.names(clusters[clusters$cl == i,])
+  lipids <- clusters[clusters$cl == i,"id"]
   print(length(lipids))
   print(i)
   

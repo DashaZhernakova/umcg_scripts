@@ -219,10 +219,10 @@ for (idx in indices){
   
   merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = outlier_correction_method, log_tr = log_transform, scale_tr = scale_transform)
   if (split_by_covariate == ""){
-    covariateslinear2 <- covariateslinear[covariateslinear != colnames(traits_m)[idx]]
-    covariatesnonlinear2 <- covariatesnonlinear[covariatesnonlinear != colnames(traits_m)[idx]]
+    new_covars <- remove_related_covariates(traits_m, covariateslinear, covariatesnonlinear)
     
-    res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, covariates_linear = covariateslinear2, covariates_nonlinear = covariatesnonlinear2, n_points = n_points, make_plots = make_plots, gam_family = gam_family, min_age = min_age, max_age = max_age, ymax_hist = ymax_hist, label = '', add_inter_p_to_plot = add_inter_p_to_plot, plot_title = plot_title, interp_cutoff = interp_cutoff, plot_points = plot_points, add_breakpoints = add_breakpoints,  t_threshold = ttest_cutoff, derivatives_cutoff = deriv_cutoff, log_tr = log_transform, plot_density = plot_density)
+    
+    res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, covariates_linear = new_covars$linear, covariates_nonlinear = new_covars$nonlinear, n_points = n_points, make_plots = make_plots, gam_family = gam_family, min_age = min_age, max_age = max_age, ymax_hist = ymax_hist, label = '', add_inter_p_to_plot = add_inter_p_to_plot, plot_title = plot_title, interp_cutoff = interp_cutoff, plot_points = plot_points, add_breakpoints = add_breakpoints,  t_threshold = ttest_cutoff, derivatives_cutoff = deriv_cutoff, log_tr = log_transform, plot_density = plot_density)
     
     if (res_dif_lst[["inter_p"]] < interp_cutoff){
       if (plot_density && ! is.null(res_dif_lst$p)) plots[[cnt_sign]] <- res_dif_lst$p
@@ -277,8 +277,9 @@ if (make_plots){
   dev.off()
 }
 
-grid::textGrob("Haematological traits", gp=gpar(fontsize=20)) / (plots[[1]] + plots[[2]] + plots[[3]] + plots[[4]]) / (plots[[5]] + plots[[6]] + plots[[7]] + plots[[8]]) / ( plots[[9]] + plot_spacer() + plot_spacer()+ plot_spacer()) /
-grid::textGrob("Metabolic and cardiovascular traits", gp=gpar(fontsize=20)) / (plots[[10]] + plots[[11]] + plots[[12]] + plots[[13]]) / (plots[[14]] + plots[[15]] + plots[[16]] + plots[[17]] ) / (plots[[18]] + plot_spacer() + plot_spacer()+ plot_spacer())
+#grid::textGrob("Haematological traits", gp=gpar(fontsize=20)) / (plots[[1]] + plots[[2]] + plots[[3]] + plots[[4]]) / (plots[[5]] + plots[[6]] + plots[[7]] + plots[[8]]) / ( plots[[9]] + plot_spacer() + plot_spacer()+ plot_spacer()) /
+#grid::textGrob("Metabolic and cardiovascular traits", gp=gpar(fontsize=20)) / (plots[[10]] + plots[[11]] + plots[[12]] + plots[[13]]) / (plots[[14]] + plots[[15]] + plots[[16]] + plots[[17]] ) / (plots[[18]] + plot_spacer() + plot_spacer()+ plot_spacer())
 
-plot_spacer() /  (plots[[1]] + plots[[2]] + plots[[3]] + plots[[4]]) / (plots[[5]] + plots[[6]] + plots[[7]] + plots[[8]]) / ( plots[[9]] + plot_spacer() + plot_spacer()+ plot_spacer()) / plot_spacer() /  (plots[[10]] + plots[[11]] + plots[[12]] + plots[[13]]) / (plots[[14]] + plots[[15]] + plots[[16]] + plots[[17]] ) / (plots[[18]] + plot_spacer() + plot_spacer()+ plot_spacer())
-plot_spacer() /  (plots[[19]] + plots[[20]] + plots[[21]] + plot_spacer()) / plot_spacer() /  (plots[[23]] + plots[[24]] + plots[[25]] + plots[[26]])
+
+#plot_spacer() /  (plots[[1]] + plots[[2]] + plots[[3]] + plots[[4]]) / (plots[[5]] + plots[[6]] + plots[[7]] + plots[[8]]) / ( plots[[9]] + plot_spacer() + plot_spacer()+ plot_spacer()) / plot_spacer() /  (plots[[10]] + plots[[11]] + plots[[12]] + plots[[13]]) / (plots[[14]] + plots[[15]] + plots[[16]] + plots[[17]] ) / (plots[[18]] + plot_spacer() + plot_spacer()+ plot_spacer())
+#plot_spacer() /  (plots[[19]] + plots[[20]] + plots[[21]] + plot_spacer()) / plot_spacer() /  (plots[[23]] + plots[[24]] + plots[[25]] + plots[[26]])
