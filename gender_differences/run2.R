@@ -198,7 +198,7 @@ if (runCV){
 res_summary <- data.frame()
 res_dif_lst <- data.frame()
 fitted_lines <- data.frame(matrix(nrow = n_points*2, ncol = length(indices)))
-colnames(fitted_lines) <- colnames(traits_m)[indices]
+#colnames(fitted_lines) <- colnames(traits_m)[indices]
 
 cnt = 1
 cnt_sign <- 1
@@ -220,7 +220,6 @@ for (idx in indices){
   merged_tab <- rm_na_outliers(traits_m, pheno_m, idx, method = outlier_correction_method, log_tr = log_transform, scale_tr = scale_transform)
   if (split_by_covariate == ""){
     new_covars <- remove_related_covariates(traits_m, covariateslinear, covariatesnonlinear)
-    
     
     res_dif_lst <- plot_scatter_and_gam2(merged_tab, trait_name, covariates_linear = new_covars$linear, covariates_nonlinear = new_covars$nonlinear, n_points = n_points, make_plots = make_plots, gam_family = gam_family, min_age = min_age, max_age = max_age, ymax_hist = ymax_hist, label = '', add_inter_p_to_plot = add_inter_p_to_plot, plot_title = plot_title, interp_cutoff = interp_cutoff, plot_points = plot_points, add_breakpoints = add_breakpoints,  t_threshold = ttest_cutoff, derivatives_cutoff = deriv_cutoff, log_tr = log_transform, plot_density = plot_density)
     
