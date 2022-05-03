@@ -11,7 +11,7 @@ pheno0 <- read.table(pheno_path, header = T, row.names = 1, sep = "\t", as.is = 
 d <- scale(na.omit(d))
 pheno0 <- na.omit(pheno0)
 ids <- intersect(row.names(d), row.names(pheno0))
-Distance = vegdist(d[ids,],  method = "euclidean" )
+Distance = vegdist(d[ids,lipids],  method = "euclidean" )
 Formula = as.formula("Distance ~ age + gender_F1M2 + age:gender_F1M2 + I(age^2) + I(age^3) + I(age^2):gender_F1M2 + I(age^3):gender_F1M2")
 adonis2(formula = Formula , data = pheno0[ids,]  , na.action = na.exclude, permutations = 100 ) 
 

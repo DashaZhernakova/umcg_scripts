@@ -14,7 +14,7 @@ run_qc_per_sv <- function(d, cohort_name, outpath, cr = 0.1){
     colnames(qc) <- "num_called"
     qc$call_rate <- qc[,1]/n
     
-    pdf(paste0(outpath, ".qc_per_vSV.CR",cr, ".pdf"))
+    pdf(paste0(outpath, ".qc_per_vSV.CR",cr, ".pdf"), useDingbats = F)
     par(mfrow=c(1,2))
     hist(qc$num_called, breaks = 100, main = "Number of called vSV", col = "black")
     hist(qc$call_rate, breaks = 100, xlim = c(0,1),  main = "vSV call rate", col = "black")
@@ -38,7 +38,7 @@ run_qc_per_sample <- function(d, cohort_name, outpath){
     
     qc2_05 <- qc2[qc2$call_rate > 0.05,]
     
-    pdf(paste0(outpath, "vSV.qc_per_sample.pdf"))
+    pdf(paste0(outpath, "vSV.qc_per_sample.pdf"), useDingbats = F)
     hist(qc2$call_rate, breaks = 100, main = "Call rate per sample", col = "black")
     abline(v=0.05, col = "red")
     dev.off()
@@ -101,7 +101,7 @@ for (c in cs){
 # plot number of SVs and their overlap between cohorts
 sv_per_cohort <- as.data.frame(sv_per_cohort)
 sv_per_cohort[is.na(sv_per_cohort)] <- 0
-pdf("data/QC/vSV_overlap.pdf")
+pdf("data/QC/vSV_overlap.pdf", useDingbats = F)
 upset(sv_per_cohort, order.by = "freq")
 dev.off()
 
