@@ -265,11 +265,13 @@ res_summary$g_lm_pv_adj_bonferroni <- p.adjust(res_summary$g_lm_pv, method = "bo
 write.table(res_summary, file = paste0(out_table_path, "_summary.txt"), sep = "\t", quote = F, col.names = NA)
 if (write_fitted) write.table(fitted_lines, file = paste0(out_table_path, "_fitted.txt"), sep = "\t", quote = F, col.names = NA)
 if (plot_density){
-  library(patchwork)
+  library(cowplot)
   pdf(paste0(plot_path, ".pdf"), width = 15, height = 21)
-  wrap_plots(plots[1:20], nrow = 5, ncol = 4)
-  wrap_plots(plots[21:40], nrow = 5, ncol = 4)
-  wrap_plots(plots[41:length(plots)], nrow = 5, ncol = 4)
+  
+  part1 <- plot_grid(plots[[1]], plots[[2]], plots[[3]], plots[[4]], plots[[5]], plots[[6]], plots[[4]], plots[[5]], plots[[6]], nrow = 3, ncol = 4)
+  part2 <- plot_grid(plots[[1]], plots[[2]], plots[[3]], plots[[4]], plots[[5]], plots[[6]], plots[[2]], nrow = 2, ncol = 4)
+  plot_grid(format_title("Immunological traits"), row1, format_title("Metabolic traits"), row2, ncol = 1, rel_heights = c(0.2, 3, 0.2,2))
+  
   dev.off()
 }
 if (make_plots){

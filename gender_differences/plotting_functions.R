@@ -506,7 +506,7 @@ draw_contour_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_
         geom_ribbon(data = pdat, aes(x = age, ymin = lwr, ymax = upr, fill = gender_F1M2)) + 
         theme_minimal() +
         scale_fill_manual(values = alpha(c("#ff9999", "#99ccff"),  0.4)) + 
-        theme(legend.position="none", plot.title = element_text(hjust = 0.5, size = 12), axis.text = element_text(size = 12), axis.title = element_text(size = 12)) + 
+        theme(legend.position="none", plot.title = element_text(hjust = 0.5, size = 10), axis.text = element_text(size = 10), axis.title = element_text(size = 10)) + 
         xlab("age") + 
         ylab(ylabel) + 
         ggtitle(plot_title) + 
@@ -560,7 +560,7 @@ draw_contour_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_
       geom_ribbon(data = pdat, aes(x = age, ymin = lwr, ymax = upr, fill = gender_F1M2)) + 
       theme_minimal() +
       scale_fill_manual(values = alpha(c("#ff9999", "#99ccff"),  0.4)) + 
-      theme(legend.position="none", plot.title = element_text(hjust = 0.5, size = 12), axis.text = element_text(size = 12), axis.title = element_text(size = 12)) + 
+      theme(legend.position="none", plot.title = element_text(hjust = 0.5, size = 10), axis.text = element_text(size = 10), axis.title = element_text(size = 10)) + 
       xlab("age") + 
       ylab(ylabel) + 
       ylim(0,1) +
@@ -572,3 +572,21 @@ draw_contour_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_
   return(p)
 }
 
+
+# for plotting ggplots using cowplot 
+format_title <- function(title_text){
+  title <- ggdraw() + 
+    draw_label(
+      title_text,
+      fontface = 'bold',
+      size = 16,
+      x = 0,
+      hjust = 0
+    ) +
+    theme(
+      # add margin on the left of the drawing canvas,
+      # so title is aligned with left edge of first plot
+      plot.margin = margin(0, 0, 0, 7)
+    )
+  print(title)
+}

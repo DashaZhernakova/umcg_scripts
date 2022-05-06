@@ -2,7 +2,7 @@ library(rprojroot)
 library(tidyverse)
 
 config_path <- "/groups/umcg-lifelines/tmp01/projects/ov20_0051/umcg-dzhernakova/gender_difs/v5/config.yml"
-script_folder <- "/groups/umcg-lifelines/tmp01/users/umcg-dzhernakova/scripts/umcg_scripts/gender_differences/"
+script_folder <- "/groups/umcg-lifelines/tmp01/projects/ov20_0051/umcg-dzhernakova/scripts/umcg_scripts/gender_differences/"
 
 cat("script folder:", script_folder, "\n")
 source(paste0(script_folder, "/preprocessing_gam_fitting_functions.R"))
