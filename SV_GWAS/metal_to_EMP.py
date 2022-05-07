@@ -7,9 +7,18 @@ fname = sys.argv[1]
 pheno = sys.argv[2]
 dataset_names = sys.argv[3].split(",")
 dataset_samplesizes = sys.argv[4].split(",")
+header = False
 pval_threshold = 1
 if len(sys.argv) > 5:
-    pval_threshold = float(sys.argv[5])
+    
+    if "header" in sys.argv[5]:
+        header = True
+    else:
+        pval_threshold = float(sys.argv[5])
+
+if len(sys.argv) > 6:
+    if "header" in sys.argv[6]:
+        header = True
 
 max_lines = 1000000
 if fname == "stdin":
@@ -20,7 +29,8 @@ else:
     else:
         f = open(fname)
 
-f.readline()
+if header:
+    f.readline()
 print("PValue\tSNPName\tSNPChr\tSNPChrPos\tProbeName\tProbeChr\tProbeCenterChrPos\tCisTrans\tSNPType\tAlleleAssessed\tOverallZScore\tDatasetsWhereSNPProbePairIsAvailableAndPassesQC\tDatasetsZScores\tDatasetsNrSamples\tIncludedDatasetsMeanProbeExpression\tIncludedDatasetsProbeExpressionVariance\tHGNCName\tIncludedDatasetsCorrelationCoefficient\tMeta-Beta (SE)\tBeta (SE)\tFoldChange\tFDR")
 
 line_num = 1

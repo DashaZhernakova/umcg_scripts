@@ -1,6 +1,7 @@
 library(RColorBrewer)
 library('dplyr')
 library(ggplot2)
+library(cowplot)
 
 col2transparent <- function(col, transparency){
   colRgb <- col2rgb(col)
@@ -60,7 +61,7 @@ draw_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add
   if (! binaryPhenotype){
     if (plot_points){
       plot(phenotype ~ age, data = merged_tab2,  col = gender_F1M2,  pch = 16, 
-           main = plot_title, 
+           main = plot_title, font.main = 1,
            cex = 0.6, xlab = "age", ylab = ylabel, cex.main = cex_main, frame.plot = F, axes = T, 
            ylim =c(min(pretty(merged_tab2$phenotype)), max(pretty(merged_tab2$phenotype))),
            xlim = c(min(min_age,merged_tab2$age), max(max_age, merged_tab2$age)))
@@ -70,14 +71,14 @@ draw_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add
       }
     } else{
       plot(1, type="n", 
-           main = plot_title, 
+           main = plot_title, font.main = 1,
            cex = 0.6, xlab = "age", ylab = ylabel, cex.main = cex_main, frame.plot = F, axes = T, 
            ylim =c(min(pretty(merged_tab2$phenotype)), max(pretty(merged_tab2$phenotype))),
            xlim = c(min(min_age,merged_tab2$age), max(max_age, merged_tab2$age)))
     }
   } else { # do not add points for binary pheno
     cat(ymax_hist)
-    plot(1, type="n",
+    plot(1, type="n", font.main = 1,
          main = paste0(pheno_name, '\n', label, "\nGAM interaction p = ", format(gam.p, digits = 3)), 
          cex = 0.6, xlab = "age", ylab = ylabel, cex.main = cex_main, frame.plot = F, axes = T, 
          ylim =c(0,ymax_hist),
@@ -127,7 +128,7 @@ draw_plot_multiline <- function(merged_tab, pheno_name, pdat_list, color_list, f
   merged_tab2 <- merged_tab[merged_tab$phenotype <= ylims[2] & merged_tab$phenotype >= ylims[1],]
   if (plot_points){
     plot(phenotype ~ age, data = merged_tab2,  col = gender_F1M2,  pch = 16, 
-         main = pheno_name, 
+         main = pheno_name, font.main = 1,
          cex = 0.6, xlab = "age", ylab = ylabel, cex.main = cex_main, frame.plot = F, axes = T, 
          ylim =c(min(pretty(merged_tab2$phenotype)), max(pretty(merged_tab2$phenotype))),
          xlim = c(min(min_age,merged_tab2$age), max(max_age, merged_tab2$age)))
@@ -138,7 +139,7 @@ draw_plot_multiline <- function(merged_tab, pheno_name, pdat_list, color_list, f
     }
   } else{
     plot(1, type="n", 
-         main = pheno_name, 
+         main = pheno_name, font.main = 1,
          cex = 0.6, xlab = "age", ylab = ylabel, cex.main = cex_main, frame.plot = F, axes = T, 
          ylim =c(min(pretty(merged_tab2$phenotype)), max(pretty(merged_tab2$phenotype))),
          xlim = c(min(min_age,merged_tab2$age), max(max_age, merged_tab2$age)))
@@ -163,7 +164,7 @@ draw_multiple_fitted_lines <- function(fitted_matrix, sign_inters = colnames(fit
   #     tck = -.01, # Reduce tick length
   #     xaxs = "i", yaxs = "i") # Remove plot padding
   
-  plot(1, type="n",cex = 0.6, xlab = "age",  ylab = ylab, frame.plot = T, axes = T, main = plot_title, ylim = c(-1, 1),xlim = c(min_age,max_age))
+  plot(1, type="n",cex = 0.6, font.main = 1, xlab = "age",  ylab = ylab, frame.plot = T, axes = T, main = plot_title, ylim = c(-1, 1),xlim = c(min_age,max_age))
 #       ylim =c(min(fitted_matrix), max(fitted_matrix)),
        
   
@@ -588,5 +589,25 @@ format_title <- function(title_text){
       # so title is aligned with left edge of first plot
       plot.margin = margin(0, 0, 0, 7)
     )
-  print(title)
+  return(title)
+}
+
+
+write_plots_cowplot <- function(plots, plot_path){
+  row1 <- plot_grid(plots[[1]], plots[[2]], plots[[3]], plots[[4]], plots[[5]], plots[[6]], plots[[4]], plots[[5]], plots[[6]], plots[[7]], plots[[8]], plots[[9]], nrow = 3, ncol = 4)
+  row2 <- plot_grid(plots[[10]], plots[[11]], plots[[12]], plots[[13]], plots[[14]], plots[[15]], plots[[16]], plots[[17]], plots[[18]], plots[[19]], nrow = 3, ncol = 4)
+  
+  row3 <- plot_grid(plots[[20]], plots[[21]], plots[[22]], plots[[23]], plots[[24]], plots[[25]],  nrow = 2, ncol = 4)
+  row4 <- plot_grid(plots[[26]], plots[[27]], plots[[28]], plots[[29]], plots[[30]], plots[[31]], plots[[32]], nrow = 2, ncol = 4)
+  row5 <- plot_grid(plots[[33]], plots[[34]], plots[[35]], nrow = 1, ncol = 4)
+  
+  row6 <- plot_grid(plots[[36]], plots[[37]], plots[[38]], plots[[39]], plots[[40]], plots[[41]], nrow = 2, ncol = 4)
+  row7 <- plot_grid(plots[[42]], plots[[43]], plots[[44]], plots[[45]], nrow = 1, ncol = 4)
+  row8 <- plot_grid(plots[[46]], plots[[47]], plots[[48]], plots[[49]], plots[[50]], plots[[51]], nrow = 2, ncol = 4)
+  
+  pdf(paste0(plot_path, ".pdf"), width = 15, height = 21) 
+  plot_grid(format_title("Haemotological traits"), row1, format_title("Metabolic traits"), row2, ncol = 1, rel_heights = c(0.15, 3, 0.15, 3))
+  plot_grid(format_title("Electrolytes and renal function paramters"), row3, format_title("Liver function parameters and inflammatory markers"), row4, format_title("Thyroid function paramters"), row5, ncol = 1, rel_heights = c(0.15, 2, 0.15, 2, 0.15, 1))
+  plot_grid(format_title("Anthropometric traits"), row6, format_title("Blood pressure parameters"), row7, format_title("Lifestyle factors"), row8, ncol = 1, rel_heights = c(0.15, 2, 0.15, 1, 0.15, 2))
+  dev.off()
 }
