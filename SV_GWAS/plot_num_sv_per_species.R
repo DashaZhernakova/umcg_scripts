@@ -1,6 +1,7 @@
 library(ggplot2)
-dsv <- read.delim("dSV_per_cohort.strict_filtering.txt", sep = "\t", header = T, as.is = T)
-vsv <- read.delim("vSV_per_cohort.txt", sep = "\t", header = T, as.is = T)
+library(reshape2)
+dsv <- read.delim("dSV_per_cohort_all_cohorts.txt", sep = "\t", header = T, as.is = T)
+vsv <- read.delim("vSV_per_cohort_all_cohorts.txt", sep = "\t", header = T, as.is = T)
 dsv$sp <- gsub("\\:[0-9]+", "", dsv[,1])
 vsv$sp <- gsub("\\:[0-9]+", "", vsv[,1])
 dsv_c <- as.data.frame(table(dsv$sp))
@@ -17,9 +18,10 @@ counts$species <- factor(counts$species, levels = counts[order(counts$dSV + coun
 counts2 <- melt(counts)
 
 
-pdf("num_sv_per_species_barplot.pdf", height = 5, width = 12)
+pdf("num_sv_per_species_barplot_all_species.pdf", height = 5, width = 12)
 ggplot(counts2, aes(x = species, y = value, fill = variable)) +
-    geom_bar(stat="identity", color="grey", position=position_dodge()) +
+    #geom_bar(stat="identity", color="grey", position=position_dodge()) +
+    geom_bar(stat="identity", color="grey") + 
     scale_fill_brewer(palette="Blues") +
     labs(title="Number of SVs per species after filtering", x = "Species", y = "Number of SVs") +
     theme_classic() + theme(axis.text.x = element_text(angle = 45, hjust=1), legend.position = "none")

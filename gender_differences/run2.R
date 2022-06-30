@@ -29,7 +29,6 @@ if (isRStudio) {
 }
 cat("script folder:", script_folder, "\n")
 source(paste0(script_folder, "/preprocessing_gam_fitting_functions.R"))
-source(paste0(script_folder, "/get_breakpoints.R"))
 source(paste0(script_folder, "/additional_functions.R"))
 source(paste0(script_folder, "/plotting_functions.R"))
 

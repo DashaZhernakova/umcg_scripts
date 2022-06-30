@@ -28,7 +28,7 @@ draw_plot <- function(merged_tab, pheno_name, pdat, gam.p, min_age, max_age, add
   #}
   pheno_name <- paste(strwrap(pheno_name, width = 40), collapse = "\n")
   ylabel <- pheno_name
-  pheno_name <- gsub(" \\(.*", "", pheno_name)
+  pheno_name <- gsub("\\(.*", "", pheno_name)
   binaryPhenotype <- F
   if (all(ylims == c(0,1))) {
     ylabel <- paste0(pheno_name, " frequency")

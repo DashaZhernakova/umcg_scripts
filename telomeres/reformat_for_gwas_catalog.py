@@ -21,12 +21,15 @@ with gzip.open(sys.argv[1]) as f:
     for l in f:
         spl = l.rstrip().split("\t")
         pheno = spl[4]
+        rsid = spl[1]
+        if not spl[1].startswith("rs"):
+            rsid = "NA"
         alleles = set(spl[8].split("/"))
         ea = spl[9]
         oa = alleles - set(ea)
         beta_se = spl[19]
         m = re.search(r"([\-\.0-9]+) \(([\-\.0-9]+)\)", beta_se)
-        res_line = "\t".join([spl[1], spl[0], spl[2], spl[3], ea, oa.pop(), m.group(1), m.group(2)])
+        res_line = "\t".join([rsid, spl[0], spl[2], spl[3], ea, oa.pop(), m.group(1), m.group(2)])
         out_files[pheno].write(res_line + "\n")
 
         #cnt += 1
@@ -35,4 +38,3 @@ with gzip.open(sys.argv[1]) as f:
 
 for k,v in out_files.items():
     out_files[k].close()
-

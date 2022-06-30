@@ -84,19 +84,19 @@ def main(args):
 	else:
 		i_file = sys.stdin
 	if args['header']:
-		print i_file.readline().rstrip("\r\n")
+		print (i_file.readline().rstrip("\r\n"))
 	for line in i_file:
 		spl = line.rstrip("\r\n").split(args['i_sep'])
 		
 		if (not args['i_all']) and (not args['i_whole']):
 			if ((not v) and (spl[i_col] in query_set)) or ((v) and (spl[i_col] not in query_set)):
-				print line.rstrip("\r\n")
+				print (line.rstrip("\r\n"))
 		elif args['i_whole']:
 			if searchInWholeLine(line, v, query_set):
-				print line.rstrip("\r\n")
+				print (line.rstrip("\r\n"))
 		else:
 			if searchInAllCols(spl, v, query_set):
-				print line.rstrip("\r\n")
+				print (line.rstrip("\r\n"))
 	i_file.close()
 
 def vlookup(args):
@@ -119,15 +119,15 @@ def vlookup(args):
 		i_file = sys.stdin
 	
 	if args['header']:
-		print i_file.readline().rstrip("\r\n")
+		print (i_file.readline().rstrip("\r\n"))
 	for line in i_file:
 		spl = line.rstrip("\r\n").split(args['i_sep'])
 		if not args['i_all']:
 			if spl[i_col] in query_dict.keys():
-				print line.rstrip("\r\n") + sep + query_dict[spl[i_col]]
+				print (line.rstrip("\r\n") + sep + query_dict[spl[i_col]])
 		else:
 			if searchInAllCols(spl, v, query_dict):
-				print line.rstrip("\r\n") + sep + query_dict[spl[i_col]]
+				print (line.rstrip("\r\n") + sep + query_dict[spl[i_col]])
 	i_file.close()
 				
 if __name__ == "__main__":

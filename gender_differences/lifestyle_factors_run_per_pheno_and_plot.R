@@ -1,8 +1,8 @@
 args <- commandArgs(trailingOnly = TRUE)
 library(RColorBrewer)
 library(ggplot2)
-library(patchwork)
-source("/groups/umcg-lifelines/tmp01/users/umcg-dzhernakova/scripts/umcg_scripts/gender_differences/preprocessing_gam_fitting_functions.R")
+
+source("/groups/umcg-lifelines/tmp01/projects/ov20_0051//umcg-dzhernakova/scripts/umcg_scripts/gender_differences/preprocessing_gam_fitting_functions.R")
 setwd("/groups/umcg-lifelines/tmp01/projects/ov20_0051/umcg-dzhernakova/gender_difs/factors")
 
 
@@ -20,7 +20,7 @@ plot_3d <- function(pheno_name, gam.fit, merged_tab, covariates, predictor,  out
   } else {
     new.x <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = 300),
                                           gender_F1M2 = c('1', '2'),
-                                          predictor = seq(min(merged_tab[,predictor]), max(merged_tab[,predictor]), length = 50)))
+                                          predictor = seq(quantile(merged_tab[,predictor], probs = 0.01), quantile(merged_tab[,predictor], probs = 0.99), length = 50)))
   }
   
   for (c in covariates){
@@ -39,6 +39,15 @@ plot_3d <- function(pheno_name, gam.fit, merged_tab, covariates, predictor,  out
   pdat <- rename(pdat, pred = fit, SE = se.fit)
   pdat <- mutate(pdat, lwr = pred - 1.96 * SE, upr = pred + 1.96 * SE) # calculating the 95% confidence interval
   
+  log_tr <- c("LEU","LY","MO","MOP","GR","BA","BAP","EO","EOP","TGL","HAL1","HALB","AST","ALT","AF","GGT","LCRP","TSH","UKRO","UKR24")
+  if (pheno_name %in% log_tr){
+    merged_tab[,1] <-  exp(merged_tab[,1]) - 1
+    pdat$pred <- exp(pdat$pred) - 1
+    pdat$lwr <- exp(pdat$lwr) - 1
+    pdat$upr <- exp(pdat$upr) - 1
+  }
+  
+  
   #pheno_name = "CHO"
   colnames(pdat) <- gsub(predictor,"predictor", colnames(pdat))
   pdf(paste0(out_path, "/", pheno_name, "_vs_", predictor, ".3d.pdf"), height = 5, width = 10)
@@ -46,6 +55,8 @@ plot_3d <- function(pheno_name, gam.fit, merged_tab, covariates, predictor,  out
     geom_raster() +
     geom_contour(aes_(z = ~ pred), bins = 10, colour = "grey") +
     facet_wrap(~gender_F1M2, ncol =2) +
+    geom_hline(yintercept = quantile(merged_tab[,predictor], probs = 0.05), color = "orange1") +
+    geom_hline(yintercept = quantile(merged_tab[,predictor], probs = 0.95), color = "cadetblue1") +
     scale_fill_distiller(palette = "Spectral", direction = -1) +
     labs(x="age", y = predictor, fill = pheno_name, title = paste0(pheno_name, " by age and ",predictor, ", sex:")) +         theme_minimal()
   print(p)
@@ -55,6 +66,59 @@ plot_3d <- function(pheno_name, gam.fit, merged_tab, covariates, predictor,  out
   dev.off()
 }
 
+
+plot_2d <- function(pheno_name, gam.fit, merged_tab, covariates, predictor,  out_path = "./", min_age = 20, max_age = 80, plot_points = T, n_points = 300){
+  
+  if (is.factor(merged_tab[,predictor])){
+    new.x <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = 300),
+                                          gender_F1M2 = c('1', '2'),
+                                          predictor = levels(merged_tab[,predictor])))
+  } else {
+    new.x <- with(merged_tab, expand.grid(age = seq(min_age, max_age, length = 300),
+                                          gender_F1M2 = c('1', '2'),
+                                          predictor = seq(quantile(merged_tab[,predictor], probs = 0.05), quantile(merged_tab[,predictor], probs = 0.95), length = 5)))
+  }
+  
+  for (c in covariates){
+    if (c != predictor){
+      if (is.factor(merged_tab[,c])){
+        new.x[,c] <- 0
+        new.x[,c] <- as.factor(new.x[,c])
+      } else {
+        new.x[,c] <- mean(merged_tab[,c])
+      }
+    }
+  }
+  colnames(new.x) <- gsub("predictor", predictor,colnames(new.x))
+  new.y <- data.frame(predict(gam.fit, newdata = new.x, se.fit = TRUE, type = "response"))
+  pdat <- data.frame(new.x, new.y)
+  pdat <- rename(pdat, pred = fit, SE = se.fit)
+  pdat <- mutate(pdat, lwr = pred - 1.96 * SE, upr = pred + 1.96 * SE) # calculating the 95% confidence interval
+  
+  log_tr <- c("LEU","LY","MO","MOP","GR","BA","BAP","EO","EOP","TGL","HAL1","HALB","AST","ALT","AF","GGT","LCRP","TSH","UKRO","UKR24")
+  if (pheno_name %in% log_tr){
+    merged_tab[,1] <-  exp(merged_tab[,1]) - 1
+    pdat$pred <- exp(pdat$pred) - 1
+    pdat$lwr <- exp(pdat$lwr) - 1
+    pdat$upr <- exp(pdat$upr) - 1
+  }
+  
+  
+  #pheno_name = "CHO"
+  colnames(pdat) <- gsub(predictor,"predictor", colnames(pdat))
+  pdf(paste0(out_path, "/", pheno_name, "_vs_", predictor, ".2d.pdf"), height = 5, width = 10)
+  p <- ggplot(pdat, aes(x = age, y = pred, color= as.factor(predictor) )) +
+    facet_wrap(~gender_F1M2, ncol =2) +
+    geom_line() +
+    scale_color_brewer(palette = "Spectral", direction = -1) +
+    labs(x="age", y = pheno_name,  color = predictor, title = paste0(pheno_name, " by age and ",predictor, ", sex:")) +
+    theme_minimal()
+  print(p)
+  #pdf("test_3d.pdf", height = 5, width =10)
+  #dev.off()
+  #return (p)
+  dev.off()
+}
 
 plot_res <- function(pheno_name, gam.fit, merged_tab, covariates, predictor, out_path = "./", min_age = 20, max_age = 80, plot_points = F, n_points = 300){
   
@@ -67,6 +131,7 @@ plot_res <- function(pheno_name, gam.fit, merged_tab, covariates, predictor, out
                                           gender_F1M2 = c('1', '2'),
                                           predictor = c(quantile(merged_tab[,predictor], probs = 0.05), quantile(merged_tab[,predictor], probs = 0.95))))
   }
+  cat(pheno_name, quantile(merged_tab[,predictor], probs = 0.05), quantile(merged_tab[,predictor], probs = 0.95), "\n" )
   
   for (c in covariates){
     if (c != predictor){
@@ -85,8 +150,15 @@ plot_res <- function(pheno_name, gam.fit, merged_tab, covariates, predictor, out
   pdat <- mutate(pdat, lwr = pred - 1.96 * SE, upr = pred + 1.96 * SE) # calculating the 95% confidence interval
   
   pdat[,predictor] <- as.factor(pdat[,predictor])
-  levels( pdat[,predictor]) <- c("low", "high")
   
+  levels( pdat[,predictor]) <- c("low", "high")
+  log_tr <- c("LEU","LY","MO","MOP","GR","BA","BAP","EO","EOP","TGL","HAL1","HALB","AST","ALT","AF","GGT","LCRP","TSH","UKRO","UKR24")
+  if (pheno_name %in% log_tr){
+    merged_tab[,1] <-  exp(merged_tab[,1]) - 1
+    pdat$pred <- exp(pdat$pred) - 1
+    pdat$lwr <- exp(pdat$lwr) - 1
+    pdat$upr <- exp(pdat$upr) - 1
+  }
   #pheno_name = "CHO"
   cex_main = 1
   plot_title = paste0(pheno_name, " plotted by", predictor)
@@ -161,7 +233,6 @@ plot_res <- function(pheno_name, gam.fit, merged_tab, covariates, predictor, out
   dev.off()
   
 }
-
 
 plot_res_by_factor <- function(pheno_name, gam.fit, merged_tab, covariates, predictor, min_age = -30, max_age = 30, plot_points = T, n_points = 300){
   
@@ -272,24 +343,16 @@ plot_res_by_factor <- function(pheno_name, gam.fit, merged_tab, covariates, pred
 rm_outliers <- function(merged_tab){
   merged_tab <- na.omit(merged_tab)
   merged_tab <- merged_tab[(merged_tab$age < 80) & (merged_tab$age >= 20),]
-  
-  w <- merged_tab[merged_tab$gender_F1M2 == 1,]
-  m <- merged_tab[merged_tab$gender_F1M2 == 2,]
+  m <- merged_tab
   mq1 <- quantile(m[,1], probs = 0.25)
   mq3 <- quantile(m[,1], probs = 0.75)
   miqr <- mq3 - mq1
-  m_clean <- m[m[,1] < mq3 + 1.5*miqr & m[,1] > mq1 - 1.5*miqr,]
+  m_clean <- m[m[,1] < mq3 + 3*miqr & m[,1] > mq1 - 3*miqr,]
   
-  wq1 <- quantile(w[,1], probs = 0.25)
-  wq3 <- quantile(w[,1], probs = 0.75)
-  wiqr <- wq3 - wq1
-  w_clean <- w[w[,1] < wq3 + 1.5*wiqr & w[,1] > wq1 - 1.5*wiqr,]
-  
-  tab_nooutliers <- rbind(w_clean, m_clean)
-  return(tab_nooutliers)
+  return(m_clean)
 }
 
-traits_path <- "../v4/data/LL_phenotypes_merged_all.log_some.v5.txt"
+traits_path <- "../v5/data/LL_phenotypes_merged_all.log_some.v5.txt"
 pheno_path <- "factors_final.v2.txt"
 pheno_name=args[1]
 med=args[2]
@@ -301,9 +364,9 @@ if (length(args) > 2){
 #pheno_name="CHO"
 #med="statins"
 
-out_path<-"results_v4/"
+out_path<-"results_v5/"
 cat("Data paths:\nphenotype traits:", traits_path, "\r\ncovariates:", pheno_path, "phenotype:", pheno_name, "medication name:", med, "\n")
-
+print("v3!")
 # read phenotype traits of interest
 traits <- read.delim(traits_path, header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)
 
@@ -395,8 +458,7 @@ if (run_bootstrap != "T"){
   
   for (predictor in covariates){
     plot_3d(pheno_name, full_fit, merged_tab, covariates, predictor,out_path)
+    plot_2d(pheno_name, full_fit, merged_tab, covariates, predictor,out_path)
     plot_res(pheno_name, full_fit, merged_tab, covariates, predictor, out_path)
   }
 }
-
-

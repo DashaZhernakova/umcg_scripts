@@ -1,9 +1,9 @@
 library(mgcv)
 library(dplyr)
 
-setwd("/groups/umcg-lifelines/tmp01/users/umcg-dzhernakova/gender_difs/prediction_model")
+setwd("/groups/umcg-lifelines/tmp01/projects/ov20_0051/umcg-dzhernakova/gender_difs/prediction_model")
 
-traits_path <- "../v4/data/LL_phenotypes_merged_all.log_some.v5.txt"
+traits_path <- "../v5/data/LL_phenotypes_merged_all.log_some.v5.txt"
 pheno_path <- "age_gender_new_CVD.v5.txt"
 
 traits <- read.delim(traits_path, header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)
