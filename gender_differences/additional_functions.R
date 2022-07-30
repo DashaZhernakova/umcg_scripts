@@ -185,11 +185,12 @@ remove_related_covariates <- function(traits_m, covariateslinear, covariatesnonl
   return(list(linear = covariateslinear2, nonlinear = covariatesnonlinear2))
 }
 
-write_fitted_data <- function(pdat, fitted_res_table, cnt, trait_name, split_by_covariate = ""){
+write_fitted_data <- function(pdat, fitted_res_table, idx, trait_name, split_by_covariate = ""){
   if (split_by_covariate == ""){
+    cnt <- 600*(idx-1) + 1
     fitted_res_table[cnt:(cnt+599),] <- cbind(rep(trait_name, 600), pdat[,c("age", "gender_F1M2", "pred", "lwr", "upr")])
-    row.names(fitted_res_table)[cnt:(cnt+599)] <- rep(pheno_name, 600)
   } else {
+    cnt <- 1200*(idx-1) + 1
     fitted_res_table[cnt:(cnt+299),] <- cbind(rep(trait_name, 300), rep(1, 300), rep(0, 300), pdat[[1]][,c("age", "pred", "lwr", "upr")])
     fitted_res_table[(cnt+300):(cnt+599),] <- cbind(rep(trait_name, 300), rep(1, 300), rep(1, 300), pdat[[1]][,c("age", "pred", "lwr", "upr")])
     fitted_res_table[(cnt+600):(cnt+899),] <- cbind(rep(trait_name, 300), rep(2, 300), rep(0, 300), pdat[[1]][,c("age", "pred", "lwr", "upr")])
