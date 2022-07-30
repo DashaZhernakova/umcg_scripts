@@ -59,7 +59,7 @@ test_polynomial_interaction <- function(merged_tab, model_fam = NO(), gm_mean_co
 
 # Calculates Cohen's R^2 to estimate the local effect size of the variable of interest
 # https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3328081/
-# According to Cohen’s (1988) guidelines, f2>=0.02, f2>=0.15, and f2>=0.35 represent small, medium, and large effect sizes, respectively.
+# According to Cohen?s (1988) guidelines, f2>=0.02, f2>=0.15, and f2>=0.35 represent small, medium, and large effect sizes, respectively.
 calculate_cohens_f2 <- function(mod_full, mod_part){
   r_full <- summary(mod_full)$r.sq
   r_sub <- summary(mod_part)$r.sq
@@ -115,7 +115,7 @@ run_for_split_by_covariate <- function(merged_tab, pheno_name, covariate_to_spli
 
   before <- pdat_list[[1]]$pred - pdat_list[[3]]$pred
   after <- pdat_list[[2]]$pred - pdat_list[[4]]$pred
-  return(c(before, after))
+  return(pdat_list)
 }
 
 run_cross_validation <- function(merged_tab, pheno_name, covariates_linear = c(), covariates_nonlinear = c(), min_age, max_age){
@@ -183,4 +183,17 @@ remove_related_covariates <- function(traits_m, covariateslinear, covariatesnonl
   }
   
   return(list(linear = covariateslinear2, nonlinear = covariatesnonlinear2))
+}
+
+write_fitted_data <- function(pdat, fitted_res_table, cnt, trait_name, split_by_covariate = ""){
+  if (split_by_covariate == ""){
+    fitted_res_table[cnt:(cnt+599),] <- cbind(rep(trait_name, 600), pdat[,c("age", "gender_F1M2", "pred", "lwr", "upr")])
+    row.names(fitted_res_table)[cnt:(cnt+599)] <- rep(pheno_name, 600)
+  } else {
+    fitted_res_table[cnt:(cnt+299),] <- cbind(rep(trait_name, 300), rep(1, 300), rep(0, 300), pdat[[1]][,c("age", "pred", "lwr", "upr")])
+    fitted_res_table[(cnt+300):(cnt+599),] <- cbind(rep(trait_name, 300), rep(1, 300), rep(1, 300), pdat[[1]][,c("age", "pred", "lwr", "upr")])
+    fitted_res_table[(cnt+600):(cnt+899),] <- cbind(rep(trait_name, 300), rep(2, 300), rep(0, 300), pdat[[1]][,c("age", "pred", "lwr", "upr")])
+    fitted_res_table[(cnt+900):(cnt+1199),] <- cbind(rep(trait_name, 300), rep(2, 300), rep(1, 300), pdat[[1]][,c("age", "pred", "lwr", "upr")])
+  }
+  return(fitted_res_table)
 }

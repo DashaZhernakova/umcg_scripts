@@ -18,8 +18,8 @@ getCurrentFileLocation <-  function()
 
 isRStudio <- Sys.getenv("RSTUDIO") == "1"
 if (isRStudio) {
-  script_folder <- "C:/Users/Dasha/work/UMCG/umcg_scripts/gender_differences/"
-  config_path <- "C:/Users/Dasha/work/UMCG/data/gender_differences/omics/results/config_local.yml"
+  script_folder <- "/Users/Dasha/work/UMCG/umcg_scripts/gender_differences/"
+  config_path <- "/Users/Dasha/work/UMCG/data/gender_differences/omics/results/config_local.yml"
 } else {
   args <- commandArgs(trailingOnly = TRUE)
   config_path <- args[1]
@@ -196,8 +196,16 @@ if (runCV){
 
 res_summary <- data.frame()
 res_dif_lst <- data.frame()
-fitted_lines <- data.frame(matrix(nrow = n_points*2, ncol = length(indices)))
-#colnames(fitted_lines) <- colnames(traits_m)[indices]
+if (write_fitted){
+  fitted_lines <- data.frame(matrix(nrow = n_points*2, ncol = length(indices)))
+  if (split_by_covariate == ""){
+    fitted_res_table <- data.frame(matrix(ncol = 6, nrow = 600*num_traits))
+    colnames(fitted_res_table) <- c("Phenotype", "age", "sex_F1M2", "predicted_value", "lower_CI", "upper_CI")
+  } else {
+    fitted_res_table <- data.frame(matrix(ncol = 7, nrow = 2*600*num_traits))
+    colnames(fitted_res_table) <- c("Phenotype", "sex_F1M2", "covariate", "age", "predicted_value", "lower_CI", "upper_CI")
+  }
+}
 
 cnt = 1
 cnt_sign <- 1
@@ -245,12 +253,15 @@ for (idx in indices){
     res_summary[trait_name,'age_gam_f2'] = age_sex_only[4]
 
     
-    if (write_fitted) fitted_lines[,trait_name] = res_dif_lst[["pdat"]]$pred
+    if (write_fitted) {
+      fitted_lines[,trait_name] = res_dif_lst[["pdat"]]$pred
+      fitted_res_table <- write_fitted_data (res_dif_lst[["pdat"]], fitted_res_table, idx, trait_name)
+    }
 
   } else {
-    res_diff <- run_for_split_by_covariate(merged_tab, trait_name, covariate_to_split = split_by_covariate , highlight_positive = highlight_positive_in_split, covariates_linear = covariateslinear, covariates_nonlinear = covariatesnonlinear, n_points = n_points, make_plots = make_plots, gam_family = gam_family, plot_points = plot_points, log_tr = log_transform, min_age = min_age, max_age = max_age)
-    if (write_fitted) fitted_lines[,trait_name] = res_diff
-    cat(cor(res_diff[seq(1,300)], res_diff[seq(301,600)], method = "spearman"))
+    pdat_lst <- run_for_split_by_covariate(merged_tab, trait_name, covariate_to_split = split_by_covariate , highlight_positive = highlight_positive_in_split, covariates_linear = covariateslinear, covariates_nonlinear = covariatesnonlinear, n_points = n_points, make_plots = make_plots, gam_family = gam_family, plot_points = plot_points, log_tr = log_transform, min_age = min_age, max_age = max_age)
+    if (write_fitted) fitted_res_table <- write_fitted_data (pdat_lst, fitted_res_table, idx, trait_name, split_by_covariate)
+    #cat(cor(res_diff[seq(1,300)], res_diff[seq(301,600)], method = "spearman"))
   }
 }
 res_summary$inter_p_adj_BH <- p.adjust(res_summary$inter_p, method = "BH")
@@ -262,7 +273,10 @@ res_summary$sex_gam_pv_adj_BH <- p.adjust(res_summary$sex_gam_pv, method = "BH")
 res_summary$inter_p_adj_bonferroni <- p.adjust(res_summary$inter_p, method = "bonferroni")
 res_summary$g_lm_pv_adj_bonferroni <- p.adjust(res_summary$g_lm_pv, method = "bonferroni")
 write.table(res_summary, file = paste0(out_table_path, "_summary.txt"), sep = "\t", quote = F, col.names = NA)
-if (write_fitted) write.table(fitted_lines, file = paste0(out_table_path, "_fitted.txt"), sep = "\t", quote = F, col.names = NA)
+if (write_fitted) {
+  write.table(fitted_lines, file = paste0(out_table_path, "_fitted.txt"), sep = "\t", quote = F, col.names = NA)
+  write.table(fitted_res_table, file = paste0(out_table_path, "_datasource.txt"), sep = "\t", quote = F, col.names = NA)
+}
 if (plot_density) write_plots_cowplot(plots, plot_path)
 
 if (make_plots){
