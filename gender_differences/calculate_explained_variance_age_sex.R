@@ -33,14 +33,14 @@ for (idx in indices){
   cnt <- cnt + 1
 }
 write.table(res_rsq_table, file = paste0(out_basepath, "/tables/explained_variance_olink.txt"), sep = "\t", quote = F, row.names = F)
-res_rsq_table <- read.delim(paste0(out_basepath, "/tables/explained_variance_olink.txt"), sep = "\t",  as.is = T, header = 1)
+res_rsq_table <- read.delim(paste0(out_basepath, "/tables/explained_variance_nmr.txt"), sep = "\t",  as.is = T, header = 1)
 row.names(res_rsq_table) <- colnames(traits_m)
 # from https://stackoverflow.com/questions/67504090/add-percentage-labels-inside-bars-in-circos-barplot-in-circlize
 library(circlize)
  
 
 # NMR
-setwd("C:/Users/Dasha/work/UMCG/data/gender_differences/omics/results/")
+setwd("/Users/Dasha/work/UMCG/data/gender_differences/omics/results/")
 
 max_h <- max(rowSums(res_rsq_table))
 t <- (res_rsq_table/max_h)
@@ -48,7 +48,7 @@ t$rest <- 1-rowSums(t)
 barcolor = c("#BDBDBD", "#66C2A5", "#FC8D62", "#8DA0CB",  "#FFFFFF")
 labelcolor <- c(brewer.pal(n = 8, name = "Dark2"), brewer.pal(n = 12, name = "Paired"))
 #hc=reorder(hclust(dist(t)),-as.matrix(t)%*%seq(ncol(t))^2)
-d <- read.delim("C:/Users/Dasha/work/UMCG/data/gender_differences/omics/results/results/tables/nmr_corrected_bmi_smk1_statins_bonferroni.gam_coefficients.txt", header = T, sep = "\t", as.is = T, check.names = F, row.names = 1)
+d <- read.delim("/Users/Dasha/work/UMCG/data/gender_differences/omics/results/results/tables/nmr_corrected_bmi_smk1_statins_bonferroni.gam_coefficients.txt", header = T, sep = "\t", as.is = T, check.names = F, row.names = 1)
 fitted_matrix <- read.delim("results/tables/nmr_corrected_bmi_smk1_statins_bonferroni_fitted.txt", header = T, row.names = 1, sep = "\t", as.is = T, check.names = F)
 #d <- read.delim("C:/Users/Dasha/work/UMCG/data/gender_differences/omics/results/data/CVD3_olinkNormal_1447_LLDsamples_ProtNames.txt", header = T, sep = "\t", as.is = T, check.names = F, row.names = 1)
 #cormat <- cor(t(d), method = "spearman", use="pairwise.complete.obs")
@@ -67,7 +67,7 @@ dend <- as.dendrogram(hc)
 #dend=color_branches(as.dendrogram(hc),k=length(unique(cut)),
 #                    col=labelcolor[unique(cut[labels])])
 circos.clear()
-pdf(paste0(out_basepath, "plots/circos_barplot_olink.gam_hclust_eucl_fitted_cv2.pdf"),width = 20, height = 20)
+pdf(paste0(out_basepath, "plots/circos_barplot_nmr.gam_hclust_eucl_fitted_cv3.pdf"),width = 20, height = 20, useDingbats = F)
 #png(paste0(out_basepath, "plots/circos_barplot_olink.abs.hclust_orig_cv.png"),width = 2000, height = 2000, res = 300)
 
 circos.par(cell.padding=c(0,0,0,0), start.degree = 0)
@@ -75,7 +75,7 @@ circos.initialize("a",xlim=c(0,nrow(t)))
 
 circos.track(ylim=c(0,1),track.height=.2,track.margin=c(0,0),bg.border=NA,
              panel.fun=function(x,y)for(i in 1:nrow(t))circos.text(i-.5,0,labels[i],adj=c(0,.5),
-                                                                   facing="clockwise",niceFacing=T,cex=.85,col= "black"))
+                                                                   facing="clockwise",niceFacing=T,cex=1.3,col= "black"))
 
 circos.track(ylim=c(0,1),track.height=.3,track.margin=c(0,.01),bg.border=NA,
              panel.fun=function(x,y)circos.barplot(as.matrix(t)[ord,],-.5+1:nrow(t),
@@ -100,42 +100,48 @@ signif_inters <- row.names(signif[signif$inter_p_adj_bonferroni < 0.05,])
 pdf(paste0("results/plots/nmr_trajectories_selected.v2022.pdf"), width = 20, height = 20)
 par(mfrow=c(5,4))
 
-
+all_clusters_fitted <- data.frame()
 st <- "Crea"
 end <- "Leu"
 lipids <- labels[which(labels == st) : which(labels == end)]
 draw_multiple_fitted_lines(as.data.frame(fitted_matrix[,lipids]), signif_inters, plot_title = paste0(st, " - ", end))
-
 
 st <- "S.HDL.PL_p"
 end <- "S.LDL.PL_p"
 
 lipids <- labels[which(labels == st) : which(labels == end)]
 draw_multiple_fitted_lines(as.data.frame(fitted_matrix[,lipids]), signif_inters, plot_title = paste0(st, " - ", end))
+all_clusters_fitted <- t(fitted_matrix[,lipids])
 
 st <- "XL.HDL.FC"
 end <- "L.HDL.CE"
 
 lipids <- labels[which(labels == st) : which(labels == end)]
 draw_multiple_fitted_lines(as.data.frame(fitted_matrix[,lipids]), signif_inters, plot_title = paste0(st, " - ", end))
+all_clusters_fitted <- rbind(all_clusters_fitted, t(fitted_matrix[,lipids]))
 
 st <- "S.HDL.C_p"
-end <- "S.LDL.CE_p"
+end <- "IDL.FC"
 lipids <- labels[which(labels == st) : which(labels == end)]
 draw_multiple_fitted_lines(as.data.frame(fitted_matrix[,lipids]), signif_inters, plot_title = paste0(st, " - ", end))
+all_clusters_fitted <- rbind(all_clusters_fitted, t(fitted_matrix[,lipids]))
 
 st <- "XL.HDL.C"
 end <- "TotCho"
 
 lipids <- labels[which(labels == st) : which(labels == end)]
 draw_multiple_fitted_lines(as.data.frame(fitted_matrix[,lipids]), signif_inters, plot_title = paste0(st, " - ", end))
+all_clusters_fitted <- rbind(all_clusters_fitted, t(fitted_matrix[,lipids]))
 
 st <- "L.VLDL.TG"
-end <- "M.VLDL.CE"
+end <- "M.HDL.TG_p"
 lipids <- labels[which(labels == st) : which(labels == end)]
 draw_multiple_fitted_lines(as.data.frame(fitted_matrix[,lipids]), signif_inters, plot_title = paste0(st, " - ", end))
+all_clusters_fitted <- rbind(all_clusters_fitted, t(fitted_matrix[,lipids]))
 
 dev.off()
+
+write.table(all_clusters_fitted, file =  "results/tables/nmr_trajectories_selected.v2022.txt", sep = "\t", quote = F, col.names = NA)
 ## Percentage
 t <- res_rsq_table_perc
 #hc=reorder(hclust(dist(t)),-as.matrix(t)%*%seq(ncol(t))^2)

@@ -1,7 +1,7 @@
 library(corrplot)
 phenos <- c("AF", "ALT", "AST","CA", "FOS", "NAA",  "SBP", "CHO",  "LDC", "TGL", "HALB","GR", "ER", "HT", "BALB", "UZ")
 #path <- "/groups/umcg-lifelines/tmp01/users/umcg-dzhernakova/gender_difs/factors/results/"
-setwd("C:/Users/Dasha/work/UMCG/data/gender_differences/omics/all_LL/lifestyle_factors/")
+setwd("/Users/Dasha/work/UMCG/data/gender_differences/omics/all_LL/lifestyle_factors/")
 path <- "tables/"
 
 bootstrap_res <- data.frame()

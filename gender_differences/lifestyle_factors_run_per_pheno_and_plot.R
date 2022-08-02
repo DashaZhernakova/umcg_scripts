@@ -47,6 +47,7 @@ plot_3d <- function(pheno_name, gam.fit, merged_tab, covariates, predictor,  out
     pdat$upr <- exp(pdat$upr) - 1
   }
   
+  write.table(pdat, file = paste0(out_path, "/", pheno_name, "_vs_", predictor, ".3d.datasource.txt"), sep = "\t", quote = F, col.names = NA)
   
   #pheno_name = "CHO"
   colnames(pdat) <- gsub(predictor,"predictor", colnames(pdat))
