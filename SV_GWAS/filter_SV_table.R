@@ -12,7 +12,7 @@ run_qc_per_sv <- function(d, cohort_name, outpath, cr = 0.1){
     qc$num_called <- qc[,1] + qc[,2]
     qc$presence_rate <- qc[,2]/qc$num_called
     qc$call_rate <- qc$num_called / (qc[,1] + qc[,2] + qc[,3])
-
+    write.table(qc, file = paste0(outpath, ".qc_per_SV.txt",sep = "\t"), quote = F, col.names = NA)
     pdf(paste0(outpath, ".qc_per_SV.CR",cr, ".pdf"), useDingbats = F)
     par(mfrow=c(2,2))
     hist(qc$num_called, breaks = 100, main = "Number of called dSV", col = "black")

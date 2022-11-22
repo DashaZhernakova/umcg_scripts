@@ -32,6 +32,11 @@ def main(args):
 
     add_dict = {}
     add_col_names = []
+    
+    if f_cols == ["all"]:
+        f_line = open(args['f_fname']).readline().rstrip("\r\n").split(sep)
+        ncols = len(f_line)
+        f_cols = range(1,ncols)
     with open(args['f_fname']) as f_file:
         if args['header']:
             header = f_file.readline().rstrip("\r\n").split(sep)
@@ -65,4 +70,3 @@ def main(args):
 if __name__ == "__main__":
     args = vars(parseArguments())
     main(args)
-

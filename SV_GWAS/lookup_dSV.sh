@@ -4,7 +4,7 @@ module load PLINK
 module load Metal
 
 type=dSV
-d=/data/umcg-tifn/SV/SV_GWAS/
+d=/groups/umcg-lifelines/tmp01/projects/dag3_fecal_mgs/umcg-dzhernakova/SV_GWAS/
 
 sv=$1
 snp=$2
@@ -17,8 +17,8 @@ meta_out_dir=${d}/results/${type}/meta/${sv}/
 meta_out_filebase=${meta_out_dir}/${sv}-${snp}.meta_res
 mkdir -p ${d}/results/${type}/meta/${sv}/
 
-metal_script=/data/umcg-tifn/SV/SV_GWAS/scripts/metal_per_sv/${sv}.metal.txt
-cat /data/umcg-tifn/SV/SV_GWAS/scripts/metal_header.txt > $metal_script
+metal_script=${d}/scripts/metal_per_sv/${sv}.metal.txt
+cat ${d}/scripts/metal_header.txt > $metal_script
 
 # check in which cohorts the SV is present
 IFS=',' read -ra cohorts_with_sv <<< `grep -w $sv ${d}/data/dSV_per_cohort.txt | cut -f6`
@@ -28,10 +28,8 @@ do
     echo -e "\n\nRunning the analysis for ${cohort}\n\n"
 
     res_dir=${d}/results/${type}/${cohort}/${sv}/
-    mkdir -p ${res_dir}/permutations/
-
+    mkdir -p $res_dir
     geno_file=${d}/genotypes/${cohort}/${cohort}_filtered
-    perm_fam_dir=${d}/genotypes/${cohort}/permuted/
     pheno_file=${d}/data/${cohort}.${type}.filtered.txt
     covar_file=${d}/data/${cohort}.covariates.txt
 
