@@ -1,6 +1,5 @@
 import subprocess
 import sys
-
 with open(sys.argv[1]) as f:
     header = f.readline()
     print(header + "\tzscores_per_cohort\tpvalues_per_cohort\theterogeneity_pvalue")

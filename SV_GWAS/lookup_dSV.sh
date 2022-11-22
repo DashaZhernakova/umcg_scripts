@@ -1,45 +1,35 @@
 #!/bin/bash
-
 module load PLINK
 module load Metal
-
 type=dSV
 d=/groups/umcg-lifelines/tmp01/projects/dag3_fecal_mgs/umcg-dzhernakova/SV_GWAS/
-
 sv=$1
 snp=$2
 echo "sv=$sv, snp=$snp"
 sp=`grep -w "$sv" ${d}/data/sv_name_conversion_table.txt | cut -f4 | uniq`
 all_zscores=()
 all_pvals=()
-
 meta_out_dir=${d}/results/${type}/meta/${sv}/
 meta_out_filebase=${meta_out_dir}/${sv}-${snp}.meta_res
 mkdir -p ${d}/results/${type}/meta/${sv}/
-
 metal_script=${d}/scripts/metal_per_sv/${sv}.metal.txt
 cat ${d}/scripts/metal_header.txt > $metal_script
-
 # check in which cohorts the SV is present
 IFS=',' read -ra cohorts_with_sv <<< `grep -w $sv ${d}/data/dSV_per_cohort.txt | cut -f6`
-
 for cohort in ${cohorts_with_sv[@]}
 do
     echo -e "\n\nRunning the analysis for ${cohort}\n\n"
-
     res_dir=${d}/results/${type}/${cohort}/${sv}/
     mkdir -p $res_dir
     geno_file=${d}/genotypes/${cohort}/${cohort}_filtered
     pheno_file=${d}/data/${cohort}.${type}.filtered.txt
     covar_file=${d}/data/${cohort}.covariates.txt
-
     covars="age,read_number,$sp,PC1,PC2"
     if [ $cohort == "DAG3" ]
     then
         echo "DAG3! Use PCs 1-5"
         covars="age,read_number,$sp,PC1,PC2,PC3,PC4,PC5"
     fi
-
     #
     # run real GWAS analysis
     #
@@ -68,7 +58,6 @@ do
         ${res_dir}/${type}.${cohort}.${sv}.${snp}.${sv}.glm.logistic | gzip -c > ${res_dir}/${type}.${cohort}.${sv}.${snp}.${sv}.glm.logistic.gz
         
         rm ${res_dir}/${type}.${cohort}.${sv}.${snp}.${sv}.glm.logistic
-
         echo -e "PROCESS\t${res_dir}/${type}.${cohort}.${sv}.${snp}.${sv}.glm.logistic.gz\n" >> $metal_script
     fi
 done
@@ -77,12 +66,8 @@ done
 #
 echo -e "OUTFILE\t${meta_out_filebase} .tbl\nANALYZE HETEROGENEITY\nQUIT" >> $metal_script
 metal $metal_script
-
 het_pval=`cut -f11 ${meta_out_filebase}1.tbl | tail -n+2`
-
 cohorts_joined=`printf -v var '%s,' "${cohorts_with_sv[@]}"; echo "${var%,}"`
 zscores_joined=`printf -v var '%s,' "${all_zscores[@]}"; echo "${var%,}"`
 pvals_joined=`printf -v var '%s,' "${all_pvals[@]}"; echo "${var%,}"`
-
 echo -e "$zscores_joined $pvals_joined $het_pval"
-
