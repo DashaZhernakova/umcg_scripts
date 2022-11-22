@@ -18,7 +18,7 @@ cat ${d}/scripts/metal_header.txt > $metal_script
 IFS=',' read -ra cohorts_with_sv <<< `grep -w $sv ${d}/data/dSV_per_cohort.txt | cut -f6`
 for cohort in ${cohorts_with_sv[@]}
 do
-    echo -e "\n\nRunning the analysis for ${cohort}\n\n"
+	echo -e "\n\nRunning the analysis for ${cohort}\n\n"
     res_dir=${d}/results/${type}/${cohort}/${sv}/
     mkdir -p $res_dir
     geno_file=${d}/genotypes/${cohort}/${cohort}_filtered
