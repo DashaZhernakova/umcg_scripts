@@ -10,7 +10,7 @@ with open(sys.argv[1]) as f:
         spl = l.rstrip().split("\t")
         snp = spl[snp_col]
         sv = spl[sv_col]
-        output = subprocess.check_output(['sh', '~/scripts/umcg_scripts/SV_GWAS/lookup_dSV.sh', sv, snp])
+        output = subprocess.check_output(['sh', '/home/umcg-dzhernakova/scripts/umcg_scripts/SV_GWAS/lookup_dSV.sh', sv, snp])
         res = output.split("\n")[-2].split(" ")
         spl.extend(res)
         print("\t".join(spl))

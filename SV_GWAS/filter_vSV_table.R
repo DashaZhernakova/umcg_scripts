@@ -1,9 +1,14 @@
+#
+# Filter the vSV table to remove SVs with low call rate and remove samples with low call rate.
+# Write filtered SV tables per cohort and a file showing for each SV the cohorts that has it
+#
+
 args <- commandArgs(trailingOnly = TRUE)
 library(UpSetR)
 library(tibble)
 library(dplyr)
 
-infile <- args[1]
+infile <- args[1] # Original raw SV table
 cohort_table <- args[2]
 
 run_qc_per_sv <- function(d, cohort_name, outpath, cr = 0.1){

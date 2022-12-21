@@ -24,19 +24,49 @@ recode_genotypes <- function(geno, a1, a2){
     return(geno)
 }
 
-make_plots_dSV <- function(m, out_fname, svtype, sv_name){
+make_plots<- function(m, svtype, sv_name, pval){
+    if (svtype == "dSV"){
     colors = c("#d2d6db", "#225EA8", "#CC4C02")
     p1 <- ggplot(m, aes(x = geno_factor)) +
         geom_bar(aes(fill = sv_text), position = "fill") +
         scale_fill_manual(sv, values = alpha( c(colors), 0.5)) +
-        theme_classic() + labs( x = rsid, y = paste0("fraction of samples with ", svtype))
+        theme_classic() + 
+        labs(title=paste0(c, " ", sv, " : ", rsid, "\nP = ", formatC(pval, digits = 4)), x = rsid, y = paste0("fraction of samples with ", svtype))
+	} else if (svtype == "vSV"){
+	colors = c("#225EA8", "#CC4C02")
 
+    p1 <- ggplot(m, aes(x = geno_factor, y = sv_corrected)) +
+        geom_violin(trim=FALSE, color = colors[1]) +
+        geom_boxplot(width=0.5, color = colors[1]) +
+        labs(title=paste0(c, " ", sv, " : ", rsid, "\nP = ", formatC(pval, digits = 4)), x = "genotype", y = paste0(svtype, " corrected abundance")) +
+        theme_classic() + theme(legend.position = "none") +
+        scale_color_manual(values = c(colors[1]))
+	}
     
-    pdf(out_fname, width = 8, height = 8)
-    print(1)
-    dev.off()
+    return(p1)
 
 }
+
+
+print_association_p <- function(m, svtype){
+
+    covars = "abundance + PC1 + PC2 + age + read_number + sex"
+    if (c == "DAG3"){
+        covars = "abundance + PC1 + PC2 + PC3 + PC4 + PC5 + age + read_number + sex"
+    }
+
+    if (svtype == "vSV"){
+        lm_g <- lm(as.formula(paste0("sv ~ genotype + ", covars)), d = m)
+        
+    } else if (svtype == "dSV"){
+        lm_g <- glm(as.formula(paste0("sv ~ genotype + ", covars)), d = m, family = binomial(link = "logit"))
+    }
+    return(summary(lm_g)$coefficients["genotype",4])
+}
+
+
+plot_list <- list()
+cnt <- 1
 for (c in cohorts){
     print(c)
     pheno <- read.delim(paste0("/groups/umcg-lifelines/tmp01/projects/dag3_fecal_mgs/umcg-dzhernakova/SV_GWAS/data/", c, ".", svtype, ".filtered.txt"), header = T, sep = "\t", as.is = T, check.names = F, row.names = 1)
@@ -83,16 +113,19 @@ for (c in cohorts){
 
     m$sv_corrected <- residuals(fit_covar)
     m$abundance_corrected <- residuals(fit_covar_abund)
-
-	if (svtype == "vSV"){
-		make_plots_vSV(m, paste0(c, ".", rsid, ".", sv, ".", svtype, ".pdf"), svtype, sv_name)
-
-	} else if (svtype == "dSV"){
+	pval <- print_association_p(m, svtype)
+	
+	if (svtype == "dSV"){
 		# add sdev
 		m[m$sv == 1, "sv_text"] <- "deletion"
 		m[m$sv == 2, "sv_text"] <- "no deletion"
-		m$sv_text <- as.factor(m$sv_text)
-		make_plots_dSV(m, paste0(c, ".", rsid, ".", sv, ".", svtype,".pdf"), svtype, sv_name)
-	
+		m$sv_text <- as.factor(m$sv_text)	
 	}
+	plot_list[[cnt]] <- make_plots(m, svtype, sv_name, pval)
+	cnt <- cnt + 1
 }
+
+
+pdf(paste0("all_cohorts.", rsid, ".", sv, ".", svtype,".pdf"), width = 15, height = 5)
+plot_list[[1]] + plot_list[[2]] + plot_list[[3]]
+dev.off()
