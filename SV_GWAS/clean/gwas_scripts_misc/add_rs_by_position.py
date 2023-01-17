@@ -25,7 +25,8 @@ col_num = int(sys.argv[3]) # number of the column containing SNPs in in_f
 
 snp2rs = defaultdict()
 with open(in_f) as f:
-    print(f.readline().rstrip())
+    header = f.readline().rstrip().split("\t")
+    print ("\t".join(header[:col_num] + ["rs_id"] + header[col_num:]))
     for l in f:
         spl = l.strip().split("\t")
         snp = spl[col_num]
