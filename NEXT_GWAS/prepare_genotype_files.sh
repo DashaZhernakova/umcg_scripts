@@ -60,6 +60,13 @@ bash ${script_dir}/NEXT_genotype_QC.sh
 # removed relatives and for mothers PC3 outliers
 # filtered genotypes written to *postQC files
 
+# add sex for babies
+plink2 --bfile ${d}/all_chr.babies.postQC --update-sex ${d}/baby_sex.txt --make-bed --out ${d}/all_chr.babies.postQC.2
+mv ${d}/all_chr.babies.postQC.2.fam ${d}/all_chr.babies.postQC.fam
+mv ${d}/all_chr.babies.postQC.2.bim ${d}/all_chr.babies.postQC.bim
+mv ${d}/all_chr.babies.postQC.2.bed ${d}/all_chr.babies.postQC.bed
+
+
 # Convert to Trityper
 #java  -Xms50g -Xmx50g -jar ~/tools/GenotypeHarmonizer-1.4.23/GenotypeHarmonizer.jar -i ${d}/all_chr.mothers.postQC -I PLINK_BED -o ${d}/NEXT_mothers -O TRITYPER
 #java  -Xms50g -Xmx50g -jar ~/tools/GenotypeHarmonizer-1.4.23/GenotypeHarmonizer.jar -i ${d}/all_chr.babies.postQC -I PLINK_BED -o ${d}/NEXT_babies -O TRITYPER
